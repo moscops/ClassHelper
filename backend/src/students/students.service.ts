@@ -102,7 +102,7 @@ export class StudentsService {
       const { enrollments, ...rest } = s;
       return {
         ...rest,
-        enrolledClasses: enrollments.map((e) => ({
+        enrolledClasses: (enrollments || []).map((e) => ({
           id: e.class.id,
           name: e.class.name,
           subject: e.class.subject,
