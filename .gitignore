@@ -50,3 +50,7 @@ coverage/
 prisma/*.db
 prisma/*.db-journal
 generated/
+
+# AI / Assistant custom rules
+gemini.md
+
