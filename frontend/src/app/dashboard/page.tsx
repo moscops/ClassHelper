@@ -161,6 +161,12 @@ export default function DashboardPage() {
               >
                 반 & 수강생 관리
               </Link>
+              <Link
+                href="/attendance"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                1초 출결 체크
+              </Link>
             </nav>
           </div>
 
@@ -269,23 +275,26 @@ export default function DashboardPage() {
             </Link>
 
             {/* 3. 1초 출결 체크 */}
-            <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-200 dark:hover:border-emerald-700/50 hover:shadow-sm transition-all shadow-xs flex flex-col justify-between">
+            <Link
+              href="/attendance"
+              className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/60 hover:shadow-md transition-all shadow-xs flex flex-col justify-between group cursor-pointer"
+            >
               <div>
-                <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3 group-hover:scale-105 transition-transform">
                   <CalendarCheck2 className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                   1초 출결 체크
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  모바일 원터치 출결(출석, 결석, 지각) 및 보강 관리
+                  원터치 모바일 출결(출석, 결석, 지각, 조퇴) 및 보강 관리
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-                <span>Phase 4 예정</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span>출결 체크 바로가기</span>
+                <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </div>
-            </div>
+            </Link>
 
             {/* 4. 수강료 & 수납 */}
             <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-amber-200 dark:hover:border-amber-700/50 hover:shadow-sm transition-all shadow-xs flex flex-col justify-between">
