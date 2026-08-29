@@ -7,6 +7,7 @@
     "backend:test": "yarn --cwd backend test",
     "backend:prisma:generate": "yarn --cwd backend prisma:generate",
     "backend:prisma:migrate": "yarn --cwd backend prisma:migrate",
+    "backend:prisma:seed": "yarn --cwd backend prisma:seed",
     "frontend:dev": "yarn --cwd frontend dev",
     "frontend:build": "yarn --cwd frontend build",
     "frontend:lint": "yarn --cwd frontend lint",
