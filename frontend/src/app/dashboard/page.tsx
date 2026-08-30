@@ -43,12 +43,12 @@ export default function DashboardPage() {
 
   // Load Unattended Status
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isHydrated && isAuthenticated) {
       loadUnattendedStatus();
       const interval = setInterval(loadUnattendedStatus, 20000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated]);
+  }, [isHydrated, isAuthenticated]);
 
   const loadUnattendedStatus = async () => {
     try {

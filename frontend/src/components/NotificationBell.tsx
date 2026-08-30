@@ -20,9 +20,11 @@ import {
   NotificationItem,
   UnreadCountResponse,
 } from '@/lib/notifications-service';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export function NotificationBell() {
   const router = useRouter();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [unreadInfo, setUnreadInfo] = useState<UnreadCountResponse>({
     unreadCount: 0,
     unattendedAlertCount: 0,
@@ -37,12 +39,14 @@ export function NotificationBell() {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Poll unread count every 30 seconds
+  // Poll unread count every 30 seconds only when authenticated
   useEffect(() => {
-    loadUnreadCount();
-    const interval = setInterval(loadUnreadCount, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    if (isHydrated && isAuthenticated) {
+      loadUnreadCount();
+      const interval = setInterval(loadUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isHydrated, isAuthenticated]);
 
   // Close dropdown on click outside
   useEffect(() => {

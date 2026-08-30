@@ -132,11 +132,11 @@ export default function AttendancePage() {
 
   // Load classes list
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isHydrated && isAuthenticated) {
       loadClasses();
       loadUnattendedStatus(selectedDate);
     }
-  }, [isAuthenticated]);
+  }, [isHydrated, isAuthenticated]);
 
   // Load roster when selected class or date changes
   useEffect(() => {

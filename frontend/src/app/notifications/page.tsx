@@ -80,10 +80,10 @@ export default function NotificationsPage() {
 
   // Fetch notifications
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isHydrated && isAuthenticated) {
       loadNotifications();
     }
-  }, [isAuthenticated, activeTab, isReadFilter, debouncedSearch, currentPage]);
+  }, [isHydrated, isAuthenticated, activeTab, isReadFilter, debouncedSearch, currentPage]);
 
   const loadNotifications = async () => {
     setIsLoading(true);
