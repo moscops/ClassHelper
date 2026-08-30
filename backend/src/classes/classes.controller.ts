@@ -24,7 +24,10 @@ import { ClassesService } from './classes.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { QueryClassDto } from './dto/query-class.dto';
-import { ClassResponseDto, PaginatedClassResponseDto } from './dto/class-response.dto';
+import {
+  ClassResponseDto,
+  PaginatedClassResponseDto,
+} from './dto/class-response.dto';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { EnrollmentResponseDto } from './dto/enrollment-response.dto';
@@ -48,7 +51,8 @@ export class ClassesController {
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @ApiOperation({
     summary: '수업 반 신규 개설',
-    description: '과목, 학년, 담당 강사, 시간표, 정원, 월 수강료를 지정하여 새로운 반을 개설합니다. (원장, 실장 전용)',
+    description:
+      '과목, 학년, 담당 강사, 시간표, 정원, 월 수강료를 지정하여 새로운 반을 개설합니다. (원장, 실장 전용)',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -65,7 +69,8 @@ export class ClassesController {
   @Get()
   @ApiOperation({
     summary: '수업 반 목록 검색 및 페이징 조회',
-    description: '반 이름, 과목, 강사, 상태별 필터링 및 현재 수강생 수 집계를 제공합니다.',
+    description:
+      '반 이름, 과목, 강사, 상태별 필터링 및 현재 수강생 수 집계를 제공합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -82,7 +87,8 @@ export class ClassesController {
   @Get(':id')
   @ApiOperation({
     summary: '수업 반 상세 정보 및 수강생 명단 조회',
-    description: '반 기본 정보와 현재 수강 중인 학생들의 목록을 함께 조회합니다.',
+    description:
+      '반 기본 정보와 현재 수강 중인 학생들의 목록을 함께 조회합니다.',
   })
   @ApiParam({ name: 'id', description: '수업 반 ID', example: 1 })
   @ApiResponse({
@@ -100,7 +106,8 @@ export class ClassesController {
   @Roles(UserRole.OWNER, UserRole.ADMIN)
   @ApiOperation({
     summary: '수업 반 정보 수정',
-    description: '반 명칭, 시간표, 담당 강사, 정원, 수강료, 운영 상태 등을 수정합니다.',
+    description:
+      '반 명칭, 시간표, 담당 강사, 정원, 수강료, 운영 상태 등을 수정합니다.',
   })
   @ApiParam({ name: 'id', description: '수업 반 ID', example: 1 })
   @ApiResponse({
@@ -138,7 +145,8 @@ export class ClassesController {
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
   @ApiOperation({
     summary: '특정 반에 원생 수강 등록 (반 배정)',
-    description: '원생을 특정 반에 배정합니다. 정원 초과 여부와 중복 등록 여부를 자동 검증합니다.',
+    description:
+      '원생을 특정 반에 배정합니다. 정원 초과 여부와 중복 등록 여부를 자동 검증합니다.',
   })
   @ApiParam({ name: 'classId', description: '수업 반 ID', example: 1 })
   @ApiResponse({
@@ -157,10 +165,16 @@ export class ClassesController {
   @Get(':classId/enrollments')
   @ApiOperation({
     summary: '특정 반의 수강생 목록 조회',
-    description: '해당 반에 배정된 학생들의 명단, 연락처, 수강 상태를 조회합니다.',
+    description:
+      '해당 반에 배정된 학생들의 명단, 연락처, 수강 상태를 조회합니다.',
   })
   @ApiParam({ name: 'classId', description: '수업 반 ID', example: 1 })
-  @ApiQuery({ name: 'status', required: false, enum: EnrollmentStatus, description: '수강 상태 필터' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: EnrollmentStatus,
+    description: '수강 상태 필터',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: '수강생 목록 조회 성공',

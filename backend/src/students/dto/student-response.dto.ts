@@ -88,7 +88,10 @@ export class StudentClassSummaryDto {
 }
 
 export class StudentDetailResponseDto extends StudentResponseDto {
-  @ApiProperty({ type: [StudentClassSummaryDto], description: '현재 수강 중인 반 목록' })
+  @ApiProperty({
+    type: [StudentClassSummaryDto],
+    description: '현재 수강 중인 반 목록',
+  })
   classes: StudentClassSummaryDto[];
 }
 

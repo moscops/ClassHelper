@@ -1,0 +1,74 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-ci:
+    name: Backend (NestJS + Prisma) CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: 'backend/yarn.lock'
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: yarn install --prefer-offline --ignore-engines
+
+      - name: Generate Prisma Client
+        working-directory: backend
+        run: yarn prisma:generate
+
+      - name: Lint Backend Code
+        working-directory: backend
+        run: yarn lint
+
+      - name: Run Backend Unit Tests
+        working-directory: backend
+        run: yarn test --passWithNoTests
+
+      - name: Build Backend Application
+        working-directory: backend
+        run: yarn build
+
+  frontend-ci:
+    name: Frontend (Next.js 16) CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: 'frontend/yarn.lock'
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: yarn install --prefer-offline --ignore-engines
+
+      - name: Lint Frontend Code
+        working-directory: frontend
+        run: yarn lint
+
+      - name: Build Frontend Application
+        working-directory: frontend
+        run: yarn build

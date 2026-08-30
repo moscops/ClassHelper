@@ -18,7 +18,10 @@ import {
   ClassDailyRosterResponseDto,
   ClassRosterStudentDto,
 } from './dto/attendance-response.dto';
-import { AttendanceStatsResponseDto, DailyAttendanceStatDto } from './dto/attendance-stats-response.dto';
+import {
+  AttendanceStatsResponseDto,
+  DailyAttendanceStatDto,
+} from './dto/attendance-stats-response.dto';
 import { AttendanceStatus, EnrollmentStatus, Prisma } from '@prisma/client';
 
 @Injectable()
@@ -40,7 +43,9 @@ export class AttendanceService {
     const parsedDate = this.parseDateOnly(dto.date);
 
     const checkInDateTime = dto.checkInTime ? new Date(dto.checkInTime) : null;
-    const checkOutDateTime = dto.checkOutTime ? new Date(dto.checkOutTime) : null;
+    const checkOutDateTime = dto.checkOutTime
+      ? new Date(dto.checkOutTime)
+      : null;
 
     const attendance = await this.prisma.attendance.upsert({
       where: {
@@ -127,11 +132,17 @@ export class AttendanceService {
           where: { id: record.studentId, academyId },
         });
         if (!student) {
-          throw new BadRequestException(`수강생 ID ${record.studentId}는 해당 학원 소속이 아닙니다.`);
+          throw new BadRequestException(
+            `수강생 ID ${record.studentId}는 해당 학원 소속이 아닙니다.`,
+          );
         }
 
-        const checkIn = record.checkInTime ? new Date(record.checkInTime) : null;
-        const checkOut = record.checkOutTime ? new Date(record.checkOutTime) : null;
+        const checkIn = record.checkInTime
+          ? new Date(record.checkInTime)
+          : null;
+        const checkOut = record.checkOutTime
+          ? new Date(record.checkOutTime)
+          : null;
 
         const att = await tx.attendance.upsert({
           where: {
@@ -146,7 +157,9 @@ export class AttendanceService {
             checkInTime: checkIn,
             checkOutTime: checkOut,
             reason: record.reason,
-            isMakeupNeeded: record.isMakeupNeeded ?? (record.status === AttendanceStatus.ABSENT),
+            isMakeupNeeded:
+              record.isMakeupNeeded ??
+              record.status === AttendanceStatus.ABSENT,
             memo: record.memo,
           },
           create: {
@@ -158,7 +171,9 @@ export class AttendanceService {
             checkInTime: checkIn,
             checkOutTime: checkOut,
             reason: record.reason,
-            isMakeupNeeded: record.isMakeupNeeded ?? (record.status === AttendanceStatus.ABSENT),
+            isMakeupNeeded:
+              record.isMakeupNeeded ??
+              record.status === AttendanceStatus.ABSENT,
             memo: record.memo,
           },
           include: {
@@ -193,7 +208,10 @@ export class AttendanceService {
   /**
    * 3. 1초 빠른 등원/하원 원터치 토글 (Quick Check-in / Check-out)
    */
-  async quickCheck(academyId: number, dto: QuickCheckDto): Promise<AttendanceResponseDto> {
+  async quickCheck(
+    academyId: number,
+    dto: QuickCheckDto,
+  ): Promise<AttendanceResponseDto> {
     await this.validateStudentAndClass(academyId, dto.studentId, dto.classId);
 
     const targetDateStr = dto.date || new Date().toISOString().slice(0, 10);
@@ -218,7 +236,10 @@ export class AttendanceService {
           where: { id: existing.id },
           data: {
             checkInTime: targetTime,
-            status: existing.status === AttendanceStatus.ABSENT ? AttendanceStatus.PRESENT : existing.status,
+            status:
+              existing.status === AttendanceStatus.ABSENT
+                ? AttendanceStatus.PRESENT
+                : existing.status,
           },
           include: {
             student: {
@@ -362,7 +383,8 @@ export class AttendanceService {
       throw new NotFoundException('해당 학원의 수업 반을 찾을 수 없습니다.');
     }
 
-    const targetDateStr = queryDto.date || new Date().toISOString().slice(0, 10);
+    const targetDateStr =
+      queryDto.date || new Date().toISOString().slice(0, 10);
     const parsedDate = this.parseDateOnly(targetDateStr);
 
     // 1) 해당 반에 등록된 활성 수강생(Enrollment: ENROLLED) 조회
@@ -569,7 +591,9 @@ export class AttendanceService {
     queryDto: AttendanceStatsQueryDto,
   ): Promise<AttendanceStatsResponseDto> {
     const now = new Date();
-    const firstDayOfMonth = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1))
+    const firstDayOfMonth = new Date(
+      Date.UTC(now.getFullYear(), now.getMonth(), 1),
+    )
       .toISOString()
       .slice(0, 10);
     const todayStr = now.toISOString().slice(0, 10);
@@ -601,12 +625,27 @@ export class AttendanceService {
     let makeupNeededCount = 0;
     let makeupCompletedCount = 0;
 
-    const dailyMap = new Map<string, { total: number; present: number; absent: number; late: number; earlyLeave: number }>();
+    const dailyMap = new Map<
+      string,
+      {
+        total: number;
+        present: number;
+        absent: number;
+        late: number;
+        earlyLeave: number;
+      }
+    >();
 
     for (const att of attendances) {
       const dateKey = att.date.toISOString().slice(0, 10);
       if (!dailyMap.has(dateKey)) {
-        dailyMap.set(dateKey, { total: 0, present: 0, absent: 0, late: 0, earlyLeave: 0 });
+        dailyMap.set(dateKey, {
+          total: 0,
+          present: 0,
+          absent: 0,
+          late: 0,
+          earlyLeave: 0,
+        });
       }
       const dayStat = dailyMap.get(dateKey)!;
       dayStat.total++;
@@ -638,19 +677,24 @@ export class AttendanceService {
       }
     }
 
-    const dailyStats: DailyAttendanceStatDto[] = Array.from(dailyMap.entries()).map(([d, s]) => ({
+    const dailyStats: DailyAttendanceStatDto[] = Array.from(
+      dailyMap.entries(),
+    ).map(([d, s]) => ({
       date: d,
       total: s.total,
       present: s.present,
       absent: s.absent,
       late: s.late,
       earlyLeave: s.earlyLeave,
-      attendanceRate: s.total > 0 ? Number(((s.present / s.total) * 100).toFixed(1)) : 0,
+      attendanceRate:
+        s.total > 0 ? Number(((s.present / s.total) * 100).toFixed(1)) : 0,
     }));
 
     const totalRecords = attendances.length;
     const averageAttendanceRate =
-      totalRecords > 0 ? Number(((totalPresent / totalRecords) * 100).toFixed(1)) : 0;
+      totalRecords > 0
+        ? Number(((totalPresent / totalRecords) * 100).toFixed(1))
+        : 0;
 
     return {
       startDate: startDateStr,
@@ -718,7 +762,10 @@ export class AttendanceService {
   /**
    * 8. 출결 기록 삭제
    */
-  async deleteAttendance(academyId: number, attendanceId: number): Promise<{ success: boolean; message: string }> {
+  async deleteAttendance(
+    academyId: number,
+    attendanceId: number,
+  ): Promise<{ success: boolean; message: string }> {
     const existing = await this.prisma.attendance.findFirst({
       where: { id: BigInt(attendanceId), academyId },
     });
@@ -741,7 +788,11 @@ export class AttendanceService {
   // Private Helper Methods
   // ==========================================
 
-  private async validateStudentAndClass(academyId: number, studentId: number, classId: number): Promise<void> {
+  private async validateStudentAndClass(
+    academyId: number,
+    studentId: number,
+    classId: number,
+  ): Promise<void> {
     const [student, classInfo] = await Promise.all([
       this.prisma.student.findFirst({ where: { id: studentId, academyId } }),
       this.prisma.class.findFirst({ where: { id: classId, academyId } }),
@@ -766,7 +817,10 @@ export class AttendanceService {
       academyId: att.academyId,
       studentId: att.studentId,
       classId: att.classId,
-      date: att.date instanceof Date ? att.date.toISOString().slice(0, 10) : String(att.date),
+      date:
+        att.date instanceof Date
+          ? att.date.toISOString().slice(0, 10)
+          : String(att.date),
       status: att.status,
       checkInTime: att.checkInTime ? att.checkInTime.toISOString() : null,
       checkOutTime: att.checkOutTime ? att.checkOutTime.toISOString() : null,

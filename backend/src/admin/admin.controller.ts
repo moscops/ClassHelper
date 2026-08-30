@@ -9,7 +9,13 @@ import {
   ParseIntPipe,
   Req,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { UpdateAcademyStatusDto } from './dto/update-academy-status.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -28,7 +34,9 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Get('stats')
-  @ApiOperation({ summary: '플랫폼 전체 요약 통계 조회 (학원 수, 원생 수, 오늘 출결 등)' })
+  @ApiOperation({
+    summary: '플랫폼 전체 요약 통계 조회 (학원 수, 원생 수, 오늘 출결 등)',
+  })
   @ApiResponse({ status: 200, description: '플랫폼 통계 요약 반환' })
   async getPlatformStats() {
     return this.adminService.getPlatformStats();
@@ -36,8 +44,17 @@ export class AdminController {
 
   @Get('academies')
   @ApiOperation({ summary: '전체 입점 학원 목록 및 원장님/통계 조회' })
-  @ApiQuery({ name: 'search', required: false, description: '학원명, 전화번호 검색어' })
-  @ApiQuery({ name: 'status', required: false, enum: AcademyStatus, description: '학원 운영 상태 필터' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: '학원명, 전화번호 검색어',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: AcademyStatus,
+    description: '학원 운영 상태 필터',
+  })
   async getAcademies(
     @Query('search') search?: string,
     @Query('status') status?: AcademyStatus,

@@ -45,7 +45,8 @@ export class StudentsController {
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF)
   @ApiOperation({
     summary: '원생 신규 등록',
-    description: '현재 소속 학원에 새로운 원생을 등록합니다. (원장, 실장, 강사, 조교 가능)',
+    description:
+      '현재 소속 학원에 새로운 원생을 등록합니다. (원장, 실장, 강사, 조교 가능)',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -62,7 +63,8 @@ export class StudentsController {
   @Get()
   @ApiOperation({
     summary: '원생 목록 검색 및 페이징 조회',
-    description: '학생 이름, 연락처 검색, 학년 필터, 재원 상태(ACTIVE/ON_LEAVE/DISCHARGED) 필터 및 페이징 조회를 제공합니다.',
+    description:
+      '학생 이름, 연락처 검색, 학년 필터, 재원 상태(ACTIVE/ON_LEAVE/DISCHARGED) 필터 및 페이징 조회를 제공합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -80,7 +82,8 @@ export class StudentsController {
   @ApiParam({ name: 'id', description: '원생 ID', example: 1 })
   @ApiOperation({
     summary: '원생 상세 조회',
-    description: '특정 원생의 기본 정보와 현재 수강 중인 반 목록을 함께 조회합니다.',
+    description:
+      '특정 원생의 기본 정보와 현재 수강 중인 반 목록을 함께 조회합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -127,7 +130,8 @@ export class StudentsController {
   @ApiParam({ name: 'id', description: '원생 ID', example: 1 })
   @ApiOperation({
     summary: '원생 재원 상태 변경 (재원/휴원/퇴원)',
-    description: '원생의 상태를 변경합니다. (퇴원 시 퇴원일자 자동 기록 가능, 원장/실장 전용)',
+    description:
+      '원생의 상태를 변경합니다. (퇴원 시 퇴원일자 자동 기록 가능, 원장/실장 전용)',
   })
   @ApiResponse({
     status: HttpStatus.OK,

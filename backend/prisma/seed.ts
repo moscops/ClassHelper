@@ -23,6 +23,7 @@ async function main() {
     update: {
       role: UserRole.SUPER_ADMIN,
       name: '플랫폼 관리자',
+      password: defaultPassword,
     },
     create: {
       email: 'admin@classhelper.kr',
@@ -54,6 +55,7 @@ async function main() {
     update: {
       academyId: academy1.id,
       role: UserRole.OWNER,
+      password: defaultPassword,
     },
     create: {
       email: 'owner@classhelper.kr',
@@ -83,6 +85,7 @@ async function main() {
     update: {
       academyId: academy2.id,
       role: UserRole.OWNER,
+      password: defaultPassword,
     },
     create: {
       email: 'owner2@edustar.kr',

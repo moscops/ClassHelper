@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { ConflictException, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  ConflictException,
+  UnauthorizedException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
@@ -58,7 +63,12 @@ describe('AuthService', () => {
         }
         return Promise.resolve('mocked-access-token');
       }),
-      verify: jest.fn().mockReturnValue({ sub: 1, academyId: 10, email: 'owner@classhelper.kr', role: UserRole.OWNER }),
+      verify: jest.fn().mockReturnValue({
+        sub: 1,
+        academyId: 10,
+        email: 'owner@classhelper.kr',
+        role: UserRole.OWNER,
+      }),
     };
 
     configService = {
@@ -127,11 +137,22 @@ describe('AuthService', () => {
     it('강사/직원 등록 성공 시 생성된 사용자 프로필 반환', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
-      const staffUser = { ...mockUser, id: 2, email: 'teacher@classhelper.kr', role: UserRole.TEACHER };
+      const staffUser = {
+        ...mockUser,
+        id: 2,
+        email: 'teacher@classhelper.kr',
+        role: UserRole.TEACHER,
+      };
       prisma.user.create.mockResolvedValue(staffUser);
 
       const result = await service.registerStaff(
-        { userId: 1, academyId: 10, email: 'owner@classhelper.kr', name: '김원장', role: UserRole.OWNER },
+        {
+          userId: 1,
+          academyId: 10,
+          email: 'owner@classhelper.kr',
+          name: '김원장',
+          role: UserRole.OWNER,
+        },
         {
           email: 'teacher@classhelper.kr',
           password: 'password123!',
@@ -204,14 +225,18 @@ describe('AuthService', () => {
         throw new Error('jwt expired');
       });
 
-      await expect(service.refreshTokens('invalid-refresh-token')).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.refreshTokens('invalid-refresh-token'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('DB의 해시와 불일치 시 ForbiddenException 발생 및 기존 토큰 무효화', async () => {
       prisma.user.findUnique.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.refreshTokens('wrong-refresh-token')).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.refreshTokens('wrong-refresh-token'),
+      ).rejects.toThrow(ForbiddenException);
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: mockUser.id },
         data: { hashedRefreshToken: null },
@@ -221,7 +246,10 @@ describe('AuthService', () => {
 
   describe('logout', () => {
     it('로그아웃 시 DB의 hashedRefreshToken을 null로 초기화', async () => {
-      prisma.user.update.mockResolvedValue({ ...mockUser, hashedRefreshToken: null });
+      prisma.user.update.mockResolvedValue({
+        ...mockUser,
+        hashedRefreshToken: null,
+      });
 
       const result = await service.logout(1);
 

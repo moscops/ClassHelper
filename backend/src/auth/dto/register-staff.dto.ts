@@ -1,9 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+  Matches,
+} from 'class-validator';
 
 export class RegisterStaffDto {
-  @ApiProperty({ description: '강사/직원 이메일 (로그인 ID)', example: 'teacher1@classhelper.kr' })
+  @ApiProperty({
+    description: '강사/직원 이메일 (로그인 ID)',
+    example: 'teacher1@classhelper.kr',
+  })
   @IsEmail({}, { message: '올바른 이메일 형식을 입력해주세요.' })
   @IsNotEmpty({ message: '이메일을 입력해주세요.' })
   email: string;
@@ -39,6 +50,8 @@ export class RegisterStaffDto {
     default: UserRole.TEACHER,
     example: UserRole.TEACHER,
   })
-  @IsEnum(UserRole, { message: '유효한 역할을 선택해주세요 (TEACHER, ADMIN, STAFF).' })
+  @IsEnum(UserRole, {
+    message: '유효한 역할을 선택해주세요 (TEACHER, ADMIN, STAFF).',
+  })
   role: UserRole;
 }

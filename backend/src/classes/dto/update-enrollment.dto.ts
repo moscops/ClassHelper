@@ -4,7 +4,8 @@ import { EnrollmentStatus } from '@prisma/client';
 
 export class UpdateEnrollmentDto {
   @ApiPropertyOptional({
-    description: '수강 상태 (ENROLLED: 수강중, COMPLETED: 종강, DROPPED: 중도하차/퇴반, PAUSED: 일시정지)',
+    description:
+      '수강 상태 (ENROLLED: 수강중, COMPLETED: 종강, DROPPED: 중도하차/퇴반, PAUSED: 일시정지)',
     enum: EnrollmentStatus,
     example: EnrollmentStatus.COMPLETED,
   })

@@ -40,7 +40,8 @@ export class RecordAttendanceDto {
   date: string;
 
   @ApiProperty({
-    description: '출결 상태 (PRESENT: 출석, ABSENT: 결석, LATE: 지각, EARLY_LEAVE: 조퇴)',
+    description:
+      '출결 상태 (PRESENT: 출석, ABSENT: 결석, LATE: 지각, EARLY_LEAVE: 조퇴)',
     enum: AttendanceStatus,
     example: AttendanceStatus.PRESENT,
   })
