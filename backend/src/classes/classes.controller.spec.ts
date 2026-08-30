@@ -48,7 +48,7 @@ describe('ClassesController', () => {
       const expected = { id: 1, name: '중등 수학 심화A반', academyId: 10 };
       mockClassesService.createClass.mockResolvedValue(expected);
 
-      const result = await controller.createClass(10, dto as any);
+      const result = await controller.createClass(10, dto);
       expect(result).toEqual(expected);
       expect(mockClassesService.createClass).toHaveBeenCalledWith(10, dto);
     });
@@ -56,19 +56,33 @@ describe('ClassesController', () => {
 
   describe('findAllClasses', () => {
     it('반 목록 조회', async () => {
-      const expected = { items: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } };
+      const expected = {
+        items: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      };
       mockClassesService.findAllClasses.mockResolvedValue(expected);
 
-      const result = await controller.findAllClasses(10, { page: 1, limit: 20 });
+      const result = await controller.findAllClasses(10, {
+        page: 1,
+        limit: 20,
+      });
       expect(result).toEqual(expected);
-      expect(mockClassesService.findAllClasses).toHaveBeenCalledWith(10, { page: 1, limit: 20 });
+      expect(mockClassesService.findAllClasses).toHaveBeenCalledWith(10, {
+        page: 1,
+        limit: 20,
+      });
     });
   });
 
   describe('enrollStudent', () => {
     it('원생 수강 등록', async () => {
       const dto = { studentId: 100 };
-      const expected = { id: 1, studentId: 100, classId: 1, status: EnrollmentStatus.ENROLLED };
+      const expected = {
+        id: 1,
+        studentId: 100,
+        classId: 1,
+        status: EnrollmentStatus.ENROLLED,
+      };
       mockClassesService.enrollStudent.mockResolvedValue(expected);
 
       const result = await controller.enrollStudent(10, 1, dto);

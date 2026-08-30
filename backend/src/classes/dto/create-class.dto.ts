@@ -80,11 +80,14 @@ export class CreateClassDto {
   monthlyFee?: number;
 
   @ApiPropertyOptional({
-    description: '수업 운영 상태 (ACTIVE: 운영중, INACTIVE: 임시휴강, CLOSED: 폐강)',
+    description:
+      '수업 운영 상태 (ACTIVE: 운영중, INACTIVE: 임시휴강, CLOSED: 폐강)',
     enum: ClassStatus,
     default: ClassStatus.ACTIVE,
   })
   @IsOptional()
-  @IsEnum(ClassStatus, { message: '유효한 반 상태(ACTIVE, INACTIVE, CLOSED)를 입력해주세요.' })
+  @IsEnum(ClassStatus, {
+    message: '유효한 반 상태(ACTIVE, INACTIVE, CLOSED)를 입력해주세요.',
+  })
   status?: ClassStatus;
 }

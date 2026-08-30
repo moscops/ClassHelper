@@ -1,6 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
-import { ClassStatus, EnrollmentStatus, StudentStatus, Gender } from '@prisma/client';
+import {
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
+import {
+  ClassStatus,
+  EnrollmentStatus,
+  StudentStatus,
+  Gender,
+} from '@prisma/client';
 import { ClassesService } from './classes.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -84,10 +93,7 @@ describe('ClassesService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ClassesService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [ClassesService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<ClassesService>(ClassesService);
@@ -142,7 +148,9 @@ describe('ClassesService', () => {
     it('존재하지 않는 반 ID 조회 시 NotFoundException 발생', async () => {
       prisma.class.findFirst.mockResolvedValue(null);
 
-      await expect(service.findClassById(10, 999)).rejects.toThrow(NotFoundException);
+      await expect(service.findClassById(10, 999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

@@ -40,7 +40,8 @@ export class AuthController {
   @Post('register-owner')
   @ApiOperation({
     summary: '학원 신규 개설 및 원장(최고 관리자) 회원가입',
-    description: '새로운 학원(Academy)과 원장님(OWNER) 계정을 동시에 생성하고 Access/Refresh Token을 발급합니다.',
+    description:
+      '새로운 학원(Academy)과 원장님(OWNER) 계정을 동시에 생성하고 Access/Refresh Token을 발급합니다.',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -61,7 +62,8 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: '강사/직원 등록 (원장/관리자 전용)',
-    description: '현재 소속된 학원에 강사(TEACHER), 실장(ADMIN), 조교(STAFF) 계정을 추가합니다.',
+    description:
+      '현재 소속된 학원에 강사(TEACHER), 실장(ADMIN), 조교(STAFF) 계정을 추가합니다.',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -87,7 +89,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '로그인',
-    description: '이메일과 비밀번호로 로그인하여 Access Token(15분) 및 Refresh Token(7일)을 발급받습니다.',
+    description:
+      '이메일과 비밀번호로 로그인하여 Access Token(15분) 및 Refresh Token(7일)을 발급받습니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -106,7 +109,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '토큰 재발급 (Refresh Token 활용)',
-    description: 'Access Token 만료 시 Refresh Token을 전달하여 새 Access Token과 새 Refresh Token(RTR)을 발급받습니다.',
+    description:
+      'Access Token 만료 시 Refresh Token을 전달하여 새 Access Token과 새 Refresh Token(RTR)을 발급받습니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -117,7 +121,9 @@ export class AuthController {
     status: HttpStatus.FORBIDDEN,
     description: '유효하지 않거나 만료/사용된 Refresh Token',
   })
-  async refreshTokens(@Body() dto: RefreshTokenDto): Promise<TokensResponseDto> {
+  async refreshTokens(
+    @Body() dto: RefreshTokenDto,
+  ): Promise<TokensResponseDto> {
     return this.authService.refreshTokens(dto.refreshToken);
   }
 
@@ -127,14 +133,17 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '로그아웃',
-    description: '현재 로그인된 사용자의 DB Refresh Token을 삭제하여 즉각 무효화합니다.',
+    description:
+      '현재 로그인된 사용자의 DB Refresh Token을 삭제하여 즉각 무효화합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
     description: '로그아웃 성공',
     type: LogoutResponseDto,
   })
-  async logout(@CurrentUser('userId') userId: number): Promise<LogoutResponseDto> {
+  async logout(
+    @CurrentUser('userId') userId: number,
+  ): Promise<LogoutResponseDto> {
     return this.authService.logout(userId);
   }
 
@@ -143,7 +152,8 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: '내 정보 및 소속 학원 조회',
-    description: '현재 JWT 토큰으로 인증된 사용자의 정보와 소속 학원 정보를 반환합니다.',
+    description:
+      '현재 JWT 토큰으로 인증된 사용자의 정보와 소속 학원 정보를 반환합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -154,7 +164,9 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: '유효하지 않거나 만료된 토큰',
   })
-  async getMe(@CurrentUser('userId') userId: number): Promise<UserDetailResponseDto> {
+  async getMe(
+    @CurrentUser('userId') userId: number,
+  ): Promise<UserDetailResponseDto> {
     return this.authService.getMe(userId);
   }
 }

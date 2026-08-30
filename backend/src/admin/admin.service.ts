@@ -27,7 +27,9 @@ export class AdminService {
       this.prisma.student.count(),
       this.prisma.student.count({ where: { status: 'ACTIVE' } }),
       this.prisma.class.count(),
-      this.prisma.user.count({ where: { role: { not: UserRole.SUPER_ADMIN } } }),
+      this.prisma.user.count({
+        where: { role: { not: UserRole.SUPER_ADMIN } },
+      }),
     ]);
 
     // 오늘 날짜의 출결 건수 집계
@@ -153,7 +155,9 @@ export class AdminService {
     });
 
     if (!academy) {
-      throw new NotFoundException(`ID가 ${academyId}인 학원을 찾을 수 없습니다.`);
+      throw new NotFoundException(
+        `ID가 ${academyId}인 학원을 찾을 수 없습니다.`,
+      );
     }
 
     return academy;
@@ -174,7 +178,9 @@ export class AdminService {
     });
 
     if (!academy) {
-      throw new NotFoundException(`ID가 ${academyId}인 학원을 찾을 수 없습니다.`);
+      throw new NotFoundException(
+        `ID가 ${academyId}인 학원을 찾을 수 없습니다.`,
+      );
     }
 
     const prevStatus = academy.status;
