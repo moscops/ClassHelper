@@ -123,7 +123,7 @@ export function NotificationBell() {
       ) {
         router.push('/attendance');
       } else {
-        router.push('/notifications');
+        router.push('/dashboard');
       }
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
@@ -314,11 +314,11 @@ export function NotificationBell() {
           {/* Footer */}
           <div className="p-2.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-center">
             <Link
-              href="/notifications"
+              href="/dashboard"
               onClick={() => setIsOpen(false)}
               className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 flex items-center justify-center gap-1.5 transition-colors"
             >
-              <span>알림 관리 센터 전체보기</span>
+              <span>대시보드 알림 센터 바로가기</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>
