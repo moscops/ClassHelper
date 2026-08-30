@@ -105,6 +105,28 @@ export default function AttendancePage() {
   const [timelineRosters, setTimelineRosters] = useState<ClassDailyRoster[]>([]);
   const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
 
+  // State: Collapsed Time Slots (Accordion State)
+  const [collapsedSlots, setCollapsedSlots] = useState<Record<string, boolean>>({});
+
+  const toggleTimeSlotCollapse = (slotKey: string) => {
+    setCollapsedSlots((prev) => ({
+      ...prev,
+      [slotKey]: !prev[slotKey],
+    }));
+  };
+
+  const handleExpandAllSlots = () => {
+    setCollapsedSlots({});
+  };
+
+  const handleCollapseAllSlots = () => {
+    const allCollapsed: Record<string, boolean> = {};
+    timeSlotGroups.forEach((g) => {
+      allCollapsed[g.timeSlot] = true;
+    });
+    setCollapsedSlots(allCollapsed);
+  };
+
   // State: Quick Action Loading
   const [actionLoadingStudentId, setActionLoadingStudentId] = useState<number | null>(null);
   const [isBatchLoading, setIsBatchLoading] = useState(false);
@@ -1800,10 +1822,26 @@ export default function AttendancePage() {
               </div>
 
               {/* View Layout & Size Controls on the Right Side */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  보기 방식:
-                </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                {displayMode === 'TIMELINE' && timeSlotGroups.length > 0 && (
+                  <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={handleExpandAllSlots}
+                      className="px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-2xs"
+                    >
+                      모두 펼치기
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCollapseAllSlots}
+                      className="px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-2xs"
+                    >
+                      모두 접기
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-200/70 dark:bg-slate-800/80">
                   <button
                     type="button"
@@ -1857,7 +1895,7 @@ export default function AttendancePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {timeSlotGroups.map((group) => {
                       const filteredInGroup = group.students.filter(matchesFilter);
                       if (filteredInGroup.length === 0 && (searchTerm || statusFilter !== 'ALL')) {
@@ -1865,6 +1903,7 @@ export default function AttendancePage() {
                       }
 
                       const isCurrentActive = group.status === 'CURRENT';
+                      const isCollapsed = Boolean(collapsedSlots[group.timeSlot]);
 
                       return (
                         <div
@@ -1875,15 +1914,33 @@ export default function AttendancePage() {
                               : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
                           }`}
                         >
-                          {/* Time Slot Header Banner */}
+                          {/* Time Slot Header Banner (Click to Accordion Expand / Collapse) */}
                           <div
-                            className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-b ${
+                            onClick={() => toggleTimeSlotCollapse(group.timeSlot)}
+                            className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 cursor-pointer select-none transition-colors ${
+                              !isCollapsed ? 'border-b' : ''
+                            } ${
                               isCurrentActive
-                                ? 'bg-indigo-50/80 dark:bg-indigo-950/60 border-indigo-200/80 dark:border-indigo-800/80'
-                                : 'bg-slate-50/80 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800'
+                                ? 'bg-indigo-50/80 dark:bg-indigo-950/60 border-indigo-200/80 dark:border-indigo-800/80 hover:bg-indigo-100/70 dark:hover:bg-indigo-900/60'
+                                : 'bg-slate-50/80 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
                             }`}
                           >
                             <div className="flex items-start sm:items-center gap-3">
+                              {/* Chevron Arrow Indicator */}
+                              <div
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-all ${
+                                  isCollapsed
+                                    ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'
+                                    : 'bg-indigo-100 dark:bg-indigo-950 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400'
+                                }`}
+                              >
+                                <ChevronDown
+                                  className={`w-4 h-4 transition-transform duration-200 ${
+                                    isCollapsed ? '-rotate-90 text-slate-400' : 'rotate-0'
+                                  }`}
+                                />
+                              </div>
+
                               <div
                                 className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
                                   isCurrentActive
@@ -1918,6 +1975,12 @@ export default function AttendancePage() {
                                       수업 진행됨
                                     </span>
                                   )}
+
+                                  {isCollapsed && (
+                                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium">
+                                      접힘 (클릭 시 펼치기)
+                                    </span>
+                                  )}
                                 </div>
 
                                 <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
@@ -1932,48 +1995,55 @@ export default function AttendancePage() {
                               </div>
                             </div>
 
-                            {/* Batch check for this time slot */}
-                            <button
-                              type="button"
-                              onClick={() => handleBatchPresentForTimeSlot(group)}
-                              disabled={isBatchLoading || group.students.length === 0}
-                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all cursor-pointer disabled:opacity-50 shrink-0 self-start sm:self-auto"
-                            >
-                              <CheckCheck className="w-3.5 h-3.5" />
-                              <span>해당 시간 전원 출석</span>
-                            </button>
+                            {/* Batch check for this time slot (Click event stopped from collapsing) */}
+                            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleBatchPresentForTimeSlot(group);
+                                }}
+                                disabled={isBatchLoading || group.students.length === 0}
+                                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                <CheckCheck className="w-3.5 h-3.5" />
+                                <span>해당 시간 전원 출석</span>
+                              </button>
+                            </div>
                           </div>
 
-                          {/* Students List in Time Slot */}
-                          <div className="p-4 sm:p-5">
-                            {filteredInGroup.length === 0 ? (
-                              <div className="text-center py-6 text-xs text-slate-400">
-                                검색 조건에 맞는 원생이 없습니다.
-                              </div>
-                            ) : viewLayout === 'LARGE_LIST' ? (
-                              <div className="space-y-3">
-                                {filteredInGroup.map((st) =>
-                                  renderStudentLargeListItem(
-                                    st,
-                                    st.classId,
-                                    st.className,
-                                    st.schedule,
-                                  ),
-                                )}
-                              </div>
-                            ) : (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {filteredInGroup.map((st) =>
-                                  renderStudentCardItem(
-                                    st,
-                                    st.classId,
-                                    st.className,
-                                    st.schedule,
-                                  ),
-                                )}
-                              </div>
-                            )}
-                          </div>
+                          {/* Students List in Time Slot (Rendered only when expanded) */}
+                          {!isCollapsed && (
+                            <div className="p-4 sm:p-5 animate-in fade-in duration-150">
+                              {filteredInGroup.length === 0 ? (
+                                <div className="text-center py-6 text-xs text-slate-400">
+                                  검색 조건에 맞는 원생이 없습니다.
+                                </div>
+                              ) : viewLayout === 'LARGE_LIST' ? (
+                                <div className="space-y-3">
+                                  {filteredInGroup.map((st) =>
+                                    renderStudentLargeListItem(
+                                      st,
+                                      st.classId,
+                                      st.className,
+                                      st.schedule,
+                                    ),
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {filteredInGroup.map((st) =>
+                                    renderStudentCardItem(
+                                      st,
+                                      st.classId,
+                                      st.className,
+                                      st.schedule,
+                                    ),
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
