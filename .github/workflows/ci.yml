@@ -22,13 +22,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: 'backend/yarn.lock'
 
       - name: Install Backend Dependencies
         working-directory: backend
-        run: yarn install --prefer-offline
+        run: yarn install --prefer-offline --ignore-engines
 
       - name: Generate Prisma Client
         working-directory: backend
@@ -57,13 +57,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: 'frontend/yarn.lock'
 
       - name: Install Frontend Dependencies
         working-directory: frontend
-        run: yarn install --prefer-offline
+        run: yarn install --prefer-offline --ignore-engines
 
       - name: Lint Frontend Code
         working-directory: frontend

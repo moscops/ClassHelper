@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: |
             backend/yarn.lock
@@ -28,14 +28,14 @@ jobs:
       - name: Install Backend & Build
         working-directory: backend
         run: |
-          yarn install --prefer-offline
+          yarn install --prefer-offline --ignore-engines
           yarn prisma:generate
           yarn build
 
       - name: Install Frontend & Build
         working-directory: frontend
         run: |
-          yarn install --prefer-offline
+          yarn install --prefer-offline --ignore-engines
           yarn build
 
       - name: Release Artifacts Check
