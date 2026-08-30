@@ -274,6 +274,12 @@ export default function NotificationsPage() {
               >
                 1초 출결 체크
               </Link>
+              <Link
+                href="/class-logs"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                수업 일지 & 과제
+              </Link>
             </nav>
           </div>
 

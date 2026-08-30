@@ -8,7 +8,6 @@ import {
   Users,
   BookOpen,
   CalendarCheck2,
-  CreditCard,
   LogOut,
   ShieldCheck,
   Building2,
@@ -354,6 +353,12 @@ export default function DashboardPage() {
                   <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping shrink-0" />
                 )}
               </Link>
+              <Link
+                href="/class-logs"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                수업 일지 & 과제
+              </Link>
             </nav>
           </div>
 
@@ -536,24 +541,27 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              {/* 4. 수강료 & 수납 */}
-              <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-amber-200 dark:hover:border-amber-700/50 hover:shadow-sm transition-all shadow-xs flex flex-col justify-between">
+              {/* 4. 수업 일지 & 과제 관리 */}
+              <Link
+                href="/class-logs"
+                className="group p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-sm transition-all shadow-xs flex flex-col justify-between"
+              >
                 <div>
-                  <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-3">
-                    <CreditCard className="w-4 h-4" />
+                  <div className="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-3 group-hover:scale-105 transition-transform">
+                    <BookOpen className="w-4 h-4" />
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    수강료 & 수납 관리
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    수업 일지 & 과제 관리
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                    매월 자동 청구서 발행, 결제 수단별 수납 및 미납자 관리
+                    회차별 교재 진도, 과제 공지 및 원생별 1초 숙제 검사·피드백
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-amber-600 dark:text-amber-400 font-semibold">
-                  <span>Phase 5 예정</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
+                  <span>수업 일지 작성하기</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
 
