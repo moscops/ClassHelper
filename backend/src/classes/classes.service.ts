@@ -9,7 +9,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { QueryClassDto } from './dto/query-class.dto';
-import { ClassResponseDto, PaginatedClassResponseDto } from './dto/class-response.dto';
+import {
+  ClassResponseDto,
+  PaginatedClassResponseDto,
+} from './dto/class-response.dto';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { EnrollmentResponseDto } from './dto/enrollment-response.dto';
@@ -24,14 +27,19 @@ export class ClassesService {
   /**
    * 1. 신규 수업 반 개설
    */
-  async createClass(academyId: number, dto: CreateClassDto): Promise<ClassResponseDto> {
+  async createClass(
+    academyId: number,
+    dto: CreateClassDto,
+  ): Promise<ClassResponseDto> {
     // 강사 배정 시 해당 학원 소속인지 검증
     if (dto.teacherId) {
       const teacher = await this.prisma.user.findFirst({
         where: { id: dto.teacherId, academyId },
       });
       if (!teacher) {
-        throw new BadRequestException('해당 학원에 등록된 강사를 찾을 수 없습니다.');
+        throw new BadRequestException(
+          '해당 학원에 등록된 강사를 찾을 수 없습니다.',
+        );
       }
     }
 
@@ -66,7 +74,9 @@ export class ClassesService {
       },
     });
 
-    this.logger.log(`새로운 반 개설 완료: [${newClass.name}] (학원 ID: ${academyId})`);
+    this.logger.log(
+      `새로운 반 개설 완료: [${newClass.name}] (학원 ID: ${academyId})`,
+    );
     return this.mapToClassResponse(newClass);
   }
 
@@ -77,7 +87,14 @@ export class ClassesService {
     academyId: number,
     query: QueryClassDto,
   ): Promise<PaginatedClassResponseDto> {
-    const { search, status, teacherId, targetGrade, page = 1, limit = 20 } = query;
+    const {
+      search,
+      status,
+      teacherId,
+      targetGrade,
+      page = 1,
+      limit = 20,
+    } = query;
     const skip = (page - 1) * limit;
 
     const whereCondition: any = {
@@ -145,7 +162,10 @@ export class ClassesService {
   /**
    * 3. 반 상세 정보 및 수강생 목록 조회
    */
-  async findClassById(academyId: number, classId: number): Promise<ClassResponseDto & { enrollments: EnrollmentResponseDto[] }> {
+  async findClassById(
+    academyId: number,
+    classId: number,
+  ): Promise<ClassResponseDto & { enrollments: EnrollmentResponseDto[] }> {
     const foundClass = await this.prisma.class.findFirst({
       where: { id: classId, academyId },
       include: {
@@ -174,12 +194,16 @@ export class ClassesService {
     });
 
     if (!foundClass) {
-      throw new NotFoundException(`ID가 ${classId}인 수업 반을 찾을 수 없습니다.`);
+      throw new NotFoundException(
+        `ID가 ${classId}인 수업 반을 찾을 수 없습니다.`,
+      );
     }
 
     return {
       ...this.mapToClassResponse(foundClass),
-      enrollments: foundClass.enrollments.map((e) => this.mapToEnrollmentResponse(e)),
+      enrollments: foundClass.enrollments.map((e) =>
+        this.mapToEnrollmentResponse(e),
+      ),
     };
   }
 
@@ -196,7 +220,9 @@ export class ClassesService {
     });
 
     if (!existingClass) {
-      throw new NotFoundException(`ID가 ${classId}인 수업 반을 찾을 수 없습니다.`);
+      throw new NotFoundException(
+        `ID가 ${classId}인 수업 반을 찾을 수 없습니다.`,
+      );
     }
 
     if (dto.teacherId) {
@@ -204,7 +230,9 @@ export class ClassesService {
         where: { id: dto.teacherId, academyId },
       });
       if (!teacher) {
-        throw new BadRequestException('해당 학원에 등록된 강사를 찾을 수 없습니다.');
+        throw new BadRequestException(
+          '해당 학원에 등록된 강사를 찾을 수 없습니다.',
+        );
       }
     }
 
@@ -245,13 +273,18 @@ export class ClassesService {
   /**
    * 5. 반 삭제
    */
-  async deleteClass(academyId: number, classId: number): Promise<{ success: boolean; message: string }> {
+  async deleteClass(
+    academyId: number,
+    classId: number,
+  ): Promise<{ success: boolean; message: string }> {
     const existingClass = await this.prisma.class.findFirst({
       where: { id: classId, academyId },
     });
 
     if (!existingClass) {
-      throw new NotFoundException(`ID가 ${classId}인 수업 반을 찾을 수 없습니다.`);
+      throw new NotFoundException(
+        `ID가 ${classId}인 수업 반을 찾을 수 없습니다.`,
+      );
     }
 
     await this.prisma.class.delete({
@@ -297,7 +330,10 @@ export class ClassesService {
     }
 
     // 2) 정원 체크
-    if (targetClass.capacity && targetClass._count.enrollments >= targetClass.capacity) {
+    if (
+      targetClass.capacity &&
+      targetClass._count.enrollments >= targetClass.capacity
+    ) {
       throw new BadRequestException(
         `수강 정원(${targetClass.capacity}명)이 초과되어 등록할 수 없습니다.`,
       );
@@ -313,7 +349,9 @@ export class ClassesService {
     }
 
     if (student.status === StudentStatus.DISCHARGED) {
-      throw new BadRequestException('퇴원 처리된 원생은 반에 배정할 수 없습니다.');
+      throw new BadRequestException(
+        '퇴원 처리된 원생은 반에 배정할 수 없습니다.',
+      );
     }
 
     // 4) 현재 수강 중인지 중복 검사

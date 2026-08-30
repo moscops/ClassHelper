@@ -21,11 +21,17 @@ describe('StudentsController', () => {
   beforeEach(async () => {
     service = {
       create: jest.fn().mockResolvedValue(mockStudent),
-      findAll: jest.fn().mockResolvedValue({ items: [mockStudent], meta: { total: 1, page: 1, limit: 20, totalPages: 1 } }),
+      findAll: jest.fn().mockResolvedValue({
+        items: [mockStudent],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      }),
       findOne: jest.fn().mockResolvedValue({ ...mockStudent, classes: [] }),
       update: jest.fn().mockResolvedValue(mockStudent),
       updateStatus: jest.fn().mockResolvedValue(mockStudent),
-      remove: jest.fn().mockResolvedValue({ success: true, message: '원생 정보가 성공적으로 삭제되었습니다.' }),
+      remove: jest.fn().mockResolvedValue({
+        success: true,
+        message: '원생 정보가 성공적으로 삭제되었습니다.',
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({

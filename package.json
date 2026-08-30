@@ -5,12 +5,16 @@
     "backend:dev": "yarn --cwd backend start:dev",
     "backend:build": "yarn --cwd backend build",
     "backend:test": "yarn --cwd backend test",
+    "backend:lint": "yarn --cwd backend lint",
     "backend:prisma:generate": "yarn --cwd backend prisma:generate",
     "backend:prisma:migrate": "yarn --cwd backend prisma:migrate",
     "backend:prisma:seed": "yarn --cwd backend prisma:seed",
     "frontend:dev": "yarn --cwd frontend dev",
     "frontend:build": "yarn --cwd frontend build",
     "frontend:lint": "yarn --cwd frontend lint",
+    "lint:all": "yarn backend:lint && yarn frontend:lint",
+    "build:all": "yarn backend:build && yarn frontend:build",
+    "test:all": "yarn backend:test",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   }

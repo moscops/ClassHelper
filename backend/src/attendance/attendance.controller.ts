@@ -46,10 +46,17 @@ export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
   @Post('record')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
   @ApiOperation({
     summary: '단일 학생 출결 등록 및 수정 (Upsert)',
-    description: '특정 학생의 일별 출결 상태(출석, 결석, 지각, 조퇴), 등/하원 시각, 사유를 등록하거나 수정합니다.',
+    description:
+      '특정 학생의 일별 출결 상태(출석, 결석, 지각, 조퇴), 등/하원 시각, 사유를 등록하거나 수정합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -64,10 +71,17 @@ export class AttendanceController {
   }
 
   @Post('batch')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
   @ApiOperation({
     summary: '반 전체 1초 일괄 출결 체크 (Batch Upsert)',
-    description: '특정 수업 반의 전체 수강생 출결 상태를 한 번의 터치로 일괄 등록 및 갱신합니다.',
+    description:
+      '특정 수업 반의 전체 수강생 출결 상태를 한 번의 터치로 일괄 등록 및 갱신합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -82,10 +96,17 @@ export class AttendanceController {
   }
 
   @Post('quick-check')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
   @ApiOperation({
     summary: '1초 빠른 원터치 등원/하원 체크',
-    description: '학생의 등원 또는 하원을 1초 만에 원터치로 체크하여 시각을 자동 기록합니다.',
+    description:
+      '학생의 등원 또는 하원을 1초 만에 원터치로 체크하여 시각을 자동 기록합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -100,10 +121,17 @@ export class AttendanceController {
   }
 
   @Get('roster')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
   @ApiOperation({
     summary: '특정 반/일자의 전체 수강생 일별 출결 현황판',
-    description: '해당 반의 수강생 전체 목록과 당일 출결 기록(미입력 학생 포함) 및 요약 통계를 함께 반환합니다.',
+    description:
+      '해당 반의 수강생 전체 목록과 당일 출결 기록(미입력 학생 포함) 및 요약 통계를 함께 반환합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -121,7 +149,8 @@ export class AttendanceController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
   @ApiOperation({
     summary: '출결 통계 및 요약 분석',
-    description: '지정 기간 동안의 출석률, 결석/지각/조퇴 건수 및 일자별 통계 추이를 조회합니다.',
+    description:
+      '지정 기간 동안의 출석률, 결석/지각/조퇴 건수 및 일자별 통계 추이를 조회합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -136,10 +165,17 @@ export class AttendanceController {
   }
 
   @Get()
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
   @ApiOperation({
     summary: '출결 내역 다차원 검색 및 목록 조회 (페이지네이션)',
-    description: '반, 학생, 일자 범위, 출결 상태, 보강 필요 여부 등 다양한 조건으로 출결 기록을 조회합니다.',
+    description:
+      '반, 학생, 일자 범위, 출결 상태, 보강 필요 여부 등 다양한 조건으로 출결 기록을 조회합니다.',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -157,7 +193,8 @@ export class AttendanceController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
   @ApiOperation({
     summary: '보강 수업(Makeup) 대상 지정 및 완료 처리',
-    description: '결석/지각 학생에 대한 보강 필요 여부 및 보강 완료 여부를 업데이트합니다.',
+    description:
+      '결석/지각 학생에 대한 보강 필요 여부 및 보강 완료 여부를 업데이트합니다.',
   })
   @ApiParam({ name: 'id', description: '출결 기록 ID', example: 1 })
   @ApiResponse({

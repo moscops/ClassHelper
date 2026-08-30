@@ -72,7 +72,9 @@ export class AuthService {
       return { academy, user };
     });
 
-    this.logger.log(`새 학원 등록 완료: [${result.academy.name}] 원장: [${result.user.name}(${result.user.email})]`);
+    this.logger.log(
+      `새 학원 등록 완료: [${result.academy.name}] 원장: [${result.user.name}(${result.user.email})]`,
+    );
 
     const tokens = await this.getTokens(result.user);
     await this.updateHashedRefreshToken(result.user.id, tokens.refreshToken);
@@ -87,7 +89,10 @@ export class AuthService {
   /**
    * 학원 내 강사/직원 추가 등록 (원장/관리자 전용)
    */
-  async registerStaff(currentUser: CurrentUserPayload, dto: RegisterStaffDto): Promise<UserProfileDto> {
+  async registerStaff(
+    currentUser: CurrentUserPayload,
+    dto: RegisterStaffDto,
+  ): Promise<UserProfileDto> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -109,7 +114,9 @@ export class AuthService {
       },
     });
 
-    this.logger.log(`학원(${currentUser.academyId}) 내 강사/직원 추가: [${user.name}(${user.role})]`);
+    this.logger.log(
+      `학원(${currentUser.academyId}) 내 강사/직원 추가: [${user.name}(${user.role})]`,
+    );
 
     return this.mapToUserProfile(user);
   }
@@ -124,12 +131,16 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.');
+      throw new UnauthorizedException(
+        '이메일 또는 비밀번호가 올바르지 않습니다.',
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.');
+      throw new UnauthorizedException(
+        '이메일 또는 비밀번호가 올바르지 않습니다.',
+      );
     }
 
     const tokens = await this.getTokens(user);
@@ -147,13 +158,16 @@ export class AuthService {
    */
   async refreshTokens(refreshToken: string): Promise<TokensResponseDto> {
     const refreshSecret =
-      this.configService.get<string>('JWT_REFRESH_SECRET') || 'super-secret-classhelper-jwt-refresh-key';
+      this.configService.get<string>('JWT_REFRESH_SECRET') ||
+      'super-secret-classhelper-jwt-refresh-key';
 
     let payload: any;
     try {
       payload = this.jwtService.verify(refreshToken, { secret: refreshSecret });
     } catch {
-      throw new ForbiddenException('유효하지 않거나 만료된 Refresh Token입니다.');
+      throw new ForbiddenException(
+        '유효하지 않거나 만료된 Refresh Token입니다.',
+      );
     }
 
     const user = await this.prisma.user.findUnique({
@@ -161,24 +175,33 @@ export class AuthService {
     });
 
     if (!user || !user.hashedRefreshToken) {
-      throw new ForbiddenException('접근이 거부되었습니다 (토큰 정보 없음 또는 로그아웃 상태).');
+      throw new ForbiddenException(
+        '접근이 거부되었습니다 (토큰 정보 없음 또는 로그아웃 상태).',
+      );
     }
 
-    const isRefreshTokenMatching = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+    const isRefreshTokenMatching = await bcrypt.compare(
+      refreshToken,
+      user.hashedRefreshToken,
+    );
     if (!isRefreshTokenMatching) {
       // 보안 조치: 탈취 및 비정상 사용 시도 시 기존 토큰 무효화
       await this.prisma.user.update({
         where: { id: user.id },
         data: { hashedRefreshToken: null },
       });
-      throw new ForbiddenException('이미 사용되었거나 무효화된 Refresh Token입니다. 다시 로그인해주세요.');
+      throw new ForbiddenException(
+        '이미 사용되었거나 무효화된 Refresh Token입니다. 다시 로그인해주세요.',
+      );
     }
 
     // 새 토큰 세트 발급 및 DB 해시 업데이트 (RTR)
     const tokens = await this.getTokens(user);
     await this.updateHashedRefreshToken(user.id, tokens.refreshToken);
 
-    this.logger.log(`토큰 재발급(RTR) 완료: 사용자 [${user.name}(ID: ${user.id})]`);
+    this.logger.log(
+      `토큰 재발급(RTR) 완료: 사용자 [${user.name}(ID: ${user.id})]`,
+    );
     return tokens;
   }
 
@@ -243,7 +266,8 @@ export class AuthService {
       this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m';
 
     const refreshSecret =
-      this.configService.get<string>('JWT_REFRESH_SECRET') || 'super-secret-classhelper-jwt-refresh-key';
+      this.configService.get<string>('JWT_REFRESH_SECRET') ||
+      'super-secret-classhelper-jwt-refresh-key';
     const refreshExpiresIn =
       this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
 
@@ -267,7 +291,10 @@ export class AuthService {
   /**
    * Refresh Token을 bcrypt로 해싱하여 DB에 안전하게 보관
    */
-  private async updateHashedRefreshToken(userId: number, refreshToken: string): Promise<void> {
+  private async updateHashedRefreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<void> {
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     await this.prisma.user.update({
       where: { id: userId },
@@ -295,13 +322,15 @@ export class AuthService {
     };
   }
 
-  private mapToAcademySummary(academy?: {
-    id: number;
-    name: string;
-    businessNumber: string | null;
-    phoneNumber: string | null;
-    address: string | null;
-  } | null): AcademySummaryDto | null {
+  private mapToAcademySummary(
+    academy?: {
+      id: number;
+      name: string;
+      businessNumber: string | null;
+      phoneNumber: string | null;
+      address: string | null;
+    } | null,
+  ): AcademySummaryDto | null {
     if (!academy) {
       return null;
     }

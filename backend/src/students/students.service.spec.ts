@@ -75,7 +75,11 @@ describe('StudentsService', () => {
       prisma.student.count.mockResolvedValue(1);
       prisma.student.findMany.mockResolvedValue([mockStudent]);
 
-      const result = await service.findAll(10, { page: 1, limit: 10, search: '홍길동' });
+      const result = await service.findAll(10, {
+        page: 1,
+        limit: 10,
+        search: '홍길동',
+      });
 
       expect(result.items).toHaveLength(1);
       expect(result.meta.total).toBe(1);

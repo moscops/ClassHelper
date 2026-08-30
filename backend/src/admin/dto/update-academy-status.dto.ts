@@ -9,7 +9,9 @@ export class UpdateAcademyStatusDto {
     example: AcademyStatus.SUSPENDED,
   })
   @IsNotEmpty({ message: '학원 상태를 지정해주세요.' })
-  @IsEnum(AcademyStatus, { message: '유효한 학원 상태(ACTIVE, SUSPENDED, PENDING)를 입력해주세요.' })
+  @IsEnum(AcademyStatus, {
+    message: '유효한 학원 상태(ACTIVE, SUSPENDED, PENDING)를 입력해주세요.',
+  })
   status: AcademyStatus;
 
   @ApiProperty({

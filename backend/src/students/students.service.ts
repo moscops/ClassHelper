@@ -20,7 +20,10 @@ export class StudentsService {
   /**
    * 원생 신규 등록
    */
-  async create(academyId: number, dto: CreateStudentDto): Promise<StudentResponseDto> {
+  async create(
+    academyId: number,
+    dto: CreateStudentDto,
+  ): Promise<StudentResponseDto> {
     const student = await this.prisma.student.create({
       data: {
         academyId,
@@ -39,14 +42,19 @@ export class StudentsService {
       },
     });
 
-    this.logger.log(`원생 등록 완료: [${student.name}(ID: ${student.id})] - 학원: ${academyId}`);
+    this.logger.log(
+      `원생 등록 완료: [${student.name}(ID: ${student.id})] - 학원: ${academyId}`,
+    );
     return student;
   }
 
   /**
    * 원생 목록 검색 및 페이징 조회
    */
-  async findAll(academyId: number, query: QueryStudentDto): Promise<PaginatedStudentResponseDto> {
+  async findAll(
+    academyId: number,
+    query: QueryStudentDto,
+  ): Promise<PaginatedStudentResponseDto> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -124,7 +132,10 @@ export class StudentsService {
   /**
    * 원생 상세 조회 (수강 중인 반 목록 포함)
    */
-  async findOne(academyId: number, id: number): Promise<StudentDetailResponseDto> {
+  async findOne(
+    academyId: number,
+    id: number,
+  ): Promise<StudentDetailResponseDto> {
     const student = await this.prisma.student.findFirst({
       where: { id, academyId },
       include: {
@@ -168,7 +179,11 @@ export class StudentsService {
   /**
    * 원생 정보 수정
    */
-  async update(academyId: number, id: number, dto: UpdateStudentDto): Promise<StudentResponseDto> {
+  async update(
+    academyId: number,
+    id: number,
+    dto: UpdateStudentDto,
+  ): Promise<StudentResponseDto> {
     await this.ensureStudentExists(academyId, id);
 
     const student = await this.prisma.student.update({
@@ -181,10 +196,14 @@ export class StudentsService {
         }),
         ...(dto.schoolName !== undefined && { schoolName: dto.schoolName }),
         ...(dto.grade !== undefined && { grade: dto.grade }),
-        ...(dto.studentPhone !== undefined && { studentPhone: dto.studentPhone }),
+        ...(dto.studentPhone !== undefined && {
+          studentPhone: dto.studentPhone,
+        }),
         ...(dto.parentPhone !== undefined && { parentPhone: dto.parentPhone }),
         ...(dto.parentName !== undefined && { parentName: dto.parentName }),
-        ...(dto.parentRelationship !== undefined && { parentRelationship: dto.parentRelationship }),
+        ...(dto.parentRelationship !== undefined && {
+          parentRelationship: dto.parentRelationship,
+        }),
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.enrolledAt !== undefined && {
           enrolledAt: dto.enrolledAt ? new Date(dto.enrolledAt) : null,
@@ -228,14 +247,19 @@ export class StudentsService {
       },
     });
 
-    this.logger.log(`원생 상태 변경: [${student.name}] 상태: ${existing.status} -> ${dto.status}`);
+    this.logger.log(
+      `원생 상태 변경: [${student.name}] 상태: ${existing.status} -> ${dto.status}`,
+    );
     return student;
   }
 
   /**
    * 원생 삭제
    */
-  async remove(academyId: number, id: number): Promise<{ success: boolean; message: string }> {
+  async remove(
+    academyId: number,
+    id: number,
+  ): Promise<{ success: boolean; message: string }> {
     await this.ensureStudentExists(academyId, id);
 
     await this.prisma.student.delete({

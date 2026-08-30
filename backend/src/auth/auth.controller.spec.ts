@@ -37,8 +37,14 @@ describe('AuthController', () => {
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
       }),
-      logout: jest.fn().mockResolvedValue({ success: true, message: '성공적으로 로그아웃되었습니다.' }),
-      getMe: jest.fn().mockResolvedValue({ ...mockAuthResponse.user, academy: mockAuthResponse.academy }),
+      logout: jest.fn().mockResolvedValue({
+        success: true,
+        message: '성공적으로 로그아웃되었습니다.',
+      }),
+      getMe: jest.fn().mockResolvedValue({
+        ...mockAuthResponse.user,
+        academy: mockAuthResponse.academy,
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -92,7 +98,9 @@ describe('AuthController', () => {
   it('refreshTokens 호출 시 Refresh Token DTO를 전달하고 새 토큰 세트 반환', async () => {
     const dto = { refreshToken: 'mocked-refresh-token' };
     const result = await controller.refreshTokens(dto);
-    expect(authService.refreshTokens).toHaveBeenCalledWith('mocked-refresh-token');
+    expect(authService.refreshTokens).toHaveBeenCalledWith(
+      'mocked-refresh-token',
+    );
     expect(result.accessToken).toBe('new-access-token');
   });
 

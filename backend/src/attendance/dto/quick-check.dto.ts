@@ -9,7 +9,7 @@ import {
 import { Type } from 'class-transformer';
 
 export enum QuickCheckType {
-  CHECK_IN = 'CHECK_IN',   // 등원
+  CHECK_IN = 'CHECK_IN', // 등원
   CHECK_OUT = 'CHECK_OUT', // 하원
 }
 

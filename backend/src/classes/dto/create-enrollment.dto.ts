@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsOptional, IsDateString, IsEnum } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsDateString,
+  IsEnum,
+} from 'class-validator';
 import { EnrollmentStatus } from '@prisma/client';
 
 export class CreateEnrollmentDto {

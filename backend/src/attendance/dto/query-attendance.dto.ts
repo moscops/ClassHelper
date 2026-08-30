@@ -64,7 +64,8 @@ export class QueryAttendanceDto {
   endDate?: string;
 
   @ApiPropertyOptional({
-    description: '특정 일자 조회 (YYYY-MM-DD, startDate/endDate 대신 단일일자 지정 시)',
+    description:
+      '특정 일자 조회 (YYYY-MM-DD, startDate/endDate 대신 단일일자 지정 시)',
     example: '2026-08-27',
   })
   @IsOptional()

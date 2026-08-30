@@ -122,7 +122,9 @@ describe('AttendanceService', () => {
       prisma.class.findFirst.mockResolvedValue({ id: 1, academyId: 10 });
       prisma.$transaction.mockImplementation(async (callback) => {
         const tx = {
-          student: { findFirst: jest.fn().mockResolvedValue({ id: 100, academyId: 10 }) },
+          student: {
+            findFirst: jest.fn().mockResolvedValue({ id: 100, academyId: 10 }),
+          },
           attendance: { upsert: jest.fn().mockResolvedValue(mockAttendance) },
         };
         return callback(tx);
