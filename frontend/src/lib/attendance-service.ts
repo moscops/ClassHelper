@@ -17,6 +17,7 @@ export interface AttendanceClassSummary {
   name: string;
   subject?: string | null;
   schedule?: string | null;
+  room?: string | null;
 }
 
 export interface AttendanceItem {
