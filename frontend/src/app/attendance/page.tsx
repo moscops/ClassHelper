@@ -48,8 +48,10 @@ import {
   ClassRosterStudent,
   AttendanceStats,
   AttendanceItem,
+  UnattendedStatusResponse,
 } from '@/lib/attendance-service';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationBell } from '@/components/NotificationBell';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
 
 export default function AttendancePage() {
@@ -102,6 +104,14 @@ export default function AttendancePage() {
   const [statsData, setStatsData] = useState<AttendanceStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
+  // State: Unattended Alert Status
+  const [unattendedStatus, setUnattendedStatus] = useState<UnattendedStatusResponse>({
+    isUnattendedAlertActive: false,
+    unattendedCount: 0,
+    unattendedStudents: [],
+  });
+  const [isTriggeringKakao, setIsTriggeringKakao] = useState(false);
+
   // Authentication Guard
   useEffect(() => {
     if (isHydrated && !isAuthenticated) {
@@ -124,6 +134,7 @@ export default function AttendancePage() {
   useEffect(() => {
     if (isAuthenticated) {
       loadClasses();
+      loadUnattendedStatus(selectedDate);
     }
   }, [isAuthenticated]);
 
@@ -131,8 +142,31 @@ export default function AttendancePage() {
   useEffect(() => {
     if (selectedClassId) {
       loadRoster(selectedClassId, selectedDate);
+      loadUnattendedStatus(selectedDate);
     }
   }, [selectedClassId, selectedDate]);
+
+  const loadUnattendedStatus = async (date: string) => {
+    try {
+      const data = await attendanceService.getUnattendedStatus(date);
+      setUnattendedStatus(data);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleTriggerUnattendedKakao = async () => {
+    setIsTriggeringKakao(true);
+    try {
+      const res = await attendanceService.triggerUnattendedAlerts(selectedDate);
+      alert(res.message);
+      await loadUnattendedStatus(selectedDate);
+    } catch (err: any) {
+      alert(err.response?.data?.message || '카카오 알림톡 발송 중 오류가 발생했습니다.');
+    } finally {
+      setIsTriggeringKakao(false);
+    }
+  };
 
   const loadClasses = async () => {
     try {
@@ -152,6 +186,7 @@ export default function AttendancePage() {
     try {
       const data = await attendanceService.getClassDailyRoster(classId, date);
       setRoster(data);
+      await loadUnattendedStatus(date);
     } catch (err) {
       console.error('Failed to load attendance roster:', err);
     } finally {
@@ -513,6 +548,9 @@ export default function AttendancePage() {
               </Link>
             )}
 
+            {/* Header Notification Bell */}
+            <NotificationBell />
+
             <ThemeToggle />
 
             <div className="hidden md:flex flex-col items-end mr-0.5">
@@ -592,6 +630,69 @@ export default function AttendancePage() {
               </button>
             </div>
           </div>
+
+          {/* Urgent Unattended Alert Banner (수업 시간 미등원 학생 감지 배너) */}
+          {unattendedStatus.isUnattendedAlertActive && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 shadow-md animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs animate-bounce">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-rose-950 dark:text-rose-200">
+                        수업 미등원 학생 감지 경고
+                      </h3>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-600 text-white shadow-2xs">
+                        {unattendedStatus.unattendedCount}명 미등원
+                      </span>
+                    </div>
+                    <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5 leading-relaxed">
+                      오늘 수업 시작 시간이 지났으나 아직 출결 체크가 되지 않은 학생이 있습니다. 출결을 완료하시면 경고 신호가 자동으로 해제됩니다.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleTriggerUnattendedKakao}
+                  disabled={isTriggeringKakao}
+                  className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs shadow-rose-600/30 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                >
+                  {isTriggeringKakao ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <MessageSquare className="w-3.5 h-3.5" />
+                  )}
+                  <span>카카오 안심 알림톡 일괄 발송</span>
+                </button>
+              </div>
+
+              {/* Unattended Students Chips */}
+              <div className="mt-3.5 pt-3 border-t border-rose-200/80 dark:border-rose-800/60 flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-bold text-rose-800 dark:text-rose-300">
+                  미등원 원생 목록:
+                </span>
+                {unattendedStatus.unattendedStudents.map((st) => (
+                  <div
+                    key={`${st.studentId}_${st.classId}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs font-semibold text-rose-800 dark:text-rose-200 shadow-2xs"
+                  >
+                    <span>{st.studentName}</span>
+                    <span className="text-[10px] font-normal text-rose-600 dark:text-rose-400">
+                      ({st.className})
+                    </span>
+                    {st.isAlertSent && (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-semibold">
+                        알림발송됨
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Selection & Control Bar */}
           <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-4">

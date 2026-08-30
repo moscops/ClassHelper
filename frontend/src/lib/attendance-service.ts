@@ -244,4 +244,45 @@ export const attendanceService = {
     const response = await api.delete<{ success: boolean; message: string }>(`/attendance/${attendanceId}`);
     return response.data;
   },
+
+  /**
+   * 오늘 미등원 학생 감지 및 경고 상태 조회 (출결 버튼 신호 연동)
+   */
+  async getUnattendedStatus(date?: string): Promise<UnattendedStatusResponse> {
+    const query = date ? `?date=${date}` : '';
+    const response = await api.get<UnattendedStatusResponse>(`/attendance/unattended-status${query}`);
+    return response.data;
+  },
+
+  /**
+   * 미등원 학생 학부모 대상 카카오 안심 알림톡 일괄 자동 발송
+   */
+  async triggerUnattendedAlerts(date?: string): Promise<{ sentCount: number; message: string; results: any[] }> {
+    const query = date ? `?date=${date}` : '';
+    const response = await api.post<{ sentCount: number; message: string; results: any[] }>(
+      `/attendance/trigger-unattended-alerts${query}`,
+      {},
+    );
+    return response.data;
+  },
 };
+
+export interface UnattendedStudent {
+  studentId: number;
+  studentName: string;
+  grade?: string | null;
+  parentPhone: string;
+  studentPhone?: string | null;
+  classId: number;
+  className: string;
+  schedule?: string | null;
+  isAlertSent: boolean;
+  alertSentAt?: string | null;
+}
+
+export interface UnattendedStatusResponse {
+  isUnattendedAlertActive: boolean;
+  unattendedCount: number;
+  unattendedStudents: UnattendedStudent[];
+}
+

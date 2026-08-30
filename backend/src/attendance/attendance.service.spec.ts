@@ -1,13 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { AttendanceStatus, EnrollmentStatus } from '@prisma/client';
 import { AttendanceService } from './attendance.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { QuickCheckType } from './dto/quick-check.dto';
 
 describe('AttendanceService', () => {
   let service: AttendanceService;
   let prisma: any;
+  let notificationsService: any;
 
   const mockAttendance = {
     id: BigInt(1),
@@ -57,11 +59,28 @@ describe('AttendanceService', () => {
       },
       class: {
         findFirst: jest.fn(),
+        findMany: jest.fn(),
       },
       enrollment: {
         findMany: jest.fn(),
       },
+      notification: {
+        findMany: jest.fn(),
+        updateMany: jest.fn(),
+      },
       $transaction: jest.fn(),
+    };
+
+    notificationsService = {
+      createNotification: jest.fn().mockResolvedValue({
+        id: 1,
+        title: '미등원 알림: 김민준 학생',
+      }),
+      getUnreadCount: jest.fn().mockResolvedValue({
+        unreadCount: 1,
+        unattendedAlertCount: 1,
+        hasUnattendedAlert: true,
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -70,6 +89,10 @@ describe('AttendanceService', () => {
         {
           provide: PrismaService,
           useValue: prisma,
+        },
+        {
+          provide: NotificationsService,
+          useValue: notificationsService,
         },
       ],
     }).compile();
@@ -248,6 +271,68 @@ describe('AttendanceService', () => {
       expect(result.totalAbsent).toBe(1);
       expect(result.averageAttendanceRate).toBe(50);
       expect(result.makeupNeededCount).toBe(1);
+    });
+  });
+
+  describe('getUnattendedStatus', () => {
+    it('오늘 수업이 있는 반에서 아직 출결 체크를 하지 않은 미등원 학생을 감지한다', async () => {
+      prisma.class.findMany.mockResolvedValue([
+        {
+          id: 1,
+          name: '중등 수학 심화반',
+          schedule: '매일 17:00-19:00',
+          enrollments: [
+            {
+              student: {
+                id: 100,
+                name: '김민준',
+                grade: '중2',
+                parentPhone: '010-3333-4444',
+                studentPhone: '010-1111-2222',
+              },
+            },
+          ],
+          attendances: [],
+        },
+      ]);
+      prisma.notification.findMany.mockResolvedValue([]);
+
+      const result = await service.getUnattendedStatus(10);
+
+      expect(result.isUnattendedAlertActive).toBe(true);
+      expect(result.unattendedCount).toBe(1);
+      expect(result.unattendedStudents[0].studentName).toBe('김민준');
+      expect(result.unattendedStudents[0].isAlertSent).toBe(false);
+    });
+  });
+
+  describe('triggerUnattendedAlerts', () => {
+    it('미등원 학생에게 카카오 안심 알림톡을 발송하고 결과를 반환한다', async () => {
+      prisma.class.findMany.mockResolvedValue([
+        {
+          id: 1,
+          name: '중등 수학 심화반',
+          schedule: '매일 17:00-19:00',
+          enrollments: [
+            {
+              student: {
+                id: 100,
+                name: '김민준',
+                grade: '중2',
+                parentPhone: '010-3333-4444',
+                studentPhone: '010-1111-2222',
+              },
+            },
+          ],
+          attendances: [],
+        },
+      ]);
+      prisma.notification.findMany.mockResolvedValue([]);
+
+      const result = await service.triggerUnattendedAlerts(10);
+
+      expect(result.sentCount).toBe(1);
+      expect(notificationsService.createNotification).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -34,6 +34,25 @@
 
 ---
 
+### 2) `Notification` (알림 및 카카오톡/SMS 발송 기록)
+* **역할**: 미등원/지각 경고, 등원/하원 완료 알림, 수강료 납부 안내, 시스템 공지 및 발송 채널별(인앱/카카오/SMS) 이력 보관.
+* **알림 유형 (`NotificationType`)**:
+  * `UNATTENDED_ALERT`: 수업 시작 시간 경과 미등원/지각 경고 알림
+  * `ATTENDANCE_CHECKIN`: 등원 완료 알림
+  * `ATTENDANCE_CHECKOUT`: 하원 완료 알림
+  * `TUITION_DUE`: 수강료 납부 안내
+  * `SYSTEM_NOTICE`: 시스템 공지
+* **발송 채널 (`NotificationChannel`)**: `IN_APP` (웹 인앱 알림), `KAKAO` (카카오 알림톡), `SMS` (대체 문자)
+* **발송 상태 (`NotificationStatus`)**: `SENT` (발송 완료), `DELIVERED` (수신 확인), `FAILED` (발송 실패)
+* **주요 필드**:
+  * `id`: 고유 ID (`Int`)
+  * `academyId`: 소속 학원 ID (멀티테넌시 격리)
+  * `studentId`: 대상 학생 ID
+  * `classId`: 대상 수업 반 ID
+  * `type`, `channel`, `status`, `title`, `message`, `targetPhone`, `isRead`, `readAt`, `metadata`
+
+---
+
 ## 👥 2. 역할별 권한 매트릭스 (Role Permissions Matrix)
 
 | 기능 / 작업 | SUPER_ADMIN | OWNER | ADMIN | TEACHER | STAFF |
@@ -43,24 +62,32 @@
 | **1초 원터치 등/하원 체크 (`POST /attendance/quick-check`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **반 일별 출결 현황판 조회 (`GET /attendance/roster`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **출결 내역 검색/목록 (`GET /attendance`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **미등원 감지 및 경고 상태 조회 (`GET /attendance/unattended-status`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **미등원 카카오 안심 알림톡 발송 (`POST /attendance/trigger-unattended-alerts`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **보강(Makeup) 대상자 지정 및 완료 처리 (`PATCH /attendance/:id/makeup`)** | ✅ | ✅ | ✅ | ✅ | ❌ |
 | **학원 출결 통계 및 요약 분석 (`GET /attendance/stats`)** | ✅ | ✅ | ✅ | ✅ | ❌ |
 | **출결 기록 삭제 (`DELETE /attendance/:id`)** | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **알림 목록 조회 (`GET /notifications`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **안 읽은 알림 수 조회 (`GET /notifications/unread-count`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **알림 읽음 처리 (`PATCH /notifications/:id/read`, `PATCH /notifications/read-all`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **알림 삭제 (`DELETE /notifications/:id`)** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **알림 재전송 (`POST /notifications/:id/retry`)** | ✅ | ✅ | ✅ | ❌ | ❌ |
 
 ---
 
-## 📱 3. 1초 출결 체크 및 알림톡 발송 흐름
+## 📱 3. 1초 출결 체크 & 미등원 감지 자동 알림 흐름
 
 ```text
-[ 교실/데스크 (선생님) ]
-       │
-       │─── 1. [김민준] 원터치 "등원" 터치 ───┐
-       ▼                                     ▼
-[ NestJS 출결 엔진 (Backend) ]        [ 카카오 알림톡 API (BizMSG) ]
-       │                                     │
-       ├── 2. 출결 DB 저장 (PRESENT, 17:30)  │── 4. 학부모 카카오톡 메시지 수신
-       │                                     │     "안녕하세요, [김민준] 학생이
-       └── 3. 알림톡 템플릿 렌더링 ──────────┘      17시 30분에 안전하게 등원했습니다."
+[ 1. 미등원 감지 & 자동 신호 (Unattended Alert) ]
+  - 수업 시작 시간(예: 17:00) 경과 후 아직 출결 미입력 학생 감지
+  - 학부모 카카오 안심 알림톡 발송 ("김민준 학생이 수업 시작 시각까지 미등원 상태입니다.")
+  - 대시보드 및 상단 내비의 '1초 출결 체크' 버튼에 🚨 붉은 펄스 애니메이션(긴급 신호) 활성화
+  - 헤더 우측 상단 '종 아이콘(Bell)'에 미확인 알림 뱃지 팝업
+
+[ 2. 출결 체크 완료 시 자동 복귀 ]
+  - 선생님이 학생 카드에서 [출석] 또는 [지각] 원터치 터치
+  - 출결 DB Upsert 반영과 동시에 해당 학생의 미등원 경고 알림 자동 읽음/해결 처리
+  - '1초 출결 체크' 버튼의 펄스 애니메이션이 정지되고 기본 스타일로 즉시 복귀
 ```
 
 ---
@@ -111,46 +138,54 @@
   }
   ```
 
-### 4.4. 반 일별 전체 수강생 출결 현황판 (Daily Roster)
-* **엔드포인트**: `GET /attendance/roster?classId=1&date=2026-08-27`
-* **Response Body (`ClassDailyRosterResponseDto`)**:
+### 4.4. 오늘 미등원 학생 감지 및 경고 상태 조회
+* **엔드포인트**: `GET /attendance/unattended-status?date=2026-08-30`
+* **Response Body (`UnattendedStatusResponseDto`)**:
   ```json
   {
-    "class": { "id": 1, "name": "중등 수학 심화반", "schedule": "월/수/금 17:00-19:00" },
-    "date": "2026-08-27",
-    "totalStudents": 15,
-    "presentCount": 13,
-    "absentCount": 1,
-    "lateCount": 1,
-    "earlyLeaveCount": 0,
-    "unmarkedCount": 0,
-    "students": [
+    "isUnattendedAlertActive": true,
+    "unattendedCount": 1,
+    "unattendedStudents": [
       {
         "studentId": 1,
         "studentName": "김민준",
         "grade": "중2",
-        "studentPhone": "010-1234-5678",
-        "parentPhone": "010-9876-5432",
-        "attendance": { "id": 101, "status": "PRESENT", "checkInTime": "2026-08-27T17:30:00.000Z" }
+        "parentPhone": "010-1234-5678",
+        "classId": 1,
+        "className": "중등 수학 심화반",
+        "schedule": "월/수/금 17:00-19:00",
+        "isAlertSent": true,
+        "alertSentAt": "2026-08-30T17:05:00.000Z"
       }
     ]
   }
   ```
 
-### 4.5. 출결 통계 및 요약 분석
-* **엔드포인트**: `GET /attendance/stats?classId=1&startDate=2026-08-01&endDate=2026-08-27`
-* **Response Body (`AttendanceStatsResponseDto`)**:
-  - `totalRecords`, `totalPresent`, `totalAbsent`, `totalLate`, `averageAttendanceRate` (%)
-  - `makeupNeededCount`, `makeupCompletedCount`
-  - `dailyStats`: 일자별 출결 집계 및 출석률 추이 배열
-
-### 4.6. 보강(Makeup) 대상 지정 및 완료 처리
-* **엔드포인트**: `PATCH /attendance/:id/makeup`
-* **Request Body (`UpdateMakeupDto`)**:
+### 4.5. 미등원 학생 대상 카카오 안심 알림톡 일괄 발송
+* **엔드포인트**: `POST /attendance/trigger-unattended-alerts?date=2026-08-30`
+* **Response Body**:
   ```json
   {
-    "isMakeupNeeded": true,
-    "isMakeupCompleted": false,
-    "memo": "8월 29일 금요일 18:00 개별 보강 예정"
+    "sentCount": 1,
+    "message": "1명의 미등원 학생 학부모님께 카카오 안심 알림톡이 성공적으로 발송되었습니다."
   }
   ```
+
+### 4.6. 알림 목록 조회 & 안 읽은 알림 수 집계
+* **엔드포인트**: `GET /notifications?type=UNATTENDED_ALERT&isRead=false&page=1&limit=20`
+* **엔드포인트**: `GET /notifications/unread-count`
+* **Response Body (`UnreadCountResponseDto`)**:
+  ```json
+  {
+    "unreadCount": 3,
+    "unattendedAlertCount": 1,
+    "hasUnattendedAlert": true
+  }
+  ```
+
+### 4.7. 알림 읽음 처리 & 삭제 & 재발송
+* `PATCH /notifications/:id/read` : 특정 알림 읽음
+* `PATCH /notifications/read-all` : 전체 알림 일괄 읽음
+* `DELETE /notifications/:id` : 알림 삭제
+* `POST /notifications/:id/retry` : 실패한 카카오 알림톡/SMS 재발송
+

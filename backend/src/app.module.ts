@@ -8,6 +8,7 @@ import { StudentsModule } from './students/students.module';
 import { AdminModule } from './admin/admin.module';
 import { ClassesModule } from './classes/classes.module';
 import { AttendanceModule } from './attendance/attendance.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AttendanceModule } from './attendance/attendance.module';
     AdminModule,
     ClassesModule,
     AttendanceModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

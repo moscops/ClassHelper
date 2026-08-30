@@ -31,6 +31,7 @@ import {
   AttendanceResponseDto,
   PaginatedAttendanceResponseDto,
   ClassDailyRosterResponseDto,
+  UnattendedStatusResponseDto,
 } from './dto/attendance-response.dto';
 import { AttendanceStatsResponseDto } from './dto/attendance-stats-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -226,5 +227,54 @@ export class AttendanceController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ success: boolean; message: string }> {
     return this.attendanceService.deleteAttendance(academyId, id);
+  }
+
+  @Get('unattended-status')
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
+  @ApiOperation({
+    summary: '오늘 미등원 수강생 감지 및 경고 상태 조회 (출결 버튼 신호 연동)',
+    description:
+      '수업 시간이 경과하였으나 출결 체크가 안 된 수강생 목록과 출결 버튼 경고 신호(펄스 효과) 활성화 여부를 반환합니다.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '미등원 상태 조회 성공',
+    type: UnattendedStatusResponseDto,
+  })
+  async getUnattendedStatus(
+    @CurrentUser('academyId') academyId: number,
+    @Query('date') date?: string,
+  ): Promise<UnattendedStatusResponseDto> {
+    return this.attendanceService.getUnattendedStatus(academyId, date);
+  }
+
+  @Post('trigger-unattended-alerts')
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
+  @ApiOperation({
+    summary: '미등원 학생 학부모 카카오 안심 알림톡 일괄 자동 발송',
+    description:
+      '오늘 미등원 상태인 수강생들의 학부모 연락처로 카카오 안심 알림톡을 일괄 전송하고 알림 이력을 기록합니다.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '카카오 안심 알림톡 일괄 발송 성공',
+  })
+  async triggerUnattendedAlerts(
+    @CurrentUser('academyId') academyId: number,
+    @Query('date') date?: string,
+  ): Promise<{ sentCount: number; message: string; results: any[] }> {
+    return this.attendanceService.triggerUnattendedAlerts(academyId, date);
   }
 }

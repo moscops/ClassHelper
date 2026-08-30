@@ -245,3 +245,59 @@ export class ClassDailyRosterResponseDto {
   })
   students: ClassRosterStudentDto[];
 }
+
+export class UnattendedStudentDto {
+  @ApiProperty({ example: 1 })
+  studentId: number;
+
+  @ApiProperty({ example: '김민준' })
+  studentName: string;
+
+  @ApiPropertyOptional({ example: '중2' })
+  grade?: string | null;
+
+  @ApiProperty({ example: '010-1234-5678' })
+  parentPhone: string;
+
+  @ApiPropertyOptional({ example: '010-9876-5432' })
+  studentPhone?: string | null;
+
+  @ApiProperty({ example: 1 })
+  classId: number;
+
+  @ApiProperty({ example: '중등 수학 심화반' })
+  className: string;
+
+  @ApiPropertyOptional({ example: '17:00-19:00' })
+  schedule?: string | null;
+
+  @ApiProperty({
+    description: '이미 카카오 알림톡/SMS가 발송되었는지 여부',
+    example: true,
+  })
+  isAlertSent: boolean;
+
+  @ApiPropertyOptional({ example: '2026-08-30T17:10:00.000Z' })
+  alertSentAt?: Date | null;
+}
+
+export class UnattendedStatusResponseDto {
+  @ApiProperty({
+    description:
+      '출결 체크 버튼 경고 신호(펄스 효과) 활성화 여부 (미등원생 존재 시 true)',
+    example: true,
+  })
+  isUnattendedAlertActive: boolean;
+
+  @ApiProperty({
+    description: '미등원 수강생 총 인원 수',
+    example: 2,
+  })
+  unattendedCount: number;
+
+  @ApiProperty({
+    description: '오늘 미등원 수강생 목록',
+    type: [UnattendedStudentDto],
+  })
+  unattendedStudents: UnattendedStudentDto[];
+}

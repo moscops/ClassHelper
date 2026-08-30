@@ -47,6 +47,7 @@ model Academy {
   tuitionInvoices TuitionInvoice[]
   tuitionPayments TuitionPayment[]
   classLogs       ClassLog[]
+  notifications   Notification[]
 
   @@index([status])
   @@map("academies")
@@ -134,6 +135,7 @@ model Student {
   attendances         Attendance[]
   tuitionInvoices     TuitionInvoice[]
   homeworkSubmissions HomeworkSubmission[]
+  notifications       Notification[]
 
   @@index([academyId, status])
   @@index([academyId, name])
@@ -162,11 +164,12 @@ model Class {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  academy     Academy      @relation(fields: [academyId], references: [id], onDelete: Cascade)
-  teacher     User?        @relation("TeacherClasses", fields: [teacherId], references: [id], onDelete: SetNull)
-  enrollments Enrollment[]
-  attendances Attendance[]
-  classLogs   ClassLog[]
+  academy       Academy        @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  teacher       User?          @relation("TeacherClasses", fields: [teacherId], references: [id], onDelete: SetNull)
+  enrollments   Enrollment[]
+  attendances   Attendance[]
+  classLogs     ClassLog[]
+  notifications Notification[]
 
   @@index([academyId, status])
   @@index([academyId, teacherId])
@@ -364,3 +367,57 @@ model HomeworkSubmission {
   @@index([studentId])
   @@map("homework_submissions")
 }
+
+// ==========================================
+// 6. 알림 및 카카오톡/SMS 발송 이력 모델
+// ==========================================
+
+enum NotificationType {
+  UNATTENDED_ALERT   // 미등원 / 지각 경고 알림
+  ATTENDANCE_CHECKIN // 등원 완료 알림
+  ATTENDANCE_CHECKOUT// 하원 완료 알림
+  TUITION_DUE        // 수강료 납부 안내
+  SYSTEM_NOTICE      // 시스템 공지
+}
+
+enum NotificationChannel {
+  IN_APP   // 웹 대시보드 인앱 알림
+  KAKAO    // 카카오 알림톡
+  SMS      // 대체 문자 메시지
+}
+
+enum NotificationStatus {
+  SENT     // 발송 완료
+  DELIVERED// 수신 확인 / 처리 완료
+  FAILED   // 발송 실패
+}
+
+model Notification {
+  id          Int                 @id @default(autoincrement())
+  academyId   Int
+  userId      Int?                // 대상 수신자
+  studentId   Int?                // 대상 학생
+  classId     Int?                // 대상 반
+  type        NotificationType    @default(UNATTENDED_ALERT)
+  channel     NotificationChannel @default(IN_APP)
+  status      NotificationStatus  @default(SENT)
+  title       String              @db.VarChar(150)
+  message     String              @db.Text
+  targetPhone String?             @db.VarChar(20)
+  isRead      Boolean             @default(false)
+  readAt      DateTime?
+  metadata    Json?               @db.JsonB
+
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  academy     Academy             @relation(fields: [academyId], references: [id], onDelete: Cascade)
+  student     Student?            @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  class       Class?              @relation(fields: [classId], references: [id], onDelete: SetNull)
+
+  @@index([academyId, isRead])
+  @@index([academyId, type])
+  @@index([academyId, createdAt])
+  @@map("notifications")
+}
+

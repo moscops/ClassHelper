@@ -41,6 +41,7 @@ import {
 } from '@/lib/students-service';
 import { classesService, ClassItem } from '@/lib/classes-service';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationBell } from '@/components/NotificationBell';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
 
 export default function StudentsPage() {
@@ -467,6 +468,9 @@ export default function StudentsPage() {
                 <span>관리자 포털로 돌아가기</span>
               </Link>
             )}
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             {/* Theme Toggle Button */}
             <ThemeToggle />

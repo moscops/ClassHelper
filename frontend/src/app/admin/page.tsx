@@ -27,6 +27,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/lib/auth-service';
 import { adminService, PlatformStats, AdminAcademyItem, AdminAuditLogItem } from '@/lib/admin-service';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationBell } from '@/components/NotificationBell';
 
 export default function AdminPortalPage() {
   const router = useRouter();
@@ -158,6 +159,8 @@ export default function AdminPortalPage() {
               <span>학원 대시보드 미리보기</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
+
+            <NotificationBell />
 
             <ThemeToggle />
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -15,14 +15,24 @@ import {
   ArrowUpRight,
   Loader2,
   CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/lib/auth-service';
+import { notificationsService } from '@/lib/notifications-service';
+import { attendanceService, UnattendedStatusResponse } from '@/lib/attendance-service';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationBell } from '@/components/NotificationBell';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, academy, isAuthenticated, isHydrated, logout } = useAuthStore();
+
+  const [unattendedStatus, setUnattendedStatus] = useState<UnattendedStatusResponse>({
+    isUnattendedAlertActive: false,
+    unattendedCount: 0,
+    unattendedStudents: [],
+  });
 
   // Authentication guard
   useEffect(() => {
@@ -30,6 +40,24 @@ export default function DashboardPage() {
       router.replace('/login');
     }
   }, [isHydrated, isAuthenticated, router]);
+
+  // Load Unattended Status
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadUnattendedStatus();
+      const interval = setInterval(loadUnattendedStatus, 20000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
+
+  const loadUnattendedStatus = async () => {
+    try {
+      const data = await attendanceService.getUnattendedStatus();
+      setUnattendedStatus(data);
+    } catch {
+      // ignore
+    }
+  };
 
   if (!isHydrated || !isAuthenticated || !user) {
     return (
@@ -87,7 +115,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 flex flex-col">
-      {/* Top Navigation Bar (Solid background, completely clean without dots) */}
+      {/* Top Navigation Bar */}
       <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30 transition-colors shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3.5">
@@ -128,9 +156,16 @@ export default function DashboardPage() {
               </Link>
               <Link
                 href="/attendance"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className={`relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  unattendedStatus.isUnattendedAlertActive
+                    ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-800 animate-pulse'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
               >
-                1초 출결 체크
+                <span>1초 출결 체크</span>
+                {unattendedStatus.isUnattendedAlertActive && (
+                  <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping shrink-0" />
+                )}
               </Link>
             </nav>
           </div>
@@ -145,6 +180,9 @@ export default function DashboardPage() {
                 <span>관리자 포털로 돌아가기</span>
               </Link>
             )}
+
+            {/* Notification Bell Dropdown */}
+            <NotificationBell />
 
             <ThemeToggle />
 
@@ -239,24 +277,72 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              {/* 3. 1초 출결 체크 */}
+              {/* 3. 1초 출결 체크 (미등원 경고 시 붉은 펄스 신호로 동적 전환) */}
               <Link
                 href="/attendance"
-                className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/60 hover:shadow-md transition-all shadow-xs flex flex-col justify-between group cursor-pointer"
+                className={`p-5 rounded-xl transition-all shadow-xs flex flex-col justify-between group cursor-pointer border ${
+                  unattendedStatus.isUnattendedAlertActive
+                    ? 'bg-rose-50/60 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800/80 ring-2 ring-rose-500/20 shadow-md animate-pulse'
+                    : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/60 hover:shadow-md'
+                }`}
               >
                 <div>
-                  <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3 group-hover:scale-105 transition-transform">
-                    <CalendarCheck2 className="w-4 h-4" />
+                  <div
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 transition-transform group-hover:scale-105 ${
+                      unattendedStatus.isUnattendedAlertActive
+                        ? 'bg-rose-600 text-white shadow-xs animate-bounce'
+                        : 'bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400'
+                    }`}
+                  >
+                    {unattendedStatus.isUnattendedAlertActive ? (
+                      <AlertTriangle className="w-4 h-4" />
+                    ) : (
+                      <CalendarCheck2 className="w-4 h-4" />
+                    )}
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    1초 출결 체크
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                    원터치 모바일 출결(출석, 결석, 지각, 조퇴) 및 보강 관리
+
+                  <div className="flex items-center gap-1.5">
+                    <h3
+                      className={`text-sm font-bold transition-colors ${
+                        unattendedStatus.isUnattendedAlertActive
+                          ? 'text-rose-700 dark:text-rose-300'
+                          : 'text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                      }`}
+                    >
+                      1초 출결 체크
+                    </h3>
+                    {unattendedStatus.isUnattendedAlertActive && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-600 text-white">
+                        {unattendedStatus.unattendedCount}명 미등원
+                      </span>
+                    )}
+                  </div>
+
+                  <p
+                    className={`text-xs mt-1 leading-relaxed ${
+                      unattendedStatus.isUnattendedAlertActive
+                        ? 'text-rose-600/90 dark:text-rose-300/90 font-medium'
+                        : 'text-slate-500 dark:text-slate-400'
+                    }`}
+                  >
+                    {unattendedStatus.isUnattendedAlertActive
+                      ? '수업 시간이 지났으나 아직 출결하지 않은 원생이 있습니다! 즉시 확인하세요.'
+                      : '원터치 모바일 출결(출석, 결석, 지각, 조퇴) 및 보강 관리'}
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-                  <span>출결 체크 바로가기</span>
+
+                <div
+                  className={`mt-4 pt-3 border-t flex items-center justify-between text-xs font-semibold ${
+                    unattendedStatus.isUnattendedAlertActive
+                      ? 'border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 font-bold'
+                      : 'border-slate-100 dark:border-slate-800 text-emerald-600 dark:text-emerald-400'
+                  }`}
+                >
+                  <span>
+                    {unattendedStatus.isUnattendedAlertActive
+                      ? '미등원 출결 확인하기'
+                      : '출결 체크 바로가기'}
+                  </span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
               </Link>
@@ -286,4 +372,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
 

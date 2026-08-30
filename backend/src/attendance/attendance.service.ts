@@ -22,13 +22,28 @@ import {
   AttendanceStatsResponseDto,
   DailyAttendanceStatDto,
 } from './dto/attendance-stats-response.dto';
-import { AttendanceStatus, EnrollmentStatus, Prisma } from '@prisma/client';
+import {
+  UnattendedStatusResponseDto,
+  UnattendedStudentDto,
+} from './dto/attendance-response.dto';
+import {
+  AttendanceStatus,
+  ClassStatus,
+  EnrollmentStatus,
+  NotificationChannel,
+  NotificationType,
+  Prisma,
+} from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AttendanceService {
   private readonly logger = new Logger(AttendanceService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   /**
    * 1. 단일 출결 등록 및 수정 (Upsert)
@@ -781,6 +796,156 @@ export class AttendanceService {
     return {
       success: true,
       message: '출결 기록이 성공적으로 삭제되었습니다.',
+    };
+  }
+
+  /**
+   * 9. 오늘 미등원 수강생 감지 및 경고 상태 조회 (출결 버튼 신호 연동)
+   */
+  async getUnattendedStatus(
+    academyId: number,
+    targetDateStr?: string,
+  ): Promise<UnattendedStatusResponseDto> {
+    const todayStr = targetDateStr || new Date().toISOString().slice(0, 10);
+    const parsedDate = this.parseDateOnly(todayStr);
+
+    const now = new Date();
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const currentDayName = dayNames[now.getDay()];
+
+    // 1) 학원의 활성 수업 반 목록 조회
+    const activeClasses = await this.prisma.class.findMany({
+      where: { academyId, status: ClassStatus.ACTIVE },
+      include: {
+        enrollments: {
+          where: {
+            status: EnrollmentStatus.ENROLLED,
+            startDate: { lte: parsedDate },
+            OR: [{ endDate: null }, { endDate: { gte: parsedDate } }],
+          },
+          include: {
+            student: true,
+          },
+        },
+        attendances: {
+          where: { date: parsedDate },
+        },
+      },
+    });
+
+    // 2) 오늘 발송된 미등원 알림 조회
+    const todayAlerts = await this.prisma.notification.findMany({
+      where: {
+        academyId,
+        type: NotificationType.UNATTENDED_ALERT,
+        createdAt: {
+          gte: parsedDate,
+        },
+      },
+    });
+
+    const alertMap = new Map<string, Date>();
+    todayAlerts.forEach((al) => {
+      if (al.studentId && al.classId) {
+        alertMap.set(`${al.studentId}_${al.classId}`, al.createdAt);
+      }
+    });
+
+    const unattendedStudents: UnattendedStudentDto[] = [];
+
+    for (const cls of activeClasses) {
+      // 요일 체크: schedule에 오늘 요일이 포함되어 있거나 지정되지 않은 경우
+      const isTodayClass =
+        !cls.schedule ||
+        cls.schedule.includes(currentDayName) ||
+        cls.schedule.includes('매일');
+
+      if (!isTodayClass) continue;
+
+      const attendanceMap = new Map<number, any>();
+      cls.attendances.forEach((att) => {
+        attendanceMap.set(att.studentId, att);
+      });
+
+      for (const enr of cls.enrollments) {
+        const att = attendanceMap.get(enr.studentId);
+        // 출결 기록이 없거나 아직 체크되지 않은 학생
+        if (!att) {
+          const key = `${enr.studentId}_${cls.id}`;
+          const alertSentAt = alertMap.get(key) || null;
+
+          unattendedStudents.push({
+            studentId: enr.student.id,
+            studentName: enr.student.name,
+            grade: enr.student.grade,
+            parentPhone: enr.student.parentPhone,
+            studentPhone: enr.student.studentPhone,
+            classId: cls.id,
+            className: cls.name,
+            schedule: cls.schedule,
+            isAlertSent: !!alertSentAt,
+            alertSentAt,
+          });
+        }
+      }
+    }
+
+    return {
+      isUnattendedAlertActive: unattendedStudents.length > 0,
+      unattendedCount: unattendedStudents.length,
+      unattendedStudents,
+    };
+  }
+
+  /**
+   * 10. 미등원 학생 대상 카카오 안심 알림톡 일괄 자동 발송
+   */
+  async triggerUnattendedAlerts(
+    academyId: number,
+    targetDateStr?: string,
+  ): Promise<{ sentCount: number; message: string; results: any[] }> {
+    const status = await this.getUnattendedStatus(academyId, targetDateStr);
+    const unsentList = status.unattendedStudents.filter(
+      (st) => !st.isAlertSent,
+    );
+
+    const sentResults = [];
+    for (const st of unsentList) {
+      const scheduleTime = st.schedule
+        ? st.schedule.split(' ')[1] || st.schedule
+        : '수업 시간';
+      const title = `[미등원 알림] ${st.studentName} 학생`;
+      const message = `[ClassHelper 안심 알림] ${st.studentName} 학생이 [${st.className}] 수업 시간(${scheduleTime})까지 아직 출석하지 않아 안내드립니다.`;
+
+      const notification = await this.notificationsService.createNotification(
+        academyId,
+        {
+          studentId: st.studentId,
+          classId: st.classId,
+          type: NotificationType.UNATTENDED_ALERT,
+          channel: NotificationChannel.KAKAO,
+          title,
+          message,
+          targetPhone: st.parentPhone,
+          metadata: {
+            studentName: st.studentName,
+            className: st.className,
+            schedule: st.schedule,
+            isAutoTriggered: true,
+          },
+        },
+      );
+
+      sentResults.push(notification);
+    }
+
+    return {
+      sentCount: sentResults.length,
+      message:
+        sentResults.length > 0
+          ? `${sentResults.length}명의 미등원 학생 학부모님께 카카오 안심 알림톡이 성공적으로 발송되었습니다.`
+          : '이미 모든 미등원 학생에게 알림이 발송되었거나 미등원 학생이 없습니다.',
+      results: sentResults,
     };
   }
 

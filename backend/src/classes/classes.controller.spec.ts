@@ -1,11 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClassesController } from './classes.controller';
 import { ClassesService } from './classes.service';
-import { ClassStatus, EnrollmentStatus } from '@prisma/client';
+import { EnrollmentStatus } from '@prisma/client';
 
 describe('ClassesController', () => {
   let controller: ClassesController;
-  let service: ClassesService;
 
   const mockClassesService = {
     createClass: jest.fn(),
@@ -32,7 +31,6 @@ describe('ClassesController', () => {
     }).compile();
 
     controller = module.get<ClassesController>(ClassesController);
-    service = module.get<ClassesService>(ClassesService);
   });
 
   it('컨트롤러가 정의되어 있어야 함', () => {
