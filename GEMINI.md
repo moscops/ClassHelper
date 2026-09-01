@@ -10,6 +10,7 @@
 >    - **Gemini**: **프론트엔드(Frontend)** 전담 (Next.js App Router, React 19, Tailwind CSS UI/UX, 상태 관리, 프론트엔드 API 클라이언트 연동 및 프론트 로그/에러 해결)
 > 6. **프론트엔드 작업 완료 즉시 Git 커밋 및 푸시 (Auto Commit & Push)**: Gemini는 프론트엔드 작업 단위가 완료되고 빌드 검증(`next build` 성공)을 마칠 때마다 지체 없이 **Git 공식 커밋 컨벤션에 맞춰 커밋하고 원격 저장소(`git push`)에 즉시 반영**하여 최신 변경 사항을 항상 안전하게 유지해야 합니다.
 > 7. **공유 핸드오프 로그(`AI_HANDOFF.md`) 기반 비동기 협업 프로토콜**: Claude가 백엔드 API/스키마/로직을 수정할 때마다 루트의 [`AI_HANDOFF.md`](AI_HANDOFF.md) 파일에 변경 내역 및 프론트엔드 연동 요구사항을 기록합니다. Gemini는 호출 시 또는 작업 시 [`AI_HANDOFF.md`](AI_HANDOFF.md)의 최신 내용을 확인하여 프론트엔드 코드(`src/lib/*-service.ts`, `src/app/*`)를 즉시 업데이트하고 상태를 동기화합니다.
+> 8. **프론트엔드 작업 완료 시 Notion(노션) 마무리 동기화 (Notion Final Update)**: 프론트엔드 기능 개발, 화면 개선, 레이아웃 변경 등 작업이 완료될 때마다 노션(Notion) 워크스페이스의 해당 문서(WBS 진행률/태스크 상태, 서비스 기획서 및 요구사항 명세서, 프론트엔드 변경 내역 등)에 업데이트가 필요한 사항이 있다면 Notion MCP를 통해 항상 마무리 단계에서 최신 상태로 동기화 및 반영합니다.
 
 ---
 
