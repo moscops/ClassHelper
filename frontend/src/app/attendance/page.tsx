@@ -179,6 +179,19 @@ export default function AttendancePage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // ESC to close modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsClassDropdownOpen(false);
+        setIsDetailModalOpen(false);
+        setIsStatsModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Load classes list & timeline data
   useEffect(() => {
     if (isHydrated && isAuthenticated) {
@@ -1962,7 +1975,14 @@ export default function AttendancePage() {
 
       {/* 1. Detail & Makeup Modal */}
       {isDetailModalOpen && selectedStudentForDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsDetailModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+        >
           <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
               <div>
@@ -2139,7 +2159,14 @@ export default function AttendancePage() {
 
       {/* 2. Stats Analysis Modal */}
       {isStatsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsStatsModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+        >
           <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
               <div>

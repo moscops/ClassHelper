@@ -167,6 +167,8 @@ export default function StudentsPage() {
         setIsStudentModalOpen(false);
         setIsDetailModalOpen(false);
         setIsStatusDropdownOpen(false);
+        setIsBulkImportModalOpen(false);
+        setIsReportModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -1781,7 +1783,14 @@ export default function StudentsPage() {
 
       {/* 4. CSV Bulk Import Modal */}
       {isBulkImportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isUploadingCsv) {
+              setIsBulkImportModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
           <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">

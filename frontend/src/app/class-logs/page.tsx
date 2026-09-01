@@ -184,6 +184,19 @@ export default function ClassLogsPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // ESC to close modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsClassDropdownOpen(false);
+        setIsLogModalOpen(false);
+        setIsReportModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const showAlert = (type: 'success' | 'error', message: string) => {
     setAlertInfo({ type, message });
     setTimeout(() => setAlertInfo(null), 4000);
@@ -1108,7 +1121,14 @@ export default function ClassLogsPage() {
 
       {/* 1. Modal: Create / Edit Class Log */}
       {isLogModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSubmittingLog) {
+              setIsLogModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+        >
           <div className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden p-6 sm:p-7 space-y-6 my-8">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-2">
@@ -1259,7 +1279,14 @@ export default function ClassLogsPage() {
 
       {/* 2. Modal: Student Cumulative Homework Report */}
       {isReportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsReportModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+        >
           <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden p-6 sm:p-7 space-y-6 my-8">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-2">

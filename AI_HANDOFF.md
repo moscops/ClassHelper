@@ -8,6 +8,23 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-02: 리포트 관리 페이지 UI 전면 리뉴얼 및 전체 페이지 모달 Backdrop/ESC 닫기 통일
+- **작성자**: Gemini (Frontend)
+- **프론트엔드 반영 사항 (Gemini)**:
+  - **리포트 관리 페이지 (`frontend/src/app/reports/page.tsx`) 전면 리뉴얼**:
+    - 다른 핵심 도메인(`students`, `classes`, `tuition`, `calendar`)과 100% 동일한 규격, 4대 통계 카드, 인디고/퍼플 테마 및 디자인 시스템 적용
+    - 브라우저 기본 날짜 입력창을 공통 캘린더 컴포넌트인 **`CustomDatePicker`** 로 전면 교체하여 일관된 달력 UI 제공
+    - 상단 우측에 **`[+ 리포트 발송]`** 액션 버튼 추가 및 (반 일괄 / 개별 원생) 통합 대화형 발송 마법사 모달 구현
+  - **전체 페이지 모달 바깥(Backdrop) 클릭 닫기 및 ESC 키 제어 전수 통일**:
+    - `students/page.tsx`: 원생 등록/수정, 원생 상세, CSV 대량 등록, 리포트 발송 모달의 backdrop 클릭 & ESC 닫기 통일
+    - `classes/page.tsx`: 반 개설/수정, 수강생 배정, 반 리포트 발송 모달의 backdrop 클릭 & ESC 닫기 통일
+    - `calendar/page.tsx`: 학원 이벤트 생성/수정 모달의 backdrop 클릭 & ESC 닫기 통일
+    - `class-logs/page.tsx`: 수업 일지 작성/수정, 학생 누적 과제 리포트 모달의 backdrop 클릭 & ESC 닫기 통일
+    - `tuition/page.tsx`: 월간 청구서 일괄 생성, 수납 처리, 청구서 할인/수정, 수납 영수증 모달의 backdrop 클릭 & ESC 닫기 통일
+    - `attendance/page.tsx`: 출결 상세 수정, 통계 분석 모달의 backdrop 클릭 & ESC 닫기 통일
+    - `admin/page.tsx`: 학원 요금제 구독 설정 모달의 backdrop 클릭 & ESC 닫기 통일
+- **상태**: ✅ Next.js 16 빌드 성공 (17/17 routes), Jest 109/109 PASS 검증 완료
+
 ### 📅 2026-09-01: 독립 '리포트 관리' 전용 페이지(/reports) 신규 구축 및 네비게이션 동기화 완료
 - **작성자**: Gemini (Frontend)
 - **프론트엔드 반영 사항 (Gemini)**:

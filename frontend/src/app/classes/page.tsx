@@ -148,6 +148,7 @@ export default function ClassesPage() {
         setIsClassModalOpen(false);
         setIsEnrollmentModalOpen(false);
         setIsStatusDropdownOpen(false);
+        setIsClassReportModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);

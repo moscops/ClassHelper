@@ -87,6 +87,17 @@ export default function CalendarPage() {
     }
   }, [isHydrated, isAuthenticated, router]);
 
+  // ESC key to close event modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsEventModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Load All Calendar Data (Events, Classes, Rosters)
   useEffect(() => {
     if (isHydrated && isAuthenticated && academy) {
@@ -1041,7 +1052,14 @@ export default function CalendarPage() {
 
       {/* Modal: Add / Edit Academy Event */}
       {isEventModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsEventModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
           <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative overflow-hidden">
             <button
               type="button"

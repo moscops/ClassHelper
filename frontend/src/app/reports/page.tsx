@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -25,6 +25,10 @@ import {
   CalendarCheck2,
   Clock,
   ArrowRight,
+  Plus,
+  UserCheck,
+  Percent,
+  Award,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -35,6 +39,7 @@ import {
 } from '@/lib/reports-service';
 import { classesService, ClassItem } from '@/lib/classes-service';
 import { studentsService, StudentItem } from '@/lib/students-service';
+import { CustomDatePicker } from '@/components/CustomDatePicker';
 import { AppLayout } from '@/components/common/AppLayout';
 
 export default function ReportsPage() {
@@ -53,6 +58,18 @@ export default function ReportsPage() {
   const [periodPreset, setPeriodPreset] = useState<'THIS_MONTH' | 'LAST_MONTH' | 'LAST_7_DAYS' | 'CUSTOM'>('THIS_MONTH');
   const [globalStart, setGlobalStart] = useState<string>('');
   const [globalEnd, setGlobalEnd] = useState<string>('');
+
+  // Top Wizard Modal: [+ 리포트 발송] Action
+  const [isWizardModalOpen, setIsWizardModalOpen] = useState(false);
+  const [wizardMode, setWizardMode] = useState<'CLASS' | 'STUDENT'>('CLASS');
+  const [wizardSelectedClassId, setWizardSelectedClassId] = useState<number | ''>('');
+  const [wizardSelectedStudentId, setWizardSelectedStudentId] = useState<number | ''>('');
+  const [wizardStudentSearch, setWizardStudentSearch] = useState('');
+  const [wizardPreview, setWizardPreview] = useState<StudentReport | null>(null);
+  const [isLoadingWizardPreview, setIsLoadingWizardPreview] = useState(false);
+  const [isSendingWizard, setIsSendingWizard] = useState(false);
+  const [wizardResult, setWizardResult] = useState<ClassReportSendResult | SendReportResult | null>(null);
+  const [wizardError, setWizardError] = useState<string | null>(null);
 
   // Class Batch Send State & Modal
   const [selectedClassForBatch, setSelectedClassForBatch] = useState<ClassItem | null>(null);
@@ -96,23 +113,36 @@ export default function ReportsPage() {
 
     if (preset === 'THIS_MONTH') {
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      start = firstDay.toISOString().split('T')[0];
-      end = now.toISOString().split('T')[0];
+      start = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-01`;
+      end = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     } else if (preset === 'LAST_MONTH') {
       const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
-      start = firstDay.toISOString().split('T')[0];
-      end = lastDay.toISOString().split('T')[0];
+      start = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-01`;
+      end = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
     } else if (preset === 'LAST_7_DAYS') {
       const past7 = new Date();
       past7.setDate(now.getDate() - 7);
-      start = past7.toISOString().split('T')[0];
-      end = now.toISOString().split('T')[0];
+      start = `${past7.getFullYear()}-${String(past7.getMonth() + 1).padStart(2, '0')}-${String(past7.getDate()).padStart(2, '0')}`;
+      end = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     }
 
     setGlobalStart(start);
     setGlobalEnd(end);
   };
+
+  // ESC to close all modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsWizardModalOpen(false);
+        setIsBatchModalOpen(false);
+        setIsStudentModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Load Data
   const loadData = async () => {
@@ -136,6 +166,77 @@ export default function ReportsPage() {
       loadData();
     }
   }, [isHydrated, isAuthenticated]);
+
+  // Handle Top [+ 리포트 발송] Wizard
+  const handleOpenWizard = () => {
+    setWizardMode('CLASS');
+    setWizardSelectedClassId(classes.length > 0 ? classes[0].id : '');
+    setWizardSelectedStudentId(students.length > 0 ? students[0].id : '');
+    setWizardStudentSearch('');
+    setWizardResult(null);
+    setWizardError(null);
+    setWizardPreview(null);
+    setIsWizardModalOpen(true);
+  };
+
+  const handleFetchWizardStudentPreview = async (studentId: number) => {
+    if (!studentId || !globalStart || !globalEnd) return;
+    setIsLoadingWizardPreview(true);
+    setWizardError(null);
+    try {
+      const preview = await reportsService.previewStudentReport(studentId, globalStart, globalEnd);
+      setWizardPreview(preview);
+    } catch (err: any) {
+      console.error('Failed to fetch wizard preview:', err);
+      setWizardError(err.response?.data?.message || '리포트 미리보기를 생성하지 못했습니다.');
+    } finally {
+      setIsLoadingWizardPreview(false);
+    }
+  };
+
+  const handleExecuteWizardSend = async () => {
+    if (!globalStart || !globalEnd) {
+      setWizardError('발송 대상 기간을 설정해주세요.');
+      return;
+    }
+
+    setIsSendingWizard(true);
+    setWizardError(null);
+    setWizardResult(null);
+
+    try {
+      if (wizardMode === 'CLASS') {
+        if (!wizardSelectedClassId) {
+          setWizardError('발송 대상 반을 선택해주세요.');
+          setIsSendingWizard(false);
+          return;
+        }
+        const result = await reportsService.sendClassReports(
+          Number(wizardSelectedClassId),
+          globalStart,
+          globalEnd,
+        );
+        setWizardResult(result);
+      } else {
+        if (!wizardSelectedStudentId) {
+          setWizardError('발송 대상 학생을 선택해주세요.');
+          setIsSendingWizard(false);
+          return;
+        }
+        const result = await reportsService.sendStudentReport(
+          Number(wizardSelectedStudentId),
+          globalStart,
+          globalEnd,
+        );
+        setWizardResult(result);
+      }
+    } catch (err: any) {
+      console.error('Wizard send failed:', err);
+      setWizardError(err.response?.data?.message || '리포트 발송 중 오류가 발생했습니다.');
+    } finally {
+      setIsSendingWizard(false);
+    }
+  };
 
   // Handle Class Batch Send Modal
   const handleOpenBatchModal = (cls: ClassItem) => {
@@ -177,8 +278,8 @@ export default function ReportsPage() {
     setStudentReportError(null);
     setReportPreview(null);
 
-    const start = globalStart || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-    const end = globalEnd || new Date().toISOString().split('T')[0];
+    const start = globalStart || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`;
+    const end = globalEnd || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
 
     setStudentPeriodStart(start);
     setStudentPeriodEnd(end);
@@ -245,11 +346,11 @@ export default function ReportsPage() {
   return (
     <AppLayout currentPath="/reports">
       <div className="space-y-6">
-        {/* Top Title & Tab Header */}
+        {/* Top Header: Title & Action Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-purple-600 flex items-center justify-center text-white shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs">
                 <FileText className="w-4.5 h-4.5" />
               </div>
               <span>학습 & 출결 리포트 관리</span>
@@ -259,7 +360,7 @@ export default function ReportsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <button
               type="button"
               onClick={loadData}
@@ -269,10 +370,19 @@ export default function ReportsPage() {
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               <span>새로고침</span>
             </button>
+
+            <button
+              type="button"
+              onClick={handleOpenWizard}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs shadow-indigo-600/20 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>리포트 발송</span>
+            </button>
           </div>
         </div>
 
-        {/* Top Metric Cards */}
+        {/* Top Metric Cards (Standard 4-Grid Format) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">관리 대상 재원생</span>
@@ -323,19 +433,19 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Global Period Selector Toolbar */}
+        {/* Global Period Selector Toolbar with CustomDatePicker Calendar UI */}
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-2xs">
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <p className="font-bold text-xs text-slate-900 dark:text-white">리포트 대상 기간</p>
-              <p className="text-[11px] text-slate-400">선택한 기간의 출결 및 과제 데이터가 리포트에 반영됩니다.</p>
+              <p className="font-bold text-xs text-slate-900 dark:text-white">리포트 집계 대상 기간</p>
+              <p className="text-[11px] text-slate-400">선택한 기간의 출결율 및 과제 수행률이 리포트에 자동 계산됩니다.</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2.5 text-xs">
             {/* Presets */}
             <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
               <button
@@ -373,26 +483,24 @@ export default function ReportsPage() {
               </button>
             </div>
 
-            {/* Custom Range Inputs */}
-            <div className="flex items-center gap-1.5">
-              <input
-                type="date"
+            {/* CustomDatePicker Range */}
+            <div className="flex items-center gap-2">
+              <CustomDatePicker
                 value={globalStart}
-                onChange={(e) => {
-                  setGlobalStart(e.target.value);
+                onChange={(val) => {
+                  setGlobalStart(val);
                   setPeriodPreset('CUSTOM');
                 }}
-                className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                showTodayShortcut={false}
               />
-              <span className="text-slate-400 font-bold">~</span>
-              <input
-                type="date"
+              <span className="text-slate-400 font-bold text-xs">~</span>
+              <CustomDatePicker
                 value={globalEnd}
-                onChange={(e) => {
-                  setGlobalEnd(e.target.value);
+                onChange={(val) => {
+                  setGlobalEnd(val);
                   setPeriodPreset('CUSTOM');
                 }}
-                className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                showTodayShortcut={false}
               />
             </div>
           </div>
@@ -405,7 +513,7 @@ export default function ReportsPage() {
             onClick={() => setActiveTab('CLASSES')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'CLASSES'
-                ? 'bg-purple-600 text-white shadow-xs'
+                ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -418,7 +526,7 @@ export default function ReportsPage() {
             onClick={() => setActiveTab('STUDENTS')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'STUDENTS'
-                ? 'bg-purple-600 text-white shadow-xs'
+                ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -431,12 +539,12 @@ export default function ReportsPage() {
             onClick={() => setActiveTab('GUIDE')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'GUIDE'
-                ? 'bg-purple-600 text-white shadow-xs'
+                ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <Info className="w-3.5 h-3.5" />
-            <span>템플릿 & 발송 가이드</span>
+            <span>템플릿 & 발송 규격 가이드</span>
           </button>
         </div>
 
@@ -447,15 +555,15 @@ export default function ReportsPage() {
           <div className="space-y-4">
             {isLoading ? (
               <div className="py-20 text-center text-slate-400">
-                <Loader2 className="w-7 h-7 animate-spin mx-auto mb-2 text-purple-600" />
+                <Loader2 className="w-7 h-7 animate-spin mx-auto mb-2 text-indigo-600" />
                 <span>반 목록을 불러오는 중...</span>
               </div>
             ) : classes.length === 0 ? (
-              <div className="py-16 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-slate-400 space-y-2">
+              <div className="py-16 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-slate-400 space-y-3">
                 <p>등록된 수업 반이 없습니다.</p>
                 <Link
                   href="/classes"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-xs"
                 >
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>반 개설하러 가기</span>
@@ -466,11 +574,11 @@ export default function ReportsPage() {
                 {classes.map((cls) => (
                   <div
                     key={cls.id}
-                    className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-700 transition-all"
+                    className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-indigo-300 dark:hover:border-indigo-700 transition-all"
                   >
                     <div>
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold text-[10px] border border-purple-200 dark:border-purple-800">
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] border border-indigo-200 dark:border-indigo-800">
                           {cls.subject || '과목 미지정'}
                         </span>
                         <span className="text-[11px] text-slate-400 font-medium">
@@ -487,14 +595,14 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <span className="text-[11px] text-slate-400">
-                        기간: {globalStart} ~ {globalEnd}
+                      <span className="text-[11px] text-slate-400 font-mono">
+                        {globalStart} ~ {globalEnd}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleOpenBatchModal(cls)}
                         disabled={cls.enrolledCount === 0}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs shadow-purple-600/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Send className="w-3.5 h-3.5" />
                         <span>반 전체 발송</span>
@@ -521,7 +629,7 @@ export default function ReportsPage() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="원생 이름, 학부모 연락처, 학교 검색..."
-                  className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -542,7 +650,7 @@ export default function ReportsPage() {
             {/* Students Table */}
             {isLoading ? (
               <div className="py-20 text-center text-slate-400">
-                <Loader2 className="w-7 h-7 animate-spin mx-auto mb-2 text-purple-600" />
+                <Loader2 className="w-7 h-7 animate-spin mx-auto mb-2 text-indigo-600" />
                 <span>원생 목록을 불러오는 중...</span>
               </div>
             ) : filteredStudents.length === 0 ? (
@@ -593,7 +701,7 @@ export default function ReportsPage() {
                           <button
                             type="button"
                             onClick={() => handleOpenStudentModal(s)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800/80 transition-colors cursor-pointer text-xs"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800/80 transition-colors cursor-pointer text-xs"
                           >
                             <FileText className="w-3.5 h-3.5" />
                             <span>미리보기 & 발송</span>
@@ -613,22 +721,53 @@ export default function ReportsPage() {
         {/* ========================================================= */}
         {activeTab === 'GUIDE' && (
           <div className="space-y-6">
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                  <Smartphone className="w-4 h-4" />
+            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-2xs">
+                  <Smartphone className="w-5 h-5" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  카카오 알림톡 정기 리포트 메시지 구조
-                </h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    카카오 알림톡 정기 리포트 메시지 규격
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    원생의 실시간 출결 및 과제 데이터를 종합하여 학부모 안심 리포트를 생성합니다.
+                  </p>
+                </div>
               </div>
 
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                ClassHelper 리포트는 원생의 지정 기간 출결 기록(출석/지각/조퇴/결석)과 과제 수행 기록을 백엔드에서 실시간 집계하여 자동으로 알림톡 규격에 맞는 안내 메시지를 생성합니다.
-              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                  <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+                    <UserCheck className="w-4 h-4" />
+                    <span>1. 출결 집계 항목</span>
+                  </div>
+                  <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+                    <li>총 수업일수 및 출석일수 (출석률 % 자동 계산)</li>
+                    <li>지각, 결석, 조퇴 건수 상세 표기</li>
+                    <li>미등원 경고 및 보강 필요 내역 반영</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-bold text-xs">
+                    <Award className="w-4 h-4" />
+                    <span>2. 과제 수행 집계 항목</span>
+                  </div>
+                  <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
+                    <li>총 부여 과제 수 대비 완료 건수 (과제 완수율 %)</li>
+                    <li>과제 평균 점수 및 핵심 성취도</li>
+                    <li>담당 강사의 수업 일지 피드백 반영</li>
+                  </ul>
+                </div>
+              </div>
 
               {/* Sample Message Preview Card */}
-              <div className="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 max-w-lg mx-auto shadow-xs text-slate-800 dark:text-slate-200 text-xs font-sans whitespace-pre-wrap leading-relaxed">
+              <div className="space-y-2 pt-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  실제 카카오 알림톡 전송 메시지 예시
+                </span>
+                <div className="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 max-w-lg shadow-xs text-slate-800 dark:text-slate-200 text-xs font-sans whitespace-pre-wrap leading-relaxed">
 {`[ClassHelper] 김민준 학생의 학습/출결 리포트
 
 안녕하세요, 학부모님.
@@ -644,32 +783,295 @@ export default function ReportsPage() {
 - 과제 평균 점수: 92.5점
 
 앞으로도 학생의 꾸준한 성장과 학업 성취를 위해 최선을 다해 지도하겠습니다. 감사합니다.`}
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {/* ========================================================= */}
-        {/* MODAL 1: 반별 일괄 발송 확인 및 결과 모달               */}
+        {/* MODAL 1: 상단 우측 [+ 리포트 발송] 대화형 마법사 모달       */}
+        {/* ========================================================= */}
+        {isWizardModalOpen && (
+          <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget && !isSendingWizard) {
+                setIsWizardModalOpen(false);
+              }
+            }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+          >
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
+              {/* Modal Header */}
+              <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
+                    <Send className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                      학습 & 출결 리포트 생성 및 발송
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      발송 대상과 기간을 설정하고 카카오 알림톡으로 전송합니다.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsWizardModalOpen(false)}
+                  disabled={isSendingWizard}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs flex-1">
+                {/* 1. Send Mode Selection */}
+                <div className="space-y-2">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    발송 유형 선택
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWizardMode('CLASS');
+                        setWizardResult(null);
+                        setWizardError(null);
+                      }}
+                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                        wizardMode === 'CLASS'
+                          ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/50 text-indigo-900 dark:text-indigo-200 shadow-2xs font-bold'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                        <span>반 전체 일괄 발송</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
+                        선택한 반의 재원생 전원에게 동시 전송
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWizardMode('STUDENT');
+                        setWizardResult(null);
+                        setWizardError(null);
+                        if (wizardSelectedStudentId) {
+                          handleFetchWizardStudentPreview(Number(wizardSelectedStudentId));
+                        }
+                      }}
+                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                        wizardMode === 'STUDENT'
+                          ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/50 text-indigo-900 dark:text-indigo-200 shadow-2xs font-bold'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                        <span>원생 1인 개별 발송</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
+                        원생 선택 후 실시간 미리보기 및 발송
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Target Selection */}
+                {wizardMode === 'CLASS' ? (
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-slate-700 dark:text-slate-300">
+                      대상 수업 반
+                    </label>
+                    <select
+                      value={wizardSelectedClassId}
+                      onChange={(e) => setWizardSelectedClassId(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
+                    >
+                      {classes.map((cls) => (
+                        <option key={cls.id} value={cls.id}>
+                          {cls.name} ({cls.subject || '과목미지정'} • 재원생 {cls.enrolledCount}명)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-slate-700 dark:text-slate-300">
+                      대상 원생
+                    </label>
+                    <select
+                      value={wizardSelectedStudentId}
+                      onChange={(e) => {
+                        const sid = Number(e.target.value);
+                        setWizardSelectedStudentId(sid);
+                        handleFetchWizardStudentPreview(sid);
+                      }}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
+                    >
+                      {students.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.grade || '학년미지정'} • {s.parentPhone || '연락처없음'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* 3. Period Picker with CustomDatePicker */}
+                <div className="space-y-2">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    집계 기간 설정
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <CustomDatePicker
+                      value={globalStart}
+                      onChange={(val) => {
+                        setGlobalStart(val);
+                        if (wizardMode === 'STUDENT' && wizardSelectedStudentId) {
+                          reportsService.previewStudentReport(Number(wizardSelectedStudentId), val, globalEnd).then(setWizardPreview).catch(() => {});
+                        }
+                      }}
+                      showTodayShortcut={false}
+                    />
+                    <span className="text-slate-400 font-bold">~</span>
+                    <CustomDatePicker
+                      value={globalEnd}
+                      onChange={(val) => {
+                        setGlobalEnd(val);
+                        if (wizardMode === 'STUDENT' && wizardSelectedStudentId) {
+                          reportsService.previewStudentReport(Number(wizardSelectedStudentId), globalStart, val).then(setWizardPreview).catch(() => {});
+                        }
+                      }}
+                      showTodayShortcut={false}
+                    />
+                  </div>
+                </div>
+
+                {/* Error Banner */}
+                {wizardError && (
+                  <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2 animate-in fade-in">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <span>{wizardError}</span>
+                  </div>
+                )}
+
+                {/* Single Student Preview in Wizard */}
+                {wizardMode === 'STUDENT' && (
+                  <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    {isLoadingWizardPreview ? (
+                      <div className="py-6 text-center text-slate-400">
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1 text-indigo-600" />
+                        <span>리포트 미리보기 계산 중...</span>
+                      </div>
+                    ) : wizardPreview ? (
+                      <div className="space-y-3 animate-in fade-in">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700">
+                            <span className="text-[11px] text-slate-400">출석률</span>
+                            <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                              {wizardPreview.attendance.attendanceRate}% ({wizardPreview.attendance.presentCount}/{wizardPreview.attendance.totalDays}일)
+                            </div>
+                          </div>
+                          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700">
+                            <span className="text-[11px] text-slate-400">과제 완수율</span>
+                            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                              {wizardPreview.homework.completionRate}% (평균 {wizardPreview.homework.averageScore ?? '-'}점)
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 text-slate-800 dark:text-slate-200 text-xs font-mono whitespace-pre-wrap max-h-40 overflow-y-auto leading-relaxed">
+                          {wizardPreview.message}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* Result Message */}
+                {wizardResult && (
+                  <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-1 animate-in fade-in">
+                    <div className="flex items-center gap-2 font-bold text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>리포트 카카오 알림톡 발송 완료!</span>
+                    </div>
+                    {'sentCount' in wizardResult ? (
+                      <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                        총 {wizardResult.sentCount}명의 학부모님께 정상 전송되었습니다. (실패 {wizardResult.failedCount}건)
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                        수신 번호: {wizardResult.sentTo} (알림 ID #{wizardResult.notificationId})
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+                <button
+                  type="button"
+                  onClick={() => setIsWizardModalOpen(false)}
+                  disabled={isSendingWizard}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs cursor-pointer"
+                >
+                  닫기
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExecuteWizardSend}
+                  disabled={isSendingWizard || !globalStart || !globalEnd}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isSendingWizard ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>발송 처리 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>카카오 알림톡 즉시 발송</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* MODAL 2: 반별 일괄 발송 확인 및 결과 모달               */}
         {/* ========================================================= */}
         {isBatchModalOpen && selectedClassForBatch && (
           <div
             onClick={(e) => {
               if (e.target === e.currentTarget && !isSendingBatch) setIsBatchModalOpen(false);
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
           >
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
-              <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold">
-                    <Send className="w-4 h-4" />
+              <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
+                    <Send className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       반 전체 리포트 일괄 발송
                     </h3>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {selectedClassForBatch.name} (재원생 {selectedClassForBatch.enrolledCount}명)
                     </p>
                   </div>
@@ -685,13 +1087,13 @@ export default function ReportsPage() {
                 </button>
               </div>
 
-              <div className="p-5 overflow-y-auto space-y-4 text-xs flex-1">
-                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5">
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs flex-1">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5">
                   <p className="font-bold text-slate-800 dark:text-slate-200">
-                    발송 대상 기간: <span className="text-purple-600 dark:text-purple-400">{globalStart} ~ {globalEnd}</span>
+                    발송 대상 기간: <span className="text-indigo-600 dark:text-indigo-400 font-mono">{globalStart} ~ {globalEnd}</span>
                   </p>
                   <p className="text-slate-500 dark:text-slate-400">
-                    반에 속한 모든 원생의 해당 기간 출결/과제 데이터가 카카오 알림톡으로 전송됩니다.
+                    반에 속한 모든 재원생의 출결 및 과제 데이터가 집계되어 카카오 알림톡으로 전송됩니다.
                   </p>
                 </div>
 
@@ -722,9 +1124,9 @@ export default function ReportsPage() {
                     {batchResult.failed && batchResult.failed.length > 0 && (
                       <div className="border border-slate-200 dark:border-slate-700 rounded-xl max-h-32 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                         {batchResult.failed.map((f, idx) => (
-                          <div key={idx} className="p-2 flex items-center justify-between text-[11px]">
+                          <div key={idx} className="p-2.5 flex items-center justify-between text-[11px]">
                             <span className="font-bold">{f.studentName}</span>
-                            <span className="text-rose-600">{f.reason}</span>
+                            <span className="text-rose-600 font-medium">{f.reason}</span>
                           </div>
                         ))}
                       </div>
@@ -733,7 +1135,7 @@ export default function ReportsPage() {
                 )}
               </div>
 
-              <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
                 <button
                   type="button"
                   onClick={() => setIsBatchModalOpen(false)}
@@ -747,7 +1149,7 @@ export default function ReportsPage() {
                   type="button"
                   onClick={handleExecuteBatchSend}
                   disabled={isSendingBatch || !globalStart || !globalEnd}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isSendingBatch ? (
                     <>
@@ -767,26 +1169,26 @@ export default function ReportsPage() {
         )}
 
         {/* ========================================================= */}
-        {/* MODAL 2: 원생 1인 리포트 미리보기 & 발송 모달             */}
+        {/* MODAL 3: 원생 1인 리포트 미리보기 & 발송 모달             */}
         {/* ========================================================= */}
         {isStudentModalOpen && selectedStudentForReport && (
           <div
             onClick={(e) => {
               if (e.target === e.currentTarget && !isSendingStudentReport) setIsStudentModalOpen(false);
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
           >
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
-              <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold">
-                    <FileText className="w-4 h-4" />
+              <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
+                    <FileText className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <span>{selectedStudentForReport.name} 학생 리포트</span>
                     </h3>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-400 font-mono">
                       학부모 연락처: {selectedStudentForReport.parentPhone || '없음'}
                     </p>
                   </div>
@@ -802,101 +1204,102 @@ export default function ReportsPage() {
                 </button>
               </div>
 
-              <div className="p-5 overflow-y-auto space-y-4 text-xs flex-1">
-                {/* Period Selector */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="date"
-                    value={studentPeriodStart}
-                    onChange={(e) => setStudentPeriodStart(e.target.value)}
-                    className="flex-1 px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
-                  />
-                  <span className="text-slate-400 font-bold">~</span>
-                  <input
-                    type="date"
-                    value={studentPeriodEnd}
-                    onChange={(e) => setStudentPeriodEnd(e.target.value)}
-                    className="flex-1 px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (selectedStudentForReport && studentPeriodStart && studentPeriodEnd) {
-                        fetchStudentPreview(selectedStudentForReport.id, studentPeriodStart, studentPeriodEnd);
-                      }
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold hover:bg-slate-200 text-xs"
-                  >
-                    미리보기 갱신
-                  </button>
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs flex-1">
+                {/* Period Selection with CustomDatePicker */}
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-700 dark:text-slate-300">
+                    리포트 집계 기간
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <CustomDatePicker
+                      value={studentPeriodStart}
+                      onChange={(val) => {
+                        setStudentPeriodStart(val);
+                        fetchStudentPreview(selectedStudentForReport.id, val, studentPeriodEnd);
+                      }}
+                      showTodayShortcut={false}
+                    />
+                    <span className="text-slate-400 font-bold">~</span>
+                    <CustomDatePicker
+                      value={studentPeriodEnd}
+                      onChange={(val) => {
+                        setStudentPeriodEnd(val);
+                        fetchStudentPreview(selectedStudentForReport.id, studentPeriodStart, val);
+                      }}
+                      showTodayShortcut={false}
+                    />
+                  </div>
                 </div>
 
-                {studentSendResult && (
-                  <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 flex items-start gap-2 animate-in fade-in">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold">발송 완료</p>
-                      <p className="text-[11px] mt-0.5">
-                        학부모({studentSendResult.sentTo})님께 카카오 알림톡이 성공적으로 발송되었습니다.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
+                {/* Error Banner */}
                 {studentReportError && (
-                  <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2 animate-in fade-in">
+                  <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2 animate-in fade-in">
                     <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                     <span>{studentReportError}</span>
                   </div>
                 )}
 
-                {/* Live Preview */}
+                {/* Preview Card */}
                 {isLoadingPreview ? (
-                  <div className="py-12 text-center text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-purple-600" />
-                    <span>출결 및 과제 데이터를 집계하여 리포트를 생성하는 중...</span>
+                  <div className="py-12 text-center text-slate-400">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                    <span>리포트 미리보기를 생성하는 중...</span>
                   </div>
                 ) : reportPreview ? (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-                        <span className="text-[10px] text-slate-400 font-medium">출석률</span>
-                        <div className="flex items-baseline justify-between mt-0.5">
-                          <span className="text-base font-extrabold text-slate-900 dark:text-white">
-                            {reportPreview.attendance.attendanceRate}%
-                          </span>
-                          <span className="text-[11px] text-emerald-600 font-semibold">
-                            {reportPreview.attendance.presentCount}/{reportPreview.attendance.totalDays}일
-                          </span>
+                  <div className="space-y-4 animate-in fade-in">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
+                        <span className="text-[11px] text-slate-400 font-semibold">출결 요약</span>
+                        <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                          {reportPreview.attendance.attendanceRate}% 출석
                         </div>
+                        <p className="text-[11px] text-slate-500">
+                          총 {reportPreview.attendance.totalDays}일 중 {reportPreview.attendance.presentCount}일 출석 (지각 {reportPreview.attendance.lateCount}, 결석 {reportPreview.attendance.absentCount})
+                        </p>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-                        <span className="text-[10px] text-slate-400 font-medium">과제 완수율</span>
-                        <div className="flex items-baseline justify-between mt-0.5">
-                          <span className="text-base font-extrabold text-slate-900 dark:text-white">
-                            {reportPreview.homework.completionRate}%
-                          </span>
-                          <span className="text-[11px] text-indigo-600 font-semibold">
-                            {reportPreview.homework.completedAssignments}/{reportPreview.homework.totalAssignments}건
-                          </span>
+                      <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
+                        <span className="text-[11px] text-slate-400 font-semibold">과제 요약</span>
+                        <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                          {reportPreview.homework.completionRate}% 완수
                         </div>
+                        <p className="text-[11px] text-slate-500">
+                          총 {reportPreview.homework.totalAssignments}건 중 {reportPreview.homework.completedAssignments}건 완료 (평균 {reportPreview.homework.averageScore ?? '-'}점)
+                        </p>
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 text-slate-800 dark:text-slate-200 whitespace-pre-wrap text-xs leading-relaxed font-sans shadow-2xs">
-                      {reportPreview.message}
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-slate-700 dark:text-slate-300">
+                        알림톡 본문 실시간 미리보기
+                      </label>
+                      <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 text-slate-800 dark:text-slate-200 text-xs font-mono whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+                        {reportPreview.message}
+                      </div>
                     </div>
                   </div>
                 ) : null}
+
+                {/* Send Success Result */}
+                {studentSendResult && (
+                  <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-1 animate-in fade-in">
+                    <div className="flex items-center gap-2 font-bold text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>카카오 알림톡 발송 완료!</span>
+                    </div>
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                      수신 번호: {studentSendResult.sentTo} (알림 ID #{studentSendResult.notificationId})
+                    </p>
+                  </div>
+                )}
               </div>
 
-              <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
                 <button
                   type="button"
                   onClick={() => setIsStudentModalOpen(false)}
                   disabled={isSendingStudentReport}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-semibold text-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs cursor-pointer"
                 >
                   닫기
                 </button>
@@ -904,8 +1307,8 @@ export default function ReportsPage() {
                 <button
                   type="button"
                   onClick={handleSendStudentReport}
-                  disabled={isSendingStudentReport || !reportPreview || isLoadingPreview}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  disabled={isSendingStudentReport || !reportPreview}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isSendingStudentReport ? (
                     <>
@@ -915,7 +1318,7 @@ export default function ReportsPage() {
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      <span>카카오 알림톡으로 발송</span>
+                      <span>카카오 알림톡 전송</span>
                     </>
                   )}
                 </button>

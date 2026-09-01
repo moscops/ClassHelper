@@ -103,6 +103,20 @@ export default function TuitionPage() {
     }
   }, [isHydrated, isAuthenticated, router]);
 
+  // ESC to close modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsGenerateModalOpen(false);
+        setIsPaymentModalOpen(false);
+        setIsEditModalOpen(false);
+        setIsHistoryModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Load Classes for filter / batch generation
   useEffect(() => {
     if (isHydrated && isAuthenticated) {
@@ -990,7 +1004,14 @@ export default function TuitionPage() {
 
       {/* Modal 1: Generate Monthly Invoices */}
       {isGenerateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isGenerating) {
+              setIsGenerateModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative overflow-hidden">
             <button
               type="button"
@@ -1103,7 +1124,14 @@ export default function TuitionPage() {
 
       {/* Modal 2: Record Payment (수납 처리) */}
       {isPaymentModalOpen && selectedInvoiceForPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isRecordingPayment) {
+              setIsPaymentModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative overflow-hidden">
             <button
               type="button"
@@ -1286,7 +1314,14 @@ export default function TuitionPage() {
 
       {/* Modal 3: Edit / Discount Invoice */}
       {isEditModalOpen && selectedInvoiceForEdit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSubmittingEdit) {
+              setIsEditModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative overflow-hidden">
             <button
               type="button"
@@ -1411,7 +1446,14 @@ export default function TuitionPage() {
 
       {/* Modal 4: Payment History & Receipt Modal */}
       {isHistoryModalOpen && selectedInvoiceForHistory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsHistoryModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+        >
           <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative overflow-hidden">
             <button
               type="button"
