@@ -8,6 +8,7 @@
 - **Every Prisma query must scope by `academyId`.** No exceptions, including `findFirst`/`update`/`delete`.
 - Refresh tokens: bcrypt-hashed only, RTR on `/auth/refresh`, reused/invalid token ⇒ null out the stored hash (force logout).
 - Domain/schema/structure changes ⇒ update `backend/docs/domains/*.md` **and** Notion, per GEMINI.md §3/§9. Don't skip this because it's tedious.
+- **Claude & Gemini AI Handoff Protocol (`../AI_HANDOFF.md`)**: Whenever you create or modify backend APIs, DTOs, schemas, or logic, record the changes and frontend integration requirements in [`../AI_HANDOFF.md`](../AI_HANDOFF.md) so Gemini (Frontend) can immediately read and update the frontend.
 
 ## What's actually implemented (verified against `src/` and `prisma/schema.prisma`, 2026-09-01)
 Nest modules present: `admin`, `attendance`, `auth`, `calendar`, `class-logs`, `classes`, `common`, `notifications`, `students`, `tuition`, `prisma`.
