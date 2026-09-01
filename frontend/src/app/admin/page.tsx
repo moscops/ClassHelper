@@ -736,11 +736,11 @@ export default function AdminPortalPage() {
               setEditingAcademy(null);
             }
           }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-lg w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 my-auto">
             {/* Modal Header */}
-            <div className="p-5 sm:p-6 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-5 sm:p-6 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                   <Layers className="w-5 h-5" />
@@ -765,7 +765,7 @@ export default function AdminPortalPage() {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleSaveSubscription} className="p-5 sm:p-6 space-y-5 text-xs">
+            <form onSubmit={handleSaveSubscription} className="p-5 sm:p-6 space-y-5 text-xs overflow-y-auto flex-1 pr-1">
               {/* 1. Plan Tier Selection Cards */}
               <div className="space-y-2">
                 <label className="font-bold text-slate-700 dark:text-slate-300">
@@ -950,7 +950,7 @@ export default function AdminPortalPage() {
               </div>
 
               {/* Modal Actions */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0">
                 <button
                   type="button"
                   onClick={handleCloseSubscriptionModal}

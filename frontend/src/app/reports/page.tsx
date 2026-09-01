@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -19,16 +19,16 @@ import {
   X,
   ChevronRight,
   TrendingUp,
-  Check,
   Smartphone,
   Info,
-  CalendarCheck2,
   Clock,
   ArrowRight,
   Plus,
   UserCheck,
-  Percent,
   Award,
+  ArrowUpRight,
+  MessageSquare,
+  CheckCheck,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -44,7 +44,7 @@ import { AppLayout } from '@/components/common/AppLayout';
 
 export default function ReportsPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isHydrated } = useAuthStore();
+  const { user, academy, isAuthenticated, isHydrated } = useAuthStore();
 
   // Active Tab: 'CLASSES' (반별 일괄 발송) | 'STUDENTS' (원생별 개별 발송) | 'GUIDE' (가이드)
   const [activeTab, setActiveTab] = useState<'CLASSES' | 'STUDENTS' | 'GUIDE'>('CLASSES');
@@ -64,7 +64,6 @@ export default function ReportsPage() {
   const [wizardMode, setWizardMode] = useState<'CLASS' | 'STUDENT'>('CLASS');
   const [wizardSelectedClassId, setWizardSelectedClassId] = useState<number | ''>('');
   const [wizardSelectedStudentId, setWizardSelectedStudentId] = useState<number | ''>('');
-  const [wizardStudentSearch, setWizardStudentSearch] = useState('');
   const [wizardPreview, setWizardPreview] = useState<StudentReport | null>(null);
   const [isLoadingWizardPreview, setIsLoadingWizardPreview] = useState(false);
   const [isSendingWizard, setIsSendingWizard] = useState(false);
@@ -92,6 +91,20 @@ export default function ReportsPage() {
   // Student Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState<string>('ALL');
+
+  // Today's formatted date string
+  const [todayDateStr, setTodayDateStr] = useState('');
+
+  useEffect(() => {
+    const today = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long',
+    };
+    setTodayDateStr(today.toLocaleDateString('ko-KR', options));
+  }, []);
 
   // Authentication check
   useEffect(() => {
@@ -172,7 +185,6 @@ export default function ReportsPage() {
     setWizardMode('CLASS');
     setWizardSelectedClassId(classes.length > 0 ? classes[0].id : '');
     setWizardSelectedStudentId(students.length > 0 ? students[0].id : '');
-    setWizardStudentSearch('');
     setWizardResult(null);
     setWizardError(null);
     setWizardPreview(null);
@@ -343,385 +355,425 @@ export default function ReportsPage() {
     return matchesSearch && matchesClass;
   });
 
+  if (!isHydrated || !isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
+        <div className="flex flex-col items-center gap-2.5">
+          <Loader2 className="w-7 h-7 animate-spin text-indigo-600 dark:text-indigo-400" />
+          <p className="text-xs text-slate-500 dark:text-slate-400">리포트 관리 센터를 불러오는 중입니다...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AppLayout currentPath="/reports">
-      <div className="space-y-6">
-        {/* Top Header: Title & Action Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs">
-                <FileText className="w-4.5 h-4.5" />
+      <main className="flex-1 relative overflow-hidden py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-7 relative z-10">
+          {/* 1. Dashboard Standard Greeting & Header Card */}
+          <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs transition-colors">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-950/50 border border-purple-100 dark:border-purple-800 text-xs font-semibold text-purple-700 dark:text-purple-300">
+                    <FileText className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <span>학습 & 출결 안심 리포트 센터</span>
+                  </div>
+                  {todayDateStr && (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{todayDateStr}</span>
+                    </div>
+                  )}
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                  정기 학습 & 출결 리포트 발송 관리 ✨
+                </h1>
+                <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{academy?.name}</span> 재원생들의 기간별 출결률과 과제 수행 성취도를 종합 집계하여 학부모님께 카카오 알림톡으로 안심 리포트를 전송합니다.
+                </p>
               </div>
-              <span>학습 & 출결 리포트 관리</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              기간별 출결 및 과제 데이터를 종합 집계하여 학부모님께 카카오 알림톡으로 정기 리포트를 전송합니다.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <button
-              type="button"
-              onClick={loadData}
-              disabled={isLoading}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>새로고침</span>
-            </button>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2.5 self-start lg:self-center shrink-0">
+                <button
+                  type="button"
+                  onClick={loadData}
+                  disabled={isLoading}
+                  className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                  title="데이터 새로고침"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                  <span>새로고침</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={handleOpenWizard}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs shadow-indigo-600/20 transition-all cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>리포트 발송</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Top Metric Cards (Standard 4-Grid Format) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">관리 대상 재원생</span>
-            <div className="mt-1 flex items-baseline justify-between">
-              <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                {students.filter((s) => s.status === 'ACTIVE').length}명
-              </span>
-              <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                총 {students.length}명
-              </span>
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">개설 수업 반</span>
-            <div className="mt-1 flex items-baseline justify-between">
-              <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                {classes.filter((c) => c.status === 'ACTIVE').length}개 반
-              </span>
-              <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
-                총 {classes.length}개 반
-              </span>
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">알림톡 발송 엔진</span>
-            <div className="mt-1 flex items-baseline justify-between">
-              <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
-                카카오 연동 정상
-              </span>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
-                실시간 발송 ON
-              </span>
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">권장 발송 주기</span>
-            <div className="mt-1 flex items-baseline justify-between">
-              <span className="text-base font-extrabold text-slate-900 dark:text-white">
-                주간 / 월간 정기
-              </span>
-              <span className="text-xs font-semibold text-slate-400">
-                매월 말일 / 주말
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Global Period Selector Toolbar with CustomDatePicker Calendar UI */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-2xs">
-              <Calendar className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-bold text-xs text-slate-900 dark:text-white">리포트 집계 대상 기간</p>
-              <p className="text-[11px] text-slate-400">선택한 기간의 출결율 및 과제 수행률이 리포트에 자동 계산됩니다.</p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5 text-xs">
-            {/* Presets */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-              <button
-                type="button"
-                onClick={() => applyPreset('THIS_MONTH')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  periodPreset === 'THIS_MONTH'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                이번 달
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPreset('LAST_MONTH')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  periodPreset === 'LAST_MONTH'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                지난 달
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPreset('LAST_7_DAYS')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  periodPreset === 'LAST_7_DAYS'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                최근 7일
-              </button>
-            </div>
-
-            {/* CustomDatePicker Range */}
-            <div className="flex items-center gap-2">
-              <CustomDatePicker
-                value={globalStart}
-                onChange={(val) => {
-                  setGlobalStart(val);
-                  setPeriodPreset('CUSTOM');
-                }}
-                showTodayShortcut={false}
-              />
-              <span className="text-slate-400 font-bold text-xs">~</span>
-              <CustomDatePicker
-                value={globalEnd}
-                onChange={(val) => {
-                  setGlobalEnd(val);
-                  setPeriodPreset('CUSTOM');
-                }}
-                showTodayShortcut={false}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Selector Buttons */}
-        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab('CLASSES')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'CLASSES'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>반별 일괄 발송 ({classes.length}개 반)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('STUDENTS')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'STUDENTS'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>원생별 개별 발송 & 미리보기 ({students.length}명)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('GUIDE')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'GUIDE'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Info className="w-3.5 h-3.5" />
-            <span>템플릿 & 발송 규격 가이드</span>
-          </button>
-        </div>
-
-        {/* ========================================================= */}
-        {/* TAB 1: 반별 일괄 발송 뷰 (Classes Batch Send)             */}
-        {/* ========================================================= */}
-        {activeTab === 'CLASSES' && (
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="py-20 text-center text-slate-400">
-                <Loader2 className="w-7 h-7 animate-spin mx-auto mb-2 text-indigo-600" />
-                <span>반 목록을 불러오는 중...</span>
+                <button
+                  type="button"
+                  onClick={handleOpenWizard}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer hover:scale-102"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>리포트 발송</span>
+                </button>
               </div>
-            ) : classes.length === 0 ? (
-              <div className="py-16 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-slate-400 space-y-3">
-                <p>등록된 수업 반이 없습니다.</p>
-                <Link
-                  href="/classes"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-xs"
+            </div>
+          </div>
+
+          {/* 2. Standard 4-Grid Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-blue-300 dark:hover:border-blue-700/60 hover:shadow-md transition-all">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2.5">
+                <Users className="w-4.5 h-4.5" />
+              </div>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">관리 대상 재원생</span>
+              <div className="mt-1 flex items-baseline justify-between">
+                <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
+                  {students.filter((s) => s.status === 'ACTIVE').length}명
+                </span>
+                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                  총 {students.length}명
+                </span>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-purple-300 dark:hover:border-purple-700/60 hover:shadow-md transition-all">
+              <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/60 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-2.5">
+                <BookOpen className="w-4.5 h-4.5" />
+              </div>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">개설 수업 반</span>
+              <div className="mt-1 flex items-baseline justify-between">
+                <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
+                  {classes.filter((c) => c.status === 'ACTIVE').length}개 반
+                </span>
+                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                  총 {classes.length}개 반
+                </span>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-emerald-300 dark:hover:border-emerald-700/60 hover:shadow-md transition-all">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2.5">
+                <CheckCircle2 className="w-4.5 h-4.5" />
+              </div>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">카카오 알림톡 엔진</span>
+              <div className="mt-1 flex items-baseline justify-between">
+                <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
+                  정상 가동 중
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
+                  실시간 연동
+                </span>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-amber-300 dark:hover:border-amber-700/60 hover:shadow-md transition-all">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-2.5">
+                <Sparkles className="w-4.5 h-4.5" />
+              </div>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">권장 정기 발송 주기</span>
+              <div className="mt-1 flex items-baseline justify-between">
+                <span className="text-base font-extrabold text-slate-900 dark:text-white">
+                  주간 / 월간 정기
+                </span>
+                <span className="text-xs font-semibold text-slate-400">
+                  매월 말일 / 주말
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Dashboard Standard Filter Toolbar & Period Selector */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+            {/* Upper Row: Category Tabs */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('CLASSES')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === 'CLASSES'
+                      ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
-                  <span>반 개설하러 가기</span>
-                </Link>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {classes.map((cls) => (
-                  <div
-                    key={cls.id}
-                    className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-indigo-300 dark:hover:border-indigo-700 transition-all"
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] border border-indigo-200 dark:border-indigo-800">
-                          {cls.subject || '과목 미지정'}
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-medium">
-                          재원생 {cls.enrolledCount}명
-                        </span>
-                      </div>
+                  <span>반별 일괄 발송 ({classes.length}개 반)</span>
+                </button>
 
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                        {cls.name}
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        대상: {cls.targetGrade || '전체 학년'} • 시간표: {cls.schedule || '시간표 미지정'}
-                      </p>
-                    </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('STUDENTS')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === 'STUDENTS'
+                      ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>원생별 개별 발송 & 미리보기 ({students.length}명)</span>
+                </button>
 
-                    <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <span className="text-[11px] text-slate-400 font-mono">
-                        {globalStart} ~ {globalEnd}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenBatchModal(cls)}
-                        disabled={cls.enrolledCount === 0}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>반 전체 발송</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ========================================================= */}
-        {/* TAB 2: 원생별 개별 발송 뷰 (Students Single Report)       */}
-        {/* ========================================================= */}
-        {activeTab === 'STUDENTS' && (
-          <div className="space-y-4">
-            {/* Filter Bar */}
-            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="원생 이름, 학부모 연락처, 학교 검색..."
-                  className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('GUIDE')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === 'GUIDE'
+                      ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Info className="w-3.5 h-3.5" />
+                  <span>카카오 알림톡 발송 규격 가이드</span>
+                </button>
               </div>
 
-              <select
-                value={classFilter}
-                onChange={(e) => setClassFilter(e.target.value)}
-                className="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 font-semibold focus:outline-none"
-              >
-                <option value="ALL">전체 반 원생 보기</option>
-                {classes.map((cls) => (
-                  <option key={cls.id} value={String(cls.id)}>
-                    {cls.name} ({cls.enrolledCount}명)
-                  </option>
-                ))}
-              </select>
+              {/* Presets */}
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => applyPreset('THIS_MONTH')}
+                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                    periodPreset === 'THIS_MONTH'
+                      ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  이번 달
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset('LAST_MONTH')}
+                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                    periodPreset === 'LAST_MONTH'
+                      ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  지난 달
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset('LAST_7_DAYS')}
+                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                    periodPreset === 'LAST_7_DAYS'
+                      ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  최근 7일
+                </button>
+              </div>
             </div>
 
-            {/* Students Table */}
-            {isLoading ? (
-              <div className="py-20 text-center text-slate-400">
-                <Loader2 className="w-7 h-7 animate-spin mx-auto mb-2 text-indigo-600" />
-                <span>원생 목록을 불러오는 중...</span>
+            {/* Lower Row: Date Range & Student Search */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3.5">
+              {/* Date Pickers */}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold shrink-0">
+                  <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span>집계 기간:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CustomDatePicker
+                    value={globalStart}
+                    onChange={(val) => {
+                      setGlobalStart(val);
+                      setPeriodPreset('CUSTOM');
+                    }}
+                    showTodayShortcut={false}
+                  />
+                  <span className="text-slate-400 font-bold text-xs">~</span>
+                  <CustomDatePicker
+                    value={globalEnd}
+                    onChange={(val) => {
+                      setGlobalEnd(val);
+                      setPeriodPreset('CUSTOM');
+                    }}
+                    showTodayShortcut={false}
+                  />
+                </div>
               </div>
-            ) : filteredStudents.length === 0 ? (
-              <div className="py-16 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-slate-400">
-                일치하는 원생이 없습니다.
-              </div>
-            ) : (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
-                      <th className="py-3 px-4">학생명</th>
-                      <th className="py-3 px-4">학년 / 학교</th>
-                      <th className="py-3 px-4">학부모 연락처</th>
-                      <th className="py-3 px-4">수강 중인 반</th>
-                      <th className="py-3 px-4 text-right">리포트 발송</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {filteredStudents.map((s) => (
-                      <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-bold text-slate-900 dark:text-white">{s.name}</span>
-                        </td>
-                        <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
-                          {s.grade || '-'} ({s.schoolName || '-'})
-                        </td>
-                        <td className="py-3 px-4 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
-                          {s.parentPhone || '-'}
-                        </td>
-                        <td className="py-3 px-4 text-slate-500 dark:text-slate-400">
-                          {s.enrolledClasses && s.enrolledClasses.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {s.enrolledClasses.map((c) => (
-                                <span
-                                  key={c.id}
-                                  className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-700 dark:text-slate-300 font-medium"
-                                >
-                                  {c.name}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-slate-400">수강 반 없음</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenStudentModal(s)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800/80 transition-colors cursor-pointer text-xs"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            <span>미리보기 & 발송</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* ========================================================= */}
-        {/* TAB 3: 템플릿 & 발송 가이드 뷰 (Guide & Template)         */}
-        {/* ========================================================= */}
-        {activeTab === 'GUIDE' && (
-          <div className="space-y-6">
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
+              {/* Search Bar for Students Tab */}
+              {activeTab === 'STUDENTS' && (
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-64">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="원생 이름, 학부모 연락처..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-8.5 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    />
+                  </div>
+
+                  <select
+                    value={classFilter}
+                    onChange={(e) => setClassFilter(e.target.value)}
+                    className="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 font-semibold focus:outline-none shrink-0"
+                  >
+                    <option value="ALL">전체 반</option>
+                    {classes.map((cls) => (
+                      <option key={cls.id} value={String(cls.id)}>
+                        {cls.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ========================================================= */}
+          {/* TAB 1: 반별 일괄 발송 뷰 (Classes Batch Send)             */}
+          {/* ========================================================= */}
+          {activeTab === 'CLASSES' && (
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="py-20 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
+                  <Loader2 className="w-7 h-7 animate-spin text-indigo-600 dark:text-indigo-400" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400">수업 반 목록을 불러오고 있습니다...</p>
+                </div>
+              ) : classes.length === 0 ? (
+                <div className="py-16 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center justify-center text-center p-6 space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">개설된 수업 반이 없습니다</h3>
+                  <Link
+                    href="/classes"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-xs"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>반 개설하러 가기</span>
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {classes.map((cls) => (
+                    <div
+                      key={cls.id}
+                      className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md transition-all interactive-card"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] border border-indigo-200 dark:border-indigo-800">
+                            {cls.subject || '과목 미지정'}
+                          </span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800">
+                            재원생 {cls.enrolledCount}명
+                          </span>
+                        </div>
+
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                          {cls.name}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                          대상: {cls.targetGrade || '전체 학년'} • {cls.schedule || '시간표 미지정'}
+                        </p>
+                      </div>
+
+                      <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <span className="text-[11px] text-slate-400 font-mono">
+                          {globalStart} ~ {globalEnd}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenBatchModal(cls)}
+                          disabled={cls.enrolledCount === 0}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>반 전체 발송</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 2: 원생별 개별 발송 뷰 (Students Single Report)       */}
+          {/* ========================================================= */}
+          {activeTab === 'STUDENTS' && (
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="py-20 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
+                  <Loader2 className="w-7 h-7 animate-spin text-indigo-600 dark:text-indigo-400" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400">원생 목록을 불러오고 있습니다...</p>
+                </div>
+              ) : filteredStudents.length === 0 ? (
+                <div className="py-16 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center justify-center text-center p-6 text-slate-400 text-xs">
+                  <p>일치하는 원생 검색 결과가 없습니다.</p>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xs">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
+                        <th className="py-3 px-4">학생명</th>
+                        <th className="py-3 px-4">학년 / 학교</th>
+                        <th className="py-3 px-4">학부모 연락처</th>
+                        <th className="py-3 px-4">수강 중인 반</th>
+                        <th className="py-3 px-4 text-right">리포트 발송</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {filteredStudents.map((s) => (
+                        <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="py-3 px-4">
+                            <span className="font-bold text-slate-900 dark:text-white">{s.name}</span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                            {s.grade || '-'} ({s.schoolName || '-'})
+                          </td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                            {s.parentPhone || '-'}
+                          </td>
+                          <td className="py-3 px-4 text-slate-500 dark:text-slate-400">
+                            {s.enrolledClasses && s.enrolledClasses.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {s.enrolledClasses.map((c) => (
+                                  <span
+                                    key={c.id}
+                                    className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-700 dark:text-slate-300 font-medium"
+                                  >
+                                    {c.name}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">수강 반 없음</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenStudentModal(s)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800/80 transition-colors cursor-pointer text-xs"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>미리보기 & 발송</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* TAB 3: 템플릿 & 발송 가이드 뷰 (Guide & Template)         */}
+          {/* ========================================================= */}
+          {activeTab === 'GUIDE' && (
+            <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-2xs">
                   <Smartphone className="w-5 h-5" />
@@ -786,8 +838,8 @@ export default function ReportsPage() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ========================================================= */}
         {/* MODAL 1: 상단 우측 [+ 리포트 발송] 대화형 마법사 모달       */}
@@ -799,9 +851,9 @@ export default function ReportsPage() {
                 setIsWizardModalOpen(false);
               }
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
           >
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
+            <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
               {/* Modal Header */}
               <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
@@ -1018,7 +1070,7 @@ export default function ReportsPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsWizardModalOpen(false)}
@@ -1059,9 +1111,9 @@ export default function ReportsPage() {
             onClick={(e) => {
               if (e.target === e.currentTarget && !isSendingBatch) setIsBatchModalOpen(false);
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
           >
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
+            <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
               <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
@@ -1135,7 +1187,7 @@ export default function ReportsPage() {
                 )}
               </div>
 
-              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsBatchModalOpen(false)}
@@ -1176,9 +1228,9 @@ export default function ReportsPage() {
             onClick={(e) => {
               if (e.target === e.currentTarget && !isSendingStudentReport) setIsStudentModalOpen(false);
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
           >
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
+            <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
               <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
@@ -1294,7 +1346,7 @@ export default function ReportsPage() {
                 )}
               </div>
 
-              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsStudentModalOpen(false)}
@@ -1326,7 +1378,7 @@ export default function ReportsPage() {
             </div>
           </div>
         )}
-      </div>
+      </main>
     </AppLayout>
   );
 }

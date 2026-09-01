@@ -8,6 +8,21 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-02: 전 페이지 팝업창 화면 밖 이탈 방지 규격화, 캘린더 주간 시간표 수강생 조회 모달 및 리포트 관리 대시보드 규격 전면 리뉴얼
+- **작성자**: Gemini (Frontend)
+- **프론트엔드 반영 사항 (Gemini)**:
+  - **1. 모든 팝업창 화면 밖 이탈 방지 표준 규격화**:
+    - 모든 모달 오버레이에 `fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto` 적용
+    - 내부 모달 박스에 `max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden my-auto` 적용
+    - 헤더/푸터 `shrink-0`, 본문 `flex-1 overflow-y-auto` 구조로 분리하여 모바일/태블릿 등 작은 화면에서도 절대 화면 밖으로 넘치지 않고 내부 스크롤 보장
+    - 전체 도메인(`dashboard`, `students`, `classes`, `calendar`, `class-logs`, `tuition`, `attendance`, `reports`, `admin`) 전수 통일
+  - **2. 캘린더 주간 시간표 반 클릭 시 수강생 명단 조회 모달 신규 구현**:
+    - `frontend/src/app/calendar/page.tsx`: 주간 시간표(`WEEK_TIMETABLE`) 및 사이드바 수업 반 카드 클릭 시 대화형 수강생 명단 조회 모달(`isClassRosterModalOpen`) 오픈
+    - 반 상세 정보(과목, 강사, 시간표, 정원 대비 수강생 수, 월 수강료), 배정된 원생 명단(이름, 학년, 학교, 학생/학부모 연락처 및 전화걸기), 해당 반 1초 출결 체크 바로가기 링크 제공
+  - **3. 리포트 관리 페이지 (`frontend/src/app/reports/page.tsx`) 대시보드 규격 전면 리뉴얼**:
+    - `dashboard` 페이지와 100% 동일한 헤더 배너(시스템 가동 중, 오늘 날짜 배지, 학원명 연동), 4대 통계 카드, 필터 툴바, 카드 그리드 및 테이블 레이아웃 구현
+- **상태**: ✅ Next.js 16 프로덕션 빌드 (17/17 routes) 완벽 통과, Jest 109/109 PASS 검증 완료
+
 ### 📅 2026-09-02: 리포트 관리 페이지 UI 전면 리뉴얼 및 전체 페이지 모달 Backdrop/ESC 닫기 통일
 - **작성자**: Gemini (Frontend)
 - **프론트엔드 반영 사항 (Gemini)**:

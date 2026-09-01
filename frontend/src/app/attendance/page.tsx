@@ -1981,10 +1981,10 @@ export default function AttendancePage() {
               setIsDetailModalOpen(false);
             }
           }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
         >
-          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
+          <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 my-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5 shrink-0">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                   [{selectedStudentForDetail.studentName}] 출결 상세 수정
@@ -2002,7 +2002,7 @@ export default function AttendancePage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveDetail} className="space-y-4">
+            <form onSubmit={handleSaveDetail} className="space-y-4 overflow-y-auto flex-1 pr-1 mt-4">
               {/* Status Select */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -2165,10 +2165,10 @@ export default function AttendancePage() {
               setIsStatsModalOpen(false);
             }
           }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
         >
-          <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
+          <div className="w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 my-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5 shrink-0">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -2193,7 +2193,7 @@ export default function AttendancePage() {
                 <p className="text-xs text-slate-500">통계 데이터를 계산하고 있습니다...</p>
               </div>
             ) : statsData ? (
-              <div className="space-y-6">
+              <div className="space-y-6 overflow-y-auto flex-1 pr-1 mt-4">
                 {/* Summary Metrics */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="p-3.5 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/80 text-center">
