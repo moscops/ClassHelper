@@ -59,6 +59,7 @@
 | **원생 퇴원 / 휴원 상태 변경** | ✅ | ✅ | ✅ | ❌ | ❌ |
 | **원생 데이터 삭제** | ✅ | ✅ | ✅ | ❌ | ❌ |
 | **전체 원생 목록 & 학부모 연락처 조회** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **원생 CSV 일괄 등록 및 템플릿 다운로드** | ✅ | ✅ | ✅ | ❌ | ❌ |
 | **신규 수업 반 개설 & 수강료 설정** | ✅ | ✅ | ✅ | ❌ | ❌ |
 | **수업 반 담당 강사 배정 및 변경** | ✅ | ✅ | ✅ | ❌ | ❌ |
 | **학생 수강 등록 (반 배정 / 퇴반)** | ✅ | ✅ | ✅ | ❌ | ❌ |
@@ -99,6 +100,16 @@
 | `PATCH` | `/students/:id` | 원생 정보 수정 | OWNER, ADMIN, TEACHER |
 | `PATCH` | `/students/:id/status` | 원생 학적 상태 변경 (`ACTIVE`/`ON_LEAVE`/`DISCHARGED`) | OWNER, ADMIN |
 | `DELETE` | `/students/:id` | 원생 데이터 영구 삭제 | OWNER, ADMIN |
+| `GET` | `/students/bulk-import/template` | CSV 일괄 등록 템플릿 다운로드 | OWNER, ADMIN |
+| `POST` | `/students/bulk-import` | 원생 CSV 파일 일괄 등록 (`multipart/form-data`, 필드명 `file`) | OWNER, ADMIN |
+
+#### CSV 일괄 등록 헤더 계약
+- **필수 컬럼**: `이름`(또는 `name`), `학부모연락처`(또는 `parentPhone`)
+- **선택 컬럼**: `성별`(남/여 또는 MALE/FEMALE), `생년월일`(YYYY-MM-DD), `학교명`, `학년`, `학생연락처`, `학부모이름`, `학부모관계`, `재원상태`(재원/휴원/퇴원 또는 ACTIVE/ON_LEAVE/DISCHARGED), `등록일`(YYYY-MM-DD), `메모`
+- **최대 2,000행**, 파일 크기 5MB 제한
+- **중복 처리**: 동일 학원 내 (이름, 학부모연락처)가 일치하는 행은 신규 생성하지 않고 건너뜀(`skipped`) — 덮어쓰지 않으므로 같은 파일을 재업로드해도 안전(idempotent)
+- **부분 성공**: 검증에 실패한 행은 `failed` 목록에 사유와 함께 기록되고, 나머지 유효한 행은 정상 등록됨 (전체 실패 아님)
+- 응답 형식(`BulkImportResultDto`): `totalRows`, `createdCount`, `skippedCount`, `failedCount`, `created[]`, `skipped[]`, `failed[]`
 
 ### 📌 수업 반 & 수강생 배정 API (`/classes`)
 | HTTP Method | Endpoint | 설명 | 접근 권한 |
