@@ -11,6 +11,7 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ClassLogsModule } from './class-logs/class-logs.module';
 import { TuitionModule } from './tuition/tuition.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { TuitionModule } from './tuition/tuition.module';
     NotificationsModule,
     ClassLogsModule,
     TuitionModule,
+    CalendarModule,
   ],
   controllers: [AppController],
   providers: [AppService],

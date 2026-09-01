@@ -48,6 +48,7 @@ model Academy {
   tuitionPayments TuitionPayment[]
   classLogs       ClassLog[]
   notifications   Notification[]
+  academyEvents   AcademyEvent[]
 
   @@index([status])
   @@map("academies")
@@ -419,5 +420,50 @@ model Notification {
   @@index([academyId, type])
   @@index([academyId, createdAt])
   @@map("notifications")
+}
+
+// ==========================================
+// 7. 학원 캘린더 이벤트 모델
+// ==========================================
+
+enum EventCategory {
+  ACADEMY      // 학원 공식 행사 / 설명회
+  EXAM         // 정기/모의고사 / 학교 시험대비
+  SPECIAL      // 특강 / 보강
+  HOLIDAY      // 공휴일 / 정기 휴원
+  CONSULTATION // 학부모 상담 주간
+  OTHER        // 기타
+}
+
+enum EventColor {
+  INDIGO
+  PURPLE
+  ROSE
+  AMBER
+  EMERALD
+  BLUE
+  SLATE
+}
+
+model AcademyEvent {
+  id          Int           @id @default(autoincrement())
+  academyId   Int
+  title       String        @db.VarChar(150)
+  category    EventCategory @default(OTHER)
+  color       EventColor    @default(INDIGO)
+  startDate   DateTime      @db.Date
+  endDate     DateTime?     @db.Date
+  startTime   String?       @db.VarChar(5) // "HH:mm"
+  endTime     String?       @db.VarChar(5) // "HH:mm"
+  description String?       @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  academy Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
+
+  @@index([academyId, startDate])
+  @@index([academyId, category])
+  @@map("academy_events")
 }
 
