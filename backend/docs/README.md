@@ -105,10 +105,11 @@ src/
 │   ├── students.controller.ts
 │   ├── students.service.ts
 │   └── students.module.ts
-├── classes/              # 반 개설 및 수강 관리 도메인 (예정)
-├── attendance/           # 출결 관리 도메인 (예정)
-├── tuition/              # 수강료 청구 및 수납 도메인 (예정)
-├── class-logs/           # 수업 일지 및 진도 도메인 (예정)
+├── classes/              # 반 개설 및 수강 관리 도메인
+├── attendance/           # 출결 관리 도메인
+├── notifications/        # 알림 및 카카오 안심 알림톡/SMS 발송 도메인
+├── tuition/              # 수강료 청구 및 수납 도메인
+├── class-logs/           # 수업 일지 및 진도/과제 도메인
 ├── app.controller.ts
 ├── app.module.ts
 ├── app.service.ts

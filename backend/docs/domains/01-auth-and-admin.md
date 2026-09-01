@@ -71,3 +71,93 @@
          │<── 6. Return Tokens & Profile ─────│                                    │
          │    (Access: 15m, Refresh: 7d)      │                                    │
 ```
+
+---
+
+## 📡 4. RESTful API 명세 (API Specifications)
+
+> 구현 위치: `backend/src/auth/` (`auth.controller.ts`), `backend/src/admin/` (`admin.controller.ts`).
+
+### 4.1. 학원 신규 개설 및 원장 회원가입
+* **엔드포인트**: `POST /auth/register-owner` (인증 불필요)
+* **Request Body (`RegisterOwnerDto`)**:
+  ```json
+  {
+    "academyName": "클래스헬퍼 어학원",
+    "businessNumber": "123-45-67890",
+    "academyPhone": "02-1234-5678",
+    "address": "서울시 강남구 테헤란로 123",
+    "email": "owner@classhelper.kr",
+    "password": "Password123!",
+    "name": "김원장",
+    "phone": "010-1234-5678"
+  }
+  ```
+* **Response Body (`AuthResponseDto`)**:
+  ```json
+  {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsIn...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsIn...",
+    "user": { "id": 1, "academyId": 1, "email": "owner@classhelper.kr", "name": "김원장", "role": "OWNER", "createdAt": "2026-08-18T00:00:00.000Z" },
+    "academy": { "id": 1, "name": "클래스헬퍼 어학원", "businessNumber": "123-45-67890", "phoneNumber": "02-1234-5678", "address": "서울시 강남구 테헤란로 123" }
+  }
+  ```
+* **동작 특성**: `Academy`와 `User(OWNER)`를 트랜잭션으로 동시 생성합니다. 이메일 중복 시 `409 Conflict`.
+
+### 4.2. 강사/직원 등록
+* **엔드포인트**: `POST /auth/register-staff` (`OWNER`, `ADMIN`)
+* **Request Body (`RegisterStaffDto`)**:
+  ```json
+  {
+    "email": "teacher1@classhelper.kr",
+    "password": "Teacher123!",
+    "name": "이강사",
+    "phone": "010-9876-5432",
+    "role": "TEACHER"
+  }
+  ```
+* **Response Body (`UserProfileDto`)**: 생성된 계정 정보(비밀번호 제외).
+* **동작 특성**: 요청자의 `academyId`에 신규 계정을 종속시킵니다. `role`은 `TEACHER`/`ADMIN`/`STAFF`만 지정 가능.
+
+### 4.3. 로그인
+* **엔드포인트**: `POST /auth/login` (인증 불필요)
+* **Request Body (`LoginDto`)**: `{ "email": "owner@classhelper.kr", "password": "password123!" }`
+* **Response Body (`AuthResponseDto`)**: 4.1과 동일한 형태로 Access/Refresh Token과 `user`, `academy` 정보를 반환합니다. 이메일/비밀번호 불일치 시 `401 Unauthorized`.
+
+### 4.4. 토큰 재발급 (RTR)
+* **엔드포인트**: `POST /auth/refresh` (인증 불필요, Refresh Token 필요)
+* **Request Body (`RefreshTokenDto`)**: `{ "refreshToken": "eyJhbGciOiJIUzI1NiIsIn..." }`
+* **Response Body (`TokensResponseDto`)**: `{ "accessToken": "...", "refreshToken": "..." }` — 새 Refresh Token으로 즉시 교체(RTR)됩니다.
+* **동작 특성**: 유효하지 않거나 이미 사용/폐기된 Refresh Token은 `403 Forbidden`이며, 해당 사용자의 저장된 토큰 해시를 초기화(강제 로그아웃)합니다.
+
+### 4.5. 로그아웃
+* **엔드포인트**: `POST /auth/logout` (인증 필요)
+* **Response Body (`LogoutResponseDto`)**: `{ "success": true, "message": "성공적으로 로그아웃되었습니다." }`
+* **동작 특성**: DB에 저장된 `hashedRefreshToken`을 삭제하여 해당 Refresh Token을 즉시 무효화합니다.
+
+### 4.6. 내 정보 및 소속 학원 조회
+* **엔드포인트**: `GET /auth/me` (인증 필요)
+* **Response Body (`UserDetailResponseDto`)**: `UserProfileDto` + `academy: AcademySummaryDto`.
+
+### 4.7. 플랫폼 전체 요약 통계
+* **엔드포인트**: `GET /admin/stats` (`SUPER_ADMIN`) — 전체 학원 수, 원생 수, 오늘 출결 현황 등 플랫폼 요약 통계.
+
+### 4.8. 전체 입점 학원 목록 조회
+* **엔드포인트**: `GET /admin/academies?search=클래스헬퍼&status=ACTIVE` (`SUPER_ADMIN`)
+
+### 4.9. 특정 학원 상세 조회
+* **엔드포인트**: `GET /admin/academies/:id` (`SUPER_ADMIN`)
+
+### 4.10. 학원 운영 상태 변경
+* **엔드포인트**: `PATCH /admin/academies/:id/status` (`SUPER_ADMIN`)
+* **Request Body (`UpdateAcademyStatusDto`)**:
+  ```json
+  {
+    "status": "SUSPENDED",
+    "reason": "이용약관 위반 및 서비스 이용료 미납으로 인한 일시정지"
+  }
+  ```
+* **동작 특성**: 상태 변경 시 `AuditLog`에 처리자(`adminId`), 변경 사유, 요청 IP를 함께 기록합니다.
+
+### 4.11. 플랫폼 관리자 감사 로그 조회
+* **엔드포인트**: `GET /admin/audit-logs?limit=30` (`SUPER_ADMIN`)
