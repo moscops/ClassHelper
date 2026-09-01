@@ -110,6 +110,7 @@ src/
 ├── notifications/        # 알림 및 카카오 안심 알림톡/SMS 발송 도메인
 ├── tuition/              # 수강료 청구 및 수납 도메인
 ├── class-logs/           # 수업 일지 및 진도/과제 도메인
+├── calendar/             # 학원 이벤트 캘린더 도메인
 ├── app.controller.ts
 ├── app.module.ts
 ├── app.service.ts

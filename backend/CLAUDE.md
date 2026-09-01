@@ -9,10 +9,10 @@
 - Refresh tokens: bcrypt-hashed only, RTR on `/auth/refresh`, reused/invalid token ⇒ null out the stored hash (force logout).
 - Domain/schema/structure changes ⇒ update `backend/docs/domains/*.md` **and** Notion, per GEMINI.md §3/§9. Don't skip this because it's tedious.
 
-## What's actually implemented (verified against `src/` and `prisma/schema.prisma`, 2026-08-31)
-Nest modules present: `admin`, `attendance`, `auth`, `class-logs`, `classes`, `common`, `notifications`, `students`, `tuition`, `prisma`.
+## What's actually implemented (verified against `src/` and `prisma/schema.prisma`, 2026-09-01)
+Nest modules present: `admin`, `attendance`, `auth`, `calendar`, `class-logs`, `classes`, `common`, `notifications`, `students`, `tuition`, `prisma`.
 
-Prisma models: `Academy`, `User`, `AuditLog`, `Student`, `Class`, `Enrollment`, `Attendance`, `TuitionInvoice`, `TuitionPayment`, `ClassLog`, `HomeworkSubmission`, `Notification`.
+Prisma models: `Academy`, `User`, `AuditLog`, `Student`, `Class`, `Enrollment`, `Attendance`, `TuitionInvoice`, `TuitionPayment`, `ClassLog`, `HomeworkSubmission`, `Notification`, `AcademyEvent`.
 
 **Correction (2026-08-31):** this file previously said `docs/domain-architecture.md` was stale re: Classes/Attendance/ClassLogs status — that was a misattribution on my part. The actually-stale file was `backend/docs/README.md`'s directory-structure block, which marked `classes/`, `attendance/`, `tuition/`, `class-logs/` as "(예정)" and omitted `notifications/` entirely. Fixed both that and the doc-drift below.
 
@@ -20,7 +20,11 @@ Prisma models: `Academy`, `User`, `AuditLog`, `Student`, `Class`, `Enrollment`, 
 
 **Also reinforced:** `docs/domains/01-auth-and-admin.md` was missing the §4 API spec section that domains 02/03/05 already had (same gap 04 had) — added it, documenting the real `auth`/`admin` controller routes and DTOs.
 
-**Correction (2026-09-01):** this file previously said "No frontend UI yet for `/tuition/*` endpoints" — that was wrong. `frontend/src/app/tuition/page.tsx` (1550 lines) + `frontend/src/lib/tuition-service.ts` (165 lines) already implement the full invoice/payment UI, wired to `AppLayout`. Verified: `yarn frontend:build` succeeds and the `/tuition` route generates cleanly. Also discovered while landing this session's work: a **fourth untracked feature**, `frontend/src/app/calendar/page.tsx` (1231 lines) + `frontend/src/lib/calendar-service.ts` (234 lines) — an academy events calendar + per-day class schedule view. It has **no backend counterpart**; events are stored client-side only (`localStorage`, keyed by `classhelper_events_{academyId}`), not synced through any API. Not previously documented anywhere in this file or `docs/domains/`.
+**Correction (2026-09-01):** this file previously said "No frontend UI yet for `/tuition/*` endpoints" — that was wrong. `frontend/src/app/tuition/page.tsx` (1550 lines) + `frontend/src/lib/tuition-service.ts` (165 lines) already implement the full invoice/payment UI, wired to `AppLayout`. Verified: `yarn frontend:build` succeeds and the `/tuition` route generates cleanly. Also discovered while landing this session's work: a **fourth untracked feature**, `frontend/src/app/calendar/page.tsx` (1231 lines) + `frontend/src/lib/calendar-service.ts` (234 lines) — an academy events calendar + per-day class schedule view. At the time, it had **no backend counterpart**; events were stored client-side only (`localStorage`, keyed by `classhelper_events_{academyId}`), not synced through any API. Not previously documented anywhere in this file or `docs/domains/`. **Closed the same session** — see the entry below.
+
+**Phase: Calendar backend (shipped 2026-09-01):** `src/calendar/` implements `CalendarController`/`CalendarService` — `AcademyEvent` CRUD (`GET/POST /calendar/events`, `PATCH/DELETE /calendar/events/:id`), every query scoped by `academyId`, reads open to all authenticated roles, writes gated to `SUPER_ADMIN`/`OWNER`/`ADMIN`. New Prisma model `AcademyEvent` + `EventCategory`/`EventColor` enums, migration `20260901034633_add_calendar_events`. Wired into `AppModule`. Tests: `calendar.service.spec.ts`, 8 cases covering CRUD + tenancy isolation. `frontend/src/lib/calendar-service.ts` rewired from `localStorage` to real HTTP calls (`api.get/post/patch/delete` against `/calendar/events`), matching `tuition-service.ts`'s pattern; `EventColor` values changed from lowercase to `INDIGO`/`PURPLE`/etc. to match every other backend-mirrored enum in this app, and the already-unused `targetClassIds`/`createdBy` fields were dropped rather than given fake backend support. `frontend/src/app/calendar/page.tsx`'s 4 lowercase-color-literal spots updated to match; no other page structure changed. Endpoint/DTO details in `docs/domains/06-calendar.md`.
+
+The per-day class-schedule half of the calendar page was **already backend-connected** before this change (calls real `classesService.getClasses()` + `GET /classes/:id/enrollments`, joins client-side via `Class.schedule` free-text parsing) — only `AcademyEvent` needed a new domain. Not touched this session: `backend/docs/domain-architecture.md` is separately stale (its "5대 핵심 도메인" section predates `tuition`/`class-logs` entirely, let alone `calendar`) — flagging rather than fixing, since it's a larger unrelated rewrite.
 
 **Frontend nav refactor (in-flight, landed 2026-09-01):** `frontend/src/components/common/AppLayout.tsx` is the actual shared layout now used by every page (`admin`, `attendance`, `class-logs`, `classes`, `dashboard`, `notifications`, `students`, `tuition`) — it embeds its own header/sidebar/nav JSX directly. `frontend/src/components/common/AppNavbar.tsx` also exists (created first, per the prior session's in-flight note) but **is not imported anywhere** — it looks like an earlier draft superseded by `AppLayout.tsx`'s fuller implementation (adds a sidebar) rather than a component `AppLayout` composes. Left in place as dead code since deleting it is a judgment call beyond a docs/lint pass — flagging for a decision: delete, or wire `AppLayout` to actually use it. The same commit also swapped the `bg-dot-vignette` background pattern for `bg-ambient-mesh`/`bg-tech-grid`/`glass-panel`/`interactive-card` utilities (`globals.css`), applied on `login`/`register`/the landing page directly and via `AppLayout` on every authenticated page.
 
@@ -32,7 +36,7 @@ Prisma models: `Academy`, `User`, `AuditLog`, `Student`, `Class`, `Enrollment`, 
 - [x] Phase 3-4 — 1-second attendance check + Kakao/SMS notification engine
 - [x] Phase 3-5 — Tuition invoices & payments API (`src/tuition/`)
 - [x] Phase 3-6 — ClassLog & Homework domain
-- [ ] Phase 4 (next up) — E2E tests, cloud deploy. Tuition frontend UI now exists (see correction below) — remaining known gap before Phase 4: the calendar feature has no backend API.
+- [ ] Phase 4 (next up) — E2E tests, cloud deploy. Tuition frontend UI and calendar backend both now exist (see corrections below) — no known frontend/backend connectivity gaps remain going into Phase 4.
 
 ## Backend-relevant commit history (oldest → newest)
 ```
