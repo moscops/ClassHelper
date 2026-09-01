@@ -28,8 +28,13 @@ import {
   CheckCircle2,
   Calendar,
   CreditCard,
+  Crown,
+  Zap,
+  X,
+  Check,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { authService } from '@/lib/auth-service';
 import {
   notificationsService,
   NotificationItem,
@@ -41,7 +46,8 @@ import { AppLayout } from '@/components/common/AppLayout';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, academy, isAuthenticated, isHydrated } = useAuthStore();
+  const { user, academy, isAuthenticated, isHydrated, setAcademy } = useAuthStore();
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   // State: Unattended Alert Status
   const [unattendedStatus, setUnattendedStatus] = useState<UnattendedStatusResponse>({
@@ -88,14 +94,19 @@ export default function DashboardPage() {
     }
   }, [isHydrated, isAuthenticated, router]);
 
-  // Load Unattended Status
+  // Load Unattended Status & Sync Latest Academy Profile
   useEffect(() => {
     if (isHydrated && isAuthenticated) {
       loadUnattendedStatus();
+      authService.getMe().then((me) => {
+        if (me.academy) {
+          setAcademy(me.academy);
+        }
+      }).catch(() => {});
       const interval = setInterval(loadUnattendedStatus, 20000);
       return () => clearInterval(interval);
     }
-  }, [isHydrated, isAuthenticated]);
+  }, [isHydrated, isAuthenticated, setAcademy]);
 
   // Debounce search
   useEffect(() => {
@@ -298,6 +309,72 @@ export default function DashboardPage() {
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{academy?.name}</span>의 1초 출결, 수업 진도, 원비 수납 현황 및 실시간 알림을 스마트하게 관리하세요.
                 </p>
               </div>
+
+              {/* Subscription Plan Widget */}
+              {(() => {
+                const tier = academy?.subscription?.tier ?? 'FREE';
+                const isCanceled = academy?.subscription?.status === 'CANCELED';
+
+                let planDetails = {
+                  name: 'Free 플랜',
+                  desc: '원생 50명 제한 · 기본 기능',
+                  badge: '무료',
+                  color: 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300',
+                  icon: Sparkles,
+                  iconColor: 'text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-700',
+                };
+
+                if (tier === 'PRO') {
+                  planDetails = {
+                    name: 'Pro 플랜',
+                    desc: '원생 무제한 · 전 기능 해제',
+                    badge: '프로',
+                    color: 'border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200',
+                    icon: Zap,
+                    iconColor: 'text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/60',
+                  };
+                } else if (tier === 'ENTERPRISE') {
+                  planDetails = {
+                    name: 'Enterprise 플랜',
+                    desc: '원생 무제한 · 본/분원 통합 관리',
+                    badge: '엔터프라이즈',
+                    color: 'border-purple-200 dark:border-purple-800/80 bg-purple-50/70 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200',
+                    icon: Crown,
+                    iconColor: 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/60',
+                  };
+                }
+
+                const PlanIcon = planDetails.icon;
+
+                return (
+                  <div
+                    className={`p-4 rounded-2xl border flex items-center justify-between gap-4 shrink-0 transition-all ${planDetails.color}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${planDetails.iconColor}`}>
+                        <PlanIcon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-xs">{planDetails.name}</span>
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-white dark:bg-slate-900/80 shadow-2xs">
+                            {isCanceled ? '구독 취소됨' : planDetails.badge}
+                          </span>
+                        </div>
+                        <p className="text-[11px] opacity-80 mt-0.5">{planDetails.desc}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsPlanModalOpen(true)}
+                      className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-[11px] font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-all cursor-pointer shrink-0"
+                    >
+                      플랜 혜택 보기
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -850,6 +927,200 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+
+      {/* Plan Information & Benefits Modal */}
+      {isPlanModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-2xl w-full overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    ClassHelper 요금제 플랜 및 혜택 안내
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    학원 규모와 운영 방식에 최적화된 맞춤형 플랜을 확인해보세요.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPlanModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body: 3 Plans */}
+            <div className="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                {/* 1. FREE Plan */}
+                <div
+                  className={`p-4 rounded-2xl border flex flex-col justify-between transition-all ${
+                    (academy?.subscription?.tier || 'FREE') === 'FREE'
+                      ? 'border-slate-400 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/80 ring-2 ring-slate-400/40 shadow-xs'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        FREE
+                      </span>
+                      {(academy?.subscription?.tier || 'FREE') === 'FREE' && (
+                        <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                          현재 이용 중
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">
+                      무료 체험
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+                      소규모 교습소 및 초기 도입 학원을 위한 기본 플랜
+                    </p>
+
+                    <ul className="space-y-1.5 text-[11px] text-slate-600 dark:text-slate-400">
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>원생 최대 50명 등록</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>단일 학원 운영</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>1초 출결 & 수업 일지</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 2. PRO Plan */}
+                <div
+                  className={`p-4 rounded-2xl border flex flex-col justify-between transition-all relative overflow-hidden ${
+                    academy?.subscription?.tier === 'PRO'
+                      ? 'border-indigo-500 dark:border-indigo-400 bg-indigo-50/60 dark:bg-indigo-950/50 ring-2 ring-indigo-500/40 shadow-xs'
+                      : 'border-indigo-200/80 dark:border-indigo-800/60 bg-indigo-50/20 dark:bg-indigo-950/20'
+                  }`}
+                >
+                  <div className="absolute -right-6 top-3 rotate-45 bg-indigo-600 text-white text-[9px] font-bold px-7 py-0.5 shadow-2xs">
+                    인기
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>PRO</span>
+                      </span>
+                      {academy?.subscription?.tier === 'PRO' && (
+                        <span className="px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
+                          현재 이용 중
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">
+                      프로 플랜
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+                      성장하는 일반 종합/단과 학원에 가장 최적화된 무제한 플랜
+                    </p>
+
+                    <ul className="space-y-1.5 text-[11px] text-slate-700 dark:text-slate-300">
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        <span className="font-bold">원생 인원 무제한</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        <span>카카오 알림톡 자동 발송</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        <span>수강료 복합 수납 & 청구서</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        <span>과제 검사 및 상세 리포트</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 3. ENTERPRISE Plan */}
+                <div
+                  className={`p-4 rounded-2xl border flex flex-col justify-between transition-all ${
+                    academy?.subscription?.tier === 'ENTERPRISE'
+                      ? 'border-purple-500 dark:border-purple-400 bg-purple-50/60 dark:bg-purple-950/50 ring-2 ring-purple-500/40 shadow-xs'
+                      : 'border-purple-200/80 dark:border-purple-800/60 bg-purple-50/20 dark:bg-purple-950/20'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                        <Crown className="w-3.5 h-3.5" />
+                        <span>ENTERPRISE</span>
+                      </span>
+                      {academy?.subscription?.tier === 'ENTERPRISE' && (
+                        <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/60 text-[10px] font-bold text-purple-700 dark:text-purple-300">
+                          현재 이용 중
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">
+                      엔터프라이즈
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+                      본원 및 분원 통합 관리가 필요한 대형 학원/프랜차이즈 전용
+                    </p>
+
+                    <ul className="space-y-1.5 text-[11px] text-slate-700 dark:text-slate-300">
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                        <span className="font-bold">원생 & 강사 무제한</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                        <span>본원/직영 분원 통합 관리</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                        <span>전담 기술 지원 & 맞춤형 기능</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notice Card */}
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400 flex items-start gap-2.5">
+                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                <p className="text-[11px] leading-relaxed">
+                  요금제 등급 업그레이드 또는 분원 연동을 원하시면 ClassHelper 플랫폼 고객센터 또는 전담 매니저에게 문의해주시면 즉시 반영해드립니다.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setIsPlanModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }

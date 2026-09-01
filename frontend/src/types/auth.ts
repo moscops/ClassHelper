@@ -10,12 +10,23 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export type PlanTier = 'FREE' | 'PRO' | 'ENTERPRISE';
+export type SubscriptionStatus = 'ACTIVE' | 'CANCELED';
+
+export interface SubscriptionSummary {
+  tier: PlanTier;
+  status: SubscriptionStatus;
+  expiresAt?: string | null;
+  notes?: string | null;
+}
+
 export interface AcademySummary {
   id: number;
   name: string;
   businessNumber?: string | null;
   phoneNumber?: string | null;
   address?: string | null;
+  subscription?: SubscriptionSummary | null;
 }
 
 export interface AuthResponse {

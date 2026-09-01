@@ -1,4 +1,5 @@
 import { api } from './api';
+import { PlanTier, SubscriptionStatus, SubscriptionSummary } from '@/types/auth';
 
 export interface PlatformStats {
   academies: {
@@ -42,6 +43,15 @@ export interface AdminAcademyItem {
     classCount: number;
     staffCount: number;
   };
+  subscription?: SubscriptionSummary | null;
+}
+
+export interface UpdateSubscriptionPayload {
+  tier: PlanTier;
+  status?: SubscriptionStatus;
+  expiresAt?: string;
+  notes?: string;
+  reason?: string;
 }
 
 export interface AdminAuditLogItem {
@@ -75,6 +85,14 @@ export const adminService = {
   },
 
   /**
+   * 학원 상세 정보 조회
+   */
+  async getAcademyDetail(academyId: number): Promise<any> {
+    const response = await api.get(`/admin/academies/${academyId}`);
+    return response.data;
+  },
+
+  /**
    * 학원 운영 상태 변경 (정상 / 일시정지 / 대기)
    */
   async updateAcademyStatus(
@@ -86,6 +104,17 @@ export const adminService = {
       status,
       reason,
     });
+    return response.data;
+  },
+
+  /**
+   * 학원 요금제 등급 및 구독 정보 변경
+   */
+  async updateSubscription(
+    academyId: number,
+    dto: UpdateSubscriptionPayload,
+  ): Promise<any> {
+    const response = await api.patch(`/admin/academies/${academyId}/subscription`, dto);
     return response.data;
   },
 

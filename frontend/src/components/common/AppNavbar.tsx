@@ -14,15 +14,18 @@ import {
   LogOut,
   Menu,
   X,
-  Sparkles,
-  ChevronRight,
-  ClipboardList,
   LayoutDashboard,
   CreditCard,
+  ClipboardList,
+  ChevronRight,
+  Sparkles,
+  Zap,
+  Crown,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/lib/auth-service';
 import { attendanceService } from '@/lib/attendance-service';
+import { PlanTier } from '@/types/auth';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { NotificationBell } from '@/components/NotificationBell';
 
@@ -105,6 +108,29 @@ export function AppNavbar({ currentPath }: AppNavbarProps) {
     }
   };
 
+  const getPlanBadge = (tier?: PlanTier) => {
+    switch (tier) {
+      case 'PRO':
+        return {
+          label: 'Pro',
+          icon: Zap,
+          color: 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+        };
+      case 'ENTERPRISE':
+        return {
+          label: 'Enterprise',
+          icon: Crown,
+          color: 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+        };
+      default:
+        return {
+          label: 'Free',
+          icon: Sparkles,
+          color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+        };
+    }
+  };
+
   const navLinks = [
     {
       label: '대시보드',
@@ -171,9 +197,21 @@ export function AppNavbar({ currentPath }: AppNavbarProps) {
             </Link>
 
             {academy && (
-              <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-semibold shadow-2xs">
+              <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-semibold shadow-2xs">
                 <Building2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span className="truncate max-w-[160px]">{academy.name}</span>
+                <span className="truncate max-w-[140px]">{academy.name}</span>
+                {(() => {
+                  const plan = getPlanBadge(academy.subscription?.tier);
+                  const PlanIcon = plan.icon;
+                  return (
+                    <span
+                      className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 text-[10px] font-bold rounded border ${plan.color}`}
+                    >
+                      <PlanIcon className="w-2.5 h-2.5" />
+                      <span>{plan.label}</span>
+                    </span>
+                  );
+                })()}
               </div>
             )}
 
@@ -276,9 +314,23 @@ export function AppNavbar({ currentPath }: AppNavbarProps) {
               <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700">
                 <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                    {academy.name}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                      {academy.name}
+                    </p>
+                    {(() => {
+                      const plan = getPlanBadge(academy.subscription?.tier);
+                      const PlanIcon = plan.icon;
+                      return (
+                        <span
+                          className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 text-[10px] font-bold rounded border ${plan.color}`}
+                        >
+                          <PlanIcon className="w-2.5 h-2.5" />
+                          <span>{plan.label}</span>
+                        </span>
+                      );
+                    })()}
+                  </div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     {user.name} ({roleBadge.label})
                   </p>
