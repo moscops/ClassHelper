@@ -49,6 +49,7 @@ export default function HomePage() {
   const { user, isAuthenticated, isHydrated } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const leaveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isHydrated && isAuthenticated) {
@@ -60,7 +61,7 @@ export default function HomePage() {
     }
   }, [isHydrated, isAuthenticated, user, router]);
 
-  // ESC key to close left drawer
+  // ESC key to close drawer
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -70,6 +71,20 @@ export default function HomePage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const handleMouseEnter = () => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+    setIsMenuOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    leaveTimeoutRef.current = setTimeout(() => {
+      setIsMenuOpen(false);
+    }, 200);
+  };
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -171,18 +186,99 @@ export default function HomePage() {
       {/* 1. Top Sticky Navbar */}
       <header className="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 transition-colors shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Left: Left Menu Trigger Button + Brand Logo */}
+          {/* Left: Hoverable Menu Button + Floating Popover Menu + Brand Logo */}
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen(true)}
-              className="flex items-center gap-1.5 py-2 px-2.5 sm:px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200 dark:border-slate-700/80 transition-all cursor-pointer shadow-2xs group"
-              title="메뉴 및 바로가기 열기"
-              aria-label="메뉴 및 바로가기 열기"
+            {/* Hover Trigger Wrapper */}
+            <div
+              className="relative"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
-              <Menu className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
-              <span className="text-xs font-bold hidden sm:inline">메뉴 둘러보기</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="flex items-center gap-1.5 py-2 px-2.5 sm:px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200 dark:border-slate-700/80 transition-all cursor-pointer shadow-2xs group"
+                title="마우스를 올리면 메뉴가 나타납니다"
+                aria-label="마우스를 올리면 메뉴가 나타납니다"
+              >
+                <Menu className="w-4 h-4 text-slate-600 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+                <span className="text-xs font-bold hidden sm:inline">메뉴 둘러보기</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-indigo-600' : ''}`} />
+              </button>
+
+              {/* Hover-Activated Floating Popover Menu */}
+              {isMenuOpen && (
+                <div
+                  className="absolute top-full left-0 mt-2 w-80 sm:w-88 max-h-[calc(100vh-5.5rem)] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden"
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {/* Popover Header */}
+                  <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
+                        <GraduationCap className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight">
+                          페이지 스크롤 목차
+                        </p>
+                        <p className="text-[10px] text-slate-400">클릭 시 해당 위치로 부드럽게 이동</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-100 dark:border-indigo-800/60">
+                      순서별 정렬
+                    </span>
+                  </div>
+
+                  {/* Popover Items (Scrollable list) */}
+                  <div className="p-2.5 overflow-y-auto flex-1 space-y-1 text-xs">
+                    {navMenuItems.map((item, idx) => {
+                      const IconComponent = item.icon;
+                      return (
+                        <a
+                          key={idx}
+                          href={item.id}
+                          onClick={() => setIsMenuOpen(false)}
+                          className="flex items-center gap-3 p-2 rounded-2xl hover:bg-indigo-50/80 dark:hover:bg-indigo-950/50 group transition-all cursor-pointer border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800/60"
+                        >
+                          <div className={`w-7 h-7 rounded-xl ${item.bg} flex items-center justify-center ${item.color} shrink-0 group-hover:scale-105 transition-transform shadow-2xs`}>
+                            <IconComponent className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 text-xs truncate">
+                              {item.title}
+                            </p>
+                            <p className="text-[10px] text-slate-400 truncate">
+                              {item.desc}
+                            </p>
+                          </div>
+                          <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+                        </a>
+                      );
+                    })}
+                  </div>
+
+                  {/* Popover Footer */}
+                  <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between gap-2">
+                    <Link
+                      href="/register"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs text-center shadow-xs transition-all cursor-pointer"
+                    >
+                      무료 시작
+                    </Link>
+                    <Link
+                      href="/login"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs text-center hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      로그인
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm group-hover:bg-indigo-700 transition-colors">
@@ -224,95 +320,6 @@ export default function HomePage() {
           </div>
         </div>
       </header>
-
-      {/* ========================================== */}
-      {/* 🧭 Left Slide Popup Drawer (Navigation)   */}
-      {/* ========================================== */}
-      {isMenuOpen && (
-        <div
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsMenuOpen(false);
-          }}
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex animate-in fade-in duration-200"
-        >
-          <div className="w-84 max-w-[85vw] h-full bg-white dark:bg-slate-900 shadow-2xl border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between animate-in slide-in-from-left duration-300 overflow-hidden">
-            {/* Drawer Header */}
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-800/40">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
-                  <GraduationCap className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
-                    Class<span className="text-indigo-600 dark:text-indigo-400">Helper</span>
-                  </h3>
-                  <p className="text-[10px] text-slate-400 font-medium">스크롤 순서별 바로가기</p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsMenuOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                title="메뉴 닫기"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Drawer Body (Scrollable Menu Items in Chronological Page Order) */}
-            <div className="p-4 overflow-y-auto flex-1 space-y-1.5 text-xs">
-              <div className="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                페이지 섹션 목차
-              </div>
-
-              {navMenuItems.map((item, idx) => {
-                const IconComponent = item.icon;
-                return (
-                  <a
-                    key={idx}
-                    href={item.id}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-indigo-50/80 dark:hover:bg-indigo-950/50 group transition-all cursor-pointer border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800/60"
-                  >
-                    <div className={`w-8 h-8 rounded-xl ${item.bg} flex items-center justify-center ${item.color} shrink-0 group-hover:scale-105 transition-transform shadow-2xs`}>
-                      <IconComponent className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 text-xs truncate">
-                        {item.title}
-                      </p>
-                      <p className="text-[11px] text-slate-400 truncate">
-                        {item.desc}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all shrink-0" />
-                  </a>
-                );
-              })}
-            </div>
-
-            {/* Drawer Footer CTA */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2 shrink-0">
-              <Link
-                href="/register"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
-              >
-                <span>학원 무료 개설하기</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-              <Link
-                href="/login"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center justify-center w-full py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                로그인
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 2. Hero Section */}
       <main className="flex-1 relative overflow-hidden flex flex-col items-center justify-center bg-ambient-mesh bg-tech-grid">
