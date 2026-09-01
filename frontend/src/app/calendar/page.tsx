@@ -77,7 +77,7 @@ export default function CalendarPage() {
   const [eventStartTime, setEventStartTime] = useState('');
   const [eventEndTime, setEventEndTime] = useState('');
   const [eventDescription, setEventDescription] = useState('');
-  const [eventColor, setEventColor] = useState<EventColor>('indigo');
+  const [eventColor, setEventColor] = useState<EventColor>('INDIGO');
   const [eventModalError, setEventModalError] = useState<string | null>(null);
 
   // Auth Guard
@@ -295,7 +295,7 @@ export default function CalendarPage() {
     setEventStartTime('');
     setEventEndTime('');
     setEventDescription('');
-    setEventColor('indigo');
+    setEventColor('INDIGO');
     setEventModalError(null);
     setIsEventModalOpen(true);
   };
@@ -384,13 +384,9 @@ export default function CalendarPage() {
   return (
     <AppLayout currentPath="/calendar">
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-7">
-        {/* Top Header & View Modes & Actions */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        {/* Top Header Title & Primary Action */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-800 text-xs font-semibold text-indigo-700 dark:text-indigo-300 mb-2">
-              <CalendarIcon className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span>Academy Master Schedule & Planning</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               스마트 학원 통합 캘린더
             </h1>
@@ -399,99 +395,138 @@ export default function CalendarPage() {
             </p>
           </div>
 
-          {/* Right Action Bar: Month Switcher & View Mode & Add Event Button */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-            {/* Month Navigation Capsule */}
-            <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1 shadow-2xs">
-              <button
-                type="button"
-                onClick={handlePrevMonth}
-                className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                title="이전 달"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-
-              <span className="px-3 text-xs sm:text-sm font-bold text-slate-900 dark:text-white min-w-[105px] text-center">
-                {year}년 {month + 1}월
-              </span>
-
-              <button
-                type="button"
-                onClick={handleNextMonth}
-                className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                title="다음 달"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleToday}
-                className="ml-1 px-2.5 py-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 rounded-xl transition-colors cursor-pointer"
-              >
-                오늘
-              </button>
-            </div>
-
-            {/* View Mode Switcher Tabs */}
-            <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setViewMode('MONTH')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                  viewMode === 'MONTH'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <Grid className="w-3.5 h-3.5" />
-                <span>월간 달력</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setViewMode('WEEK_TIMETABLE')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                  viewMode === 'WEEK_TIMETABLE'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <CalendarDays className="w-3.5 h-3.5" />
-                <span>주간 시간표</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setViewMode('AGENDA')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                  viewMode === 'AGENDA'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <List className="w-3.5 h-3.5" />
-                <span>일정 목록</span>
-              </button>
-            </div>
-
-            {/* Add Event Button */}
-            <button
-              type="button"
-              onClick={() => handleOpenAddEventModal()}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer hover:scale-102"
-            >
-              <Plus className="w-4 h-4" />
-              <span>학원 일정 등록</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => handleOpenAddEventModal()}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer hover:scale-102 self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>학원 일정 등록</span>
+          </button>
         </div>
 
-        {/* Filter & Search Bar */}
-        <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Category Filter Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 text-xs font-semibold">
+        {/* Top Main Controls Bar: Month Switcher, View Switcher & Student Search */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+            {/* Left: Month Navigation Capsule & View Mode Switcher */}
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+              {/* Month Navigation Capsule */}
+              <div className="flex items-center bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-1 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={handlePrevMonth}
+                  className="p-1.5 rounded-xl hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                  title="이전 달"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <span className="px-3 text-xs sm:text-sm font-bold text-slate-900 dark:text-white min-w-[105px] text-center">
+                  {year}년 {month + 1}월
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleNextMonth}
+                  className="p-1.5 rounded-xl hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                  title="다음 달"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleToday}
+                  className="ml-1 px-2.5 py-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 rounded-xl transition-colors cursor-pointer"
+                >
+                  오늘
+                </button>
+              </div>
+
+              {/* View Mode Switcher Tabs */}
+              <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('MONTH')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                    viewMode === 'MONTH'
+                      ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Grid className="w-3.5 h-3.5" />
+                  <span>월간 달력</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViewMode('WEEK_TIMETABLE')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                    viewMode === 'WEEK_TIMETABLE'
+                      ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  <span>주간 시간표</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViewMode('AGENDA')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                    viewMode === 'AGENDA'
+                      ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span>일정 목록</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Student Search & Class Selector */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Student Search Input */}
+              <div className="relative flex-1 sm:w-60">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                  placeholder="원생 이름 검색 (등원일 조회)..."
+                  className="w-full pl-8 pr-7 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                {studentSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setStudentSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Target Class Selector */}
+              <select
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="ALL">전체 개설 반 ({classes.length}개)</option>
+                {classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name} ({cls.schedule || '시간 미지정'})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Category Filter Pills (Sub Row) */}
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 overflow-x-auto text-xs font-semibold">
             <button
               type="button"
               onClick={() => setCategoryFilter('ALL')}
@@ -521,44 +556,6 @@ export default function CalendarPage() {
                 </button>
               );
             })}
-          </div>
-
-          {/* Class Selector & Student Search */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            {/* Target Class Dropdown */}
-            <select
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="ALL">전체 개설 반 ({classes.length}개)</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name} ({cls.schedule || '시간 미지정'})
-                </option>
-              ))}
-            </select>
-
-            {/* Student Search */}
-            <div className="relative w-44 sm:w-52">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={studentSearch}
-                onChange={(e) => setStudentSearch(e.target.value)}
-                placeholder="원생 이름 검색..."
-                className="w-full pl-8 pr-7 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              {studentSearch && (
-                <button
-                  type="button"
-                  onClick={() => setStudentSearch('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
           </div>
         </div>
 
@@ -641,7 +638,7 @@ export default function CalendarPage() {
                       <div className="space-y-1 my-1 overflow-hidden">
                         {/* 1. Academy Events */}
                         {dayEvents.slice(0, 2).map((evt) => {
-                          const color = COLOR_CLASSES[evt.color] || COLOR_CLASSES.indigo;
+                          const color = COLOR_CLASSES[evt.color] || COLOR_CLASSES.INDIGO;
                           return (
                             <div
                               key={evt.id}
@@ -722,7 +719,7 @@ export default function CalendarPage() {
                   ) : (
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                       {selectedDateEvents.map((evt) => {
-                        const color = COLOR_CLASSES[evt.color] || COLOR_CLASSES.indigo;
+                        const color = COLOR_CLASSES[evt.color] || COLOR_CLASSES.INDIGO;
                         return (
                           <div
                             key={evt.id}
@@ -965,7 +962,7 @@ export default function CalendarPage() {
                   .slice()
                   .sort((a, b) => a.startDate.localeCompare(b.startDate))
                   .map((evt) => {
-                    const color = COLOR_CLASSES[evt.color] || COLOR_CLASSES.indigo;
+                    const color = COLOR_CLASSES[evt.color] || COLOR_CLASSES.INDIGO;
                     const isPassed = evt.startDate < new Date().toISOString().split('T')[0];
 
                     return (
@@ -1102,7 +1099,7 @@ export default function CalendarPage() {
                     onChange={(e) => {
                       const cat = e.target.value as EventCategory;
                       setEventCategory(cat);
-                      setEventColor(EVENT_CATEGORY_META[cat]?.defaultColor || 'indigo');
+                      setEventColor(EVENT_CATEGORY_META[cat]?.defaultColor || 'INDIGO');
                     }}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
@@ -1119,7 +1116,7 @@ export default function CalendarPage() {
                     색상 태그
                   </label>
                   <div className="flex items-center gap-1.5 pt-1">
-                    {(['indigo', 'purple', 'rose', 'amber', 'emerald', 'blue'] as EventColor[]).map(
+                    {(['INDIGO', 'PURPLE', 'ROSE', 'AMBER', 'EMERALD', 'BLUE'] as EventColor[]).map(
                       (c) => (
                         <button
                           key={c}
