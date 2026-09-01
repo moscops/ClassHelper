@@ -8,6 +8,28 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-02: 카카오 알림톡 및 리포트 발송 전 실시간 미리보기 팝업 및 메시지 직접 수정 기능 전면 탑재
+- **작성자**: Gemini (Frontend) & Claude (Backend)
+- **백엔드 반영 사항**:
+  - `backend/src/reports/dto/generate-report.dto.ts`: `customMessage?: string` 선택적 DTO 필드 추가
+  - `backend/src/reports/reports.service.ts`: `sendStudentReport` 및 `sendClassReports`에서 사용자가 직접 수정한 `customMessage`를 카카오 알림톡 메시지 본문(`notification.message`)으로 우선 채택하도록 지원
+  - `backend/src/reports/reports.controller.ts`: DTO `customMessage` 파라미터 전달 연동 완료
+- **프론트엔드 반영 사항 (Gemini)**:
+  - `src/lib/reports-service.ts`: `sendStudentReport`, `sendClassReports` API에 `customMessage?: string` 지원 추가
+  - **리포트 관리 (`frontend/src/app/reports/page.tsx`)**:
+    - **원생 1인 발송 모달**: 카카오 알림톡 스마트폰 노란색 말풍선 뷰(`bg-[#FAE100]`) + 발송 전 텍스트 직접 수정 에디터(`textarea`) + `[기본 문구로 초기화]` 버튼 탑재
+    - **반 전체 일괄 발송 모달**: 대표 학생 알림톡 말풍선 미리보기 + 선생님 공통 추가 전달사항/메모 입력창(`textarea`) 제공
+    - **상단 `[+ 리포트 발송]` 마법사 모달**: 실시간 알림톡 메시지 직접 편집 및 말풍선 뷰 제공
+  - **원생 관리 (`frontend/src/app/students/page.tsx`)**:
+    - `isReportModalOpen`: 실시간 카카오 알림톡 말풍선 미리보기 + 발송 전 메시지 자유 편집 기능 탑재
+  - **반 관리 (`frontend/src/app/classes/page.tsx`)**:
+    - `isClassReportModalOpen`: 반 대표 알림톡 메시지 미리보기 + 선생님 추가 당부사항 메모 입력창 탑재
+  - **1초 출결 관리 (`frontend/src/app/attendance/page.tsx`)**:
+    - `isDetailModalOpen`: 출결 상태 변경(출석/결석/지각/조퇴) 시 학부모님께 발송될 알림톡 문구 실시간 미리보기 및 직접 수정 기능 탑재
+  - **수강료 & 수납 (`frontend/src/app/tuition/page.tsx`)**:
+    - `isPaymentModalOpen`: 수납 처리 시 학부모님께 발송될 카카오 알림톡 영수증 안내 박스 탑재
+- **상태**: ✅ Next.js 16 프로덕션 빌드 (17/17 routes) 완벽 통과, Jest 109/109 PASS 검증 완료
+
 ### 📅 2026-09-02: 전 페이지 팝업창 화면 밖 이탈 방지 규격화, 캘린더 주간 시간표 수강생 조회 모달 및 리포트 관리 대시보드 규격 전면 리뉴얼
 - **작성자**: Gemini (Frontend)
 - **프론트엔드 반영 사항 (Gemini)**:

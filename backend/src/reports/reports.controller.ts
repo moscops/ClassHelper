@@ -88,6 +88,7 @@ export class ReportsController {
       id,
       dto.periodStart,
       dto.periodEnd,
+      dto.customMessage,
     );
   }
 
@@ -113,6 +114,7 @@ export class ReportsController {
       id,
       dto.periodStart,
       dto.periodEnd,
+      dto.customMessage,
     );
   }
 }

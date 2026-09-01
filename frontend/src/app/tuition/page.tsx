@@ -1284,6 +1284,17 @@ export default function TuitionPage() {
                 />
               </div>
 
+              {/* Kakao Notification Notice Box */}
+              <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 text-xs space-y-1">
+                <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1 text-[11px]">
+                  <Sparkles className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                  <span>학부모 카카오 알림톡 수납 영수증 자동 발송</span>
+                </span>
+                <p className="text-[11px] text-slate-700 dark:text-slate-300 font-sans leading-relaxed">
+                  수납 등록 시 학부모({selectedInvoiceForPayment.student?.parentPhone || '연락처'})님께 <strong>{paymentAmount.toLocaleString()}원</strong> 수납 확인 알림톡이 자동 발송됩니다.
+                </p>
+              </div>
+
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
                 <button
                   type="button"

@@ -33,6 +33,7 @@ import {
   Calendar,
   Sparkles,
   Check,
+  RotateCcw,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -110,6 +111,7 @@ export default function StudentsPage() {
   const [reportPeriodStart, setReportPeriodStart] = useState<string>('');
   const [reportPeriodEnd, setReportPeriodEnd] = useState<string>('');
   const [reportPreview, setReportPreview] = useState<StudentReport | null>(null);
+  const [editableReportMessage, setEditableReportMessage] = useState<string>('');
   const [isLoadingReportPreview, setIsLoadingReportPreview] = useState(false);
   const [isSendingReport, setIsSendingReport] = useState(false);
   const [reportSuccessMessage, setReportSuccessMessage] = useState<string | null>(null);
@@ -427,6 +429,7 @@ export default function StudentsPage() {
     try {
       const data = await reportsService.previewStudentReport(studentId, start, end);
       setReportPreview(data);
+      setEditableReportMessage(data.message);
     } catch (err: any) {
       console.error('Failed to load report preview:', err);
       setReportErrorMessage(
@@ -476,6 +479,7 @@ export default function StudentsPage() {
         selectedStudentForReport.id,
         reportPeriodStart,
         reportPeriodEnd,
+        editableReportMessage,
       );
       setReportSuccessMessage(
         `학부모(${result.sentTo})님께 카카오 알림톡 리포트가 성공적으로 발송되었습니다!`,
@@ -2258,9 +2262,45 @@ export default function StudentsPage() {
                       </div>
                     </div>
 
-                    {/* Kakao Message Bubble Preview */}
-                    <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 text-slate-800 dark:text-slate-200 whitespace-pre-wrap font-sans text-xs leading-relaxed shadow-2xs">
-                      {reportPreview.message}
+                    {/* Live Message Edit + Kakao Bubble Preview */}
+                    <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center justify-between">
+                        <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <Edit3 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span>카카오 알림톡 발송 메시지 직접 수정</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setEditableReportMessage(reportPreview.message)}
+                          className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 font-semibold cursor-pointer"
+                          title="자동 계산된 기본 텍스트로 초기화"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>기본 문구로 초기화</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Editor */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-slate-400 font-medium block">메시지 내용 편집</span>
+                          <textarea
+                            rows={7}
+                            value={editableReportMessage}
+                            onChange={(e) => setEditableReportMessage(e.target.value)}
+                            placeholder="발송할 알림톡 본문을 확인하고 수정하세요..."
+                            className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 leading-relaxed"
+                          />
+                        </div>
+
+                        {/* Kakao Preview Bubble */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-slate-400 font-medium block">실제 학부모 수신 화면</span>
+                          <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-44 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-xs">
+                            {editableReportMessage || '메시지 본문이 여기에 표시됩니다.'}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : (

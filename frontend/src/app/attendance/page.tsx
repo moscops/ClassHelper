@@ -23,6 +23,7 @@ import {
   Loader2,
   BarChart3,
   Edit3,
+  RotateCcw,
   Bookmark,
   MessageSquare,
   CheckCheck,
@@ -137,6 +138,7 @@ export default function AttendancePage() {
     isMakeupNeeded: boolean;
     isMakeupCompleted: boolean;
     memo: string;
+    customKakaoMessage: string;
   }>({
     status: 'PRESENT',
     checkInTime: '',
@@ -145,6 +147,7 @@ export default function AttendancePage() {
     isMakeupNeeded: false,
     isMakeupCompleted: false,
     memo: '',
+    customKakaoMessage: '',
   });
   const [isSavingDetail, setIsSavingDetail] = useState(false);
 
@@ -572,14 +575,26 @@ export default function AttendancePage() {
       }
     };
 
+    const st = att?.status || 'PRESENT';
+    const cIn = formatTimeForInput(att?.checkInTime) || new Date().toTimeString().slice(0, 5);
+    const defaultMsg =
+      st === 'PRESENT'
+        ? `[ClassHelper 안심 출결]\n${student.studentName} 학생이 오늘 ${cIn}에 등원(출석) 완료하였습니다.`
+        : st === 'ABSENT'
+        ? `[ClassHelper 안심 출결]\n${student.studentName} 학생이 오늘 결석 처리되었습니다.${att?.reason ? ` (사유: ${att.reason})` : ''}`
+        : st === 'LATE'
+        ? `[ClassHelper 안심 출결]\n${student.studentName} 학생이 오늘 ${cIn}에 지각 등원하였습니다.${att?.reason ? ` (사유: ${att.reason})` : ''}`
+        : `[ClassHelper 안심 출결]\n${student.studentName} 학생이 조퇴 처리되었습니다.`;
+
     setDetailFormData({
-      status: att?.status || 'PRESENT',
+      status: st,
       checkInTime: formatTimeForInput(att?.checkInTime),
       checkOutTime: formatTimeForInput(att?.checkOutTime),
       reason: att?.reason || '',
       isMakeupNeeded: att?.isMakeupNeeded || false,
       isMakeupCompleted: att?.isMakeupCompleted || false,
       memo: att?.memo || '',
+      customKakaoMessage: defaultMsg,
     });
     setIsDetailModalOpen(true);
   };
@@ -2132,6 +2147,61 @@ export default function AttendancePage() {
                   }
                   className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
                 />
+              </div>
+
+              {/* Kakao Message Edit & Live Bubble Preview */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 text-xs">
+                    <Edit3 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <span>학부모 카카오 알림톡 발송 내용 직접 수정</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!selectedStudentForDetail) return;
+                      const cIn = detailFormData.checkInTime || new Date().toTimeString().slice(0, 5);
+                      const def =
+                        detailFormData.status === 'PRESENT'
+                          ? `[ClassHelper 안심 출결]\n${selectedStudentForDetail.studentName} 학생이 오늘 ${cIn}에 등원(출석) 완료하였습니다.`
+                          : detailFormData.status === 'ABSENT'
+                          ? `[ClassHelper 안심 출결]\n${selectedStudentForDetail.studentName} 학생이 오늘 결석 처리되었습니다.${detailFormData.reason ? ` (사유: ${detailFormData.reason})` : ''}`
+                          : detailFormData.status === 'LATE'
+                          ? `[ClassHelper 안심 출결]\n${selectedStudentForDetail.studentName} 학생이 오늘 ${cIn}에 지각 등원하였습니다.${detailFormData.reason ? ` (사유: ${detailFormData.reason})` : ''}`
+                          : `[ClassHelper 안심 출결]\n${selectedStudentForDetail.studentName} 학생이 조퇴 처리되었습니다.`;
+                      setDetailFormData((prev) => ({ ...prev, customKakaoMessage: def }));
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>기본 문구로 초기화</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-slate-400 font-medium block">알림톡 본문 수정</span>
+                    <textarea
+                      rows={4}
+                      value={detailFormData.customKakaoMessage}
+                      onChange={(e) =>
+                        setDetailFormData((prev) => ({
+                          ...prev,
+                          customKakaoMessage: e.target.value,
+                        }))
+                      }
+                      placeholder="학부모님께 보낼 알림톡 메시지를 확인하고 수정하세요..."
+                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-slate-400 font-medium block">실제 학부모 수신 화면</span>
+                    <div className="p-3 rounded-xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-28 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-2xs">
+                      {detailFormData.customKakaoMessage || '알림톡 내용이 표시됩니다.'}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Action Buttons */}

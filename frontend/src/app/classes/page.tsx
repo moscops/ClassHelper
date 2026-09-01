@@ -90,6 +90,9 @@ export default function ClassesPage() {
   const [selectedClassForReport, setSelectedClassForReport] = useState<ClassItem | null>(null);
   const [classReportStart, setClassReportStart] = useState<string>('');
   const [classReportEnd, setClassReportEnd] = useState<string>('');
+  const [classReportSamplePreview, setClassReportSamplePreview] = useState<any | null>(null);
+  const [classReportCustomNote, setClassReportCustomNote] = useState<string>('');
+  const [isLoadingClassReportPreview, setIsLoadingClassReportPreview] = useState(false);
   const [isSendingClassReport, setIsSendingClassReport] = useState(false);
   const [classReportResult, setClassReportResult] = useState<ClassReportSendResult | null>(null);
   const [classReportError, setClassReportError] = useState<string | null>(null);
@@ -370,34 +373,66 @@ export default function ClassesPage() {
     }
   };
 
+  const fetchClassSamplePreview = async (classId: number, start: string, end: string) => {
+    setIsLoadingClassReportPreview(true);
+    try {
+      const enrollments = await classesService.getEnrolledStudents(classId);
+      if (enrollments && enrollments.length > 0) {
+        const firstStudentId = enrollments[0].student.id;
+        const preview = await reportsService.previewStudentReport(firstStudentId, start, end);
+        setClassReportSamplePreview(preview);
+      } else {
+        setClassReportSamplePreview(null);
+      }
+    } catch (err) {
+      console.error('Failed to load class sample preview:', err);
+    } finally {
+      setIsLoadingClassReportPreview(false);
+    }
+  };
+
   const handleOpenClassReportModal = (cls: ClassItem) => {
     setSelectedClassForReport(cls);
     setIsClassReportModalOpen(true);
     setClassReportResult(null);
     setClassReportError(null);
+    setClassReportSamplePreview(null);
+    setClassReportCustomNote('');
 
     const now = new Date();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    setClassReportStart(firstDay.toISOString().split('T')[0]);
-    setClassReportEnd(now.toISOString().split('T')[0]);
+    const startStr = firstDay.toISOString().split('T')[0];
+    const endStr = now.toISOString().split('T')[0];
+    setClassReportStart(startStr);
+    setClassReportEnd(endStr);
+    fetchClassSamplePreview(cls.id, startStr, endStr);
   };
 
   const handleApplyClassPreset = (preset: 'THIS_MONTH' | 'LAST_MONTH' | 'LAST_7_DAYS') => {
     const now = new Date();
+    let startStr = '';
+    let endStr = '';
+
     if (preset === 'THIS_MONTH') {
       const first = new Date(now.getFullYear(), now.getMonth(), 1);
-      setClassReportStart(first.toISOString().split('T')[0]);
-      setClassReportEnd(now.toISOString().split('T')[0]);
+      startStr = first.toISOString().split('T')[0];
+      endStr = now.toISOString().split('T')[0];
     } else if (preset === 'LAST_MONTH') {
       const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const last = new Date(now.getFullYear(), now.getMonth(), 0);
-      setClassReportStart(first.toISOString().split('T')[0]);
-      setClassReportEnd(last.toISOString().split('T')[0]);
+      startStr = first.toISOString().split('T')[0];
+      endStr = last.toISOString().split('T')[0];
     } else if (preset === 'LAST_7_DAYS') {
       const past7 = new Date();
       past7.setDate(now.getDate() - 7);
-      setClassReportStart(past7.toISOString().split('T')[0]);
-      setClassReportEnd(now.toISOString().split('T')[0]);
+      startStr = past7.toISOString().split('T')[0];
+      endStr = now.toISOString().split('T')[0];
+    }
+
+    setClassReportStart(startStr);
+    setClassReportEnd(endStr);
+    if (selectedClassForReport) {
+      fetchClassSamplePreview(selectedClassForReport.id, startStr, endStr);
     }
   };
 
@@ -413,6 +448,7 @@ export default function ClassesPage() {
         selectedClassForReport.id,
         classReportStart,
         classReportEnd,
+        classReportCustomNote,
       );
       setClassReportResult(result);
     } catch (err: any) {
@@ -1680,6 +1716,40 @@ export default function ClassesPage() {
                   />
                 </div>
               </div>
+
+              {/* 2. Additional Custom Note Input */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Edit3 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span>선생님 추가 전달사항 / 당부의 말씀 (공통 첨부)</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={classReportCustomNote}
+                  onChange={(e) => setClassReportCustomNote(e.target.value)}
+                  placeholder="예: 다음 주부터 중간고사 대비 모의고사가 진행됩니다. 학생들의 적극적인 참여 부탁드립니다."
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 leading-relaxed"
+                />
+              </div>
+
+              {/* 3. Sample Kakao Bubble Preview */}
+              {isLoadingClassReportPreview ? (
+                <div className="py-6 text-center text-slate-400">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1 text-purple-600" />
+                  <span>대표 학생 알림톡 미리보기 로드 중...</span>
+                </div>
+              ) : classReportSamplePreview ? (
+                <div className="space-y-1.5">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <span>실제 전송될 알림톡 메시지 샘플 ({classReportSamplePreview.studentName} 학생 기준)</span>
+                  </span>
+                  <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-48 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-xs">
+                    {classReportSamplePreview.message}
+                    {classReportCustomNote && `\n\n📌 선생님 전달사항:\n${classReportCustomNote}`}
+                  </div>
+                </div>
+              ) : null}
 
               {/* Error Alert */}
               {classReportError && (

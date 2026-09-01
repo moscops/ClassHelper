@@ -88,6 +88,7 @@ export class ReportsService {
     studentId: number,
     periodStart: string,
     periodEnd: string,
+    customMessage?: string,
   ): Promise<SendReportResultDto> {
     const report = await this.generateReport(
       academyId,
@@ -104,6 +105,8 @@ export class ReportsService {
       throw new NotFoundException('해당 원생을 찾을 수 없습니다.');
     }
 
+    const finalMessage = customMessage?.trim() || report.message;
+
     const notification = await this.notificationsService.createNotification(
       academyId,
       {
@@ -111,7 +114,7 @@ export class ReportsService {
         type: NotificationType.STUDENT_REPORT,
         channel: NotificationChannel.KAKAO,
         title: `${report.studentName} 학생 리포트`,
-        message: report.message,
+        message: finalMessage,
         targetPhone: student.parentPhone,
       },
     );
@@ -122,6 +125,7 @@ export class ReportsService {
 
     return {
       ...report,
+      message: finalMessage,
       sentTo: student.parentPhone,
       notificationId: notification.id,
     };
@@ -138,6 +142,7 @@ export class ReportsService {
     classId: number,
     periodStart: string,
     periodEnd: string,
+    customMessage?: string,
   ): Promise<ClassReportSendResultDto> {
     const classInfo = await this.prisma.class.findFirst({
       where: { id: classId, academyId },
@@ -164,6 +169,7 @@ export class ReportsService {
           enr.student.id,
           periodStart,
           periodEnd,
+          customMessage,
         );
         results.push(result);
       } catch (error) {

@@ -71,10 +71,12 @@ export const reportsService = {
     studentId: number,
     periodStart: string,
     periodEnd: string,
+    customMessage?: string,
   ): Promise<SendReportResult> {
     const response = await api.post<SendReportResult>(`/reports/students/${studentId}/send`, {
       periodStart,
       periodEnd,
+      customMessage: customMessage?.trim() || undefined,
     });
     return response.data;
   },
@@ -86,10 +88,12 @@ export const reportsService = {
     classId: number,
     periodStart: string,
     periodEnd: string,
+    customMessage?: string,
   ): Promise<ClassReportSendResult> {
     const response = await api.post<ClassReportSendResult>(`/reports/classes/${classId}/send`, {
       periodStart,
       periodEnd,
+      customMessage: customMessage?.trim() || undefined,
     });
     return response.data;
   },

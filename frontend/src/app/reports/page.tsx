@@ -17,18 +17,15 @@ import {
   Loader2,
   RefreshCw,
   X,
-  ChevronRight,
-  TrendingUp,
   Smartphone,
   Info,
   Clock,
-  ArrowRight,
   Plus,
   UserCheck,
   Award,
-  ArrowUpRight,
+  Edit3,
+  RotateCcw,
   MessageSquare,
-  CheckCheck,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -65,6 +62,7 @@ export default function ReportsPage() {
   const [wizardSelectedClassId, setWizardSelectedClassId] = useState<number | ''>('');
   const [wizardSelectedStudentId, setWizardSelectedStudentId] = useState<number | ''>('');
   const [wizardPreview, setWizardPreview] = useState<StudentReport | null>(null);
+  const [wizardEditableMessage, setWizardEditableMessage] = useState<string>('');
   const [isLoadingWizardPreview, setIsLoadingWizardPreview] = useState(false);
   const [isSendingWizard, setIsSendingWizard] = useState(false);
   const [wizardResult, setWizardResult] = useState<ClassReportSendResult | SendReportResult | null>(null);
@@ -73,6 +71,9 @@ export default function ReportsPage() {
   // Class Batch Send State & Modal
   const [selectedClassForBatch, setSelectedClassForBatch] = useState<ClassItem | null>(null);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [batchSamplePreview, setBatchSamplePreview] = useState<StudentReport | null>(null);
+  const [batchCustomNote, setBatchCustomNote] = useState<string>('');
+  const [isLoadingBatchPreview, setIsLoadingBatchPreview] = useState(false);
   const [isSendingBatch, setIsSendingBatch] = useState(false);
   const [batchResult, setBatchResult] = useState<ClassReportSendResult | null>(null);
   const [batchError, setBatchError] = useState<string | null>(null);
@@ -83,6 +84,7 @@ export default function ReportsPage() {
   const [studentPeriodStart, setStudentPeriodStart] = useState<string>('');
   const [studentPeriodEnd, setStudentPeriodEnd] = useState<string>('');
   const [reportPreview, setReportPreview] = useState<StudentReport | null>(null);
+  const [editableMessage, setEditableMessage] = useState<string>('');
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isSendingStudentReport, setIsSendingStudentReport] = useState(false);
   const [studentSendResult, setStudentSendResult] = useState<SendReportResult | null>(null);
@@ -183,12 +185,41 @@ export default function ReportsPage() {
   // Handle Top [+ 리포트 발송] Wizard
   const handleOpenWizard = () => {
     setWizardMode('CLASS');
-    setWizardSelectedClassId(classes.length > 0 ? classes[0].id : '');
-    setWizardSelectedStudentId(students.length > 0 ? students[0].id : '');
+    const firstClassId = classes.length > 0 ? classes[0].id : '';
+    const firstStudentId = students.length > 0 ? students[0].id : '';
+    setWizardSelectedClassId(firstClassId);
+    setWizardSelectedStudentId(firstStudentId);
     setWizardResult(null);
     setWizardError(null);
     setWizardPreview(null);
+    setWizardEditableMessage('');
     setIsWizardModalOpen(true);
+
+    if (firstClassId) {
+      handleFetchWizardClassSample(Number(firstClassId));
+    }
+  };
+
+  const handleFetchWizardClassSample = async (classId: number) => {
+    if (!classId || !globalStart || !globalEnd) return;
+    setIsLoadingWizardPreview(true);
+    setWizardError(null);
+    try {
+      const enrollments = await classesService.getEnrolledStudents(classId);
+      if (enrollments && enrollments.length > 0) {
+        const sampleStudentId = enrollments[0].student.id;
+        const preview = await reportsService.previewStudentReport(sampleStudentId, globalStart, globalEnd);
+        setWizardPreview(preview);
+        setWizardEditableMessage(preview.message);
+      } else {
+        setWizardPreview(null);
+        setWizardEditableMessage('');
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch wizard class sample:', err);
+    } finally {
+      setIsLoadingWizardPreview(false);
+    }
   };
 
   const handleFetchWizardStudentPreview = async (studentId: number) => {
@@ -198,6 +229,7 @@ export default function ReportsPage() {
     try {
       const preview = await reportsService.previewStudentReport(studentId, globalStart, globalEnd);
       setWizardPreview(preview);
+      setWizardEditableMessage(preview.message);
     } catch (err: any) {
       console.error('Failed to fetch wizard preview:', err);
       setWizardError(err.response?.data?.message || '리포트 미리보기를 생성하지 못했습니다.');
@@ -227,6 +259,7 @@ export default function ReportsPage() {
           Number(wizardSelectedClassId),
           globalStart,
           globalEnd,
+          wizardEditableMessage,
         );
         setWizardResult(result);
       } else {
@@ -239,6 +272,7 @@ export default function ReportsPage() {
           Number(wizardSelectedStudentId),
           globalStart,
           globalEnd,
+          wizardEditableMessage,
         );
         setWizardResult(result);
       }
@@ -251,11 +285,30 @@ export default function ReportsPage() {
   };
 
   // Handle Class Batch Send Modal
-  const handleOpenBatchModal = (cls: ClassItem) => {
+  const handleOpenBatchModal = async (cls: ClassItem) => {
     setSelectedClassForBatch(cls);
     setIsBatchModalOpen(true);
     setBatchResult(null);
     setBatchError(null);
+    setBatchSamplePreview(null);
+    setBatchCustomNote('');
+
+    // Load sample student report preview for this class
+    if (globalStart && globalEnd) {
+      setIsLoadingBatchPreview(true);
+      try {
+        const enrollments = await classesService.getEnrolledStudents(cls.id);
+        if (enrollments && enrollments.length > 0) {
+          const firstId = enrollments[0].student.id;
+          const preview = await reportsService.previewStudentReport(firstId, globalStart, globalEnd);
+          setBatchSamplePreview(preview);
+        }
+      } catch (err) {
+        console.error('Failed to load batch preview sample:', err);
+      } finally {
+        setIsLoadingBatchPreview(false);
+      }
+    }
   };
 
   const handleExecuteBatchSend = async () => {
@@ -270,6 +323,7 @@ export default function ReportsPage() {
         selectedClassForBatch.id,
         globalStart,
         globalEnd,
+        batchCustomNote,
       );
       setBatchResult(result);
     } catch (err: any) {
@@ -289,6 +343,7 @@ export default function ReportsPage() {
     setStudentSendResult(null);
     setStudentReportError(null);
     setReportPreview(null);
+    setEditableMessage('');
 
     const start = globalStart || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`;
     const end = globalEnd || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
@@ -304,6 +359,7 @@ export default function ReportsPage() {
     try {
       const preview = await reportsService.previewStudentReport(studentId, start, end);
       setReportPreview(preview);
+      setEditableMessage(preview.message);
     } catch (err: any) {
       console.error('Failed to fetch preview:', err);
       setStudentReportError(
@@ -326,6 +382,7 @@ export default function ReportsPage() {
         selectedStudentForReport.id,
         studentPeriodStart,
         studentPeriodEnd,
+        editableMessage,
       );
       setStudentSendResult(result);
     } catch (err: any) {
@@ -462,7 +519,7 @@ export default function ReportsPage() {
                   정상 가동 중
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
-                  실시간 연동
+                  발송 전 편집 지원
                 </span>
               </div>
             </div>
@@ -686,7 +743,7 @@ export default function ReportsPage() {
                           className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Send className="w-3.5 h-3.5" />
-                          <span>반 전체 발송</span>
+                          <span>미리보기 및 발송</span>
                         </button>
                       </div>
                     </div>
@@ -783,7 +840,7 @@ export default function ReportsPage() {
                     카카오 알림톡 정기 리포트 메시지 규격
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    원생의 실시간 출결 및 과제 데이터를 종합하여 학부모 안심 리포트를 생성합니다.
+                    원생의 실시간 출결 및 과제 데이터를 종합하여 학부모 안심 리포트를 생성하며, 발송 전 자유롭게 편집할 수 있습니다.
                   </p>
                 </div>
               </div>
@@ -819,7 +876,7 @@ export default function ReportsPage() {
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   실제 카카오 알림톡 전송 메시지 예시
                 </span>
-                <div className="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 max-w-lg shadow-xs text-slate-800 dark:text-slate-200 text-xs font-sans whitespace-pre-wrap leading-relaxed">
+                <div className="p-5 rounded-2xl bg-[#FAE100]/20 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-w-lg shadow-xs text-slate-900 dark:text-slate-100 text-xs font-sans whitespace-pre-wrap leading-relaxed">
 {`[ClassHelper] 김민준 학생의 학습/출결 리포트
 
 안녕하세요, 학부모님.
@@ -853,7 +910,7 @@ export default function ReportsPage() {
             }}
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
           >
-            <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
+            <div className="w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
               {/* Modal Header */}
               <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
@@ -865,7 +922,7 @@ export default function ReportsPage() {
                       학습 & 출결 리포트 생성 및 발송
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      발송 대상과 기간을 설정하고 카카오 알림톡으로 전송합니다.
+                      발송 대상과 기간을 설정하고, 메시지 내용을 직접 확인 및 수정한 뒤 전송하세요.
                     </p>
                   </div>
                 </div>
@@ -894,6 +951,9 @@ export default function ReportsPage() {
                         setWizardMode('CLASS');
                         setWizardResult(null);
                         setWizardError(null);
+                        if (wizardSelectedClassId) {
+                          handleFetchWizardClassSample(Number(wizardSelectedClassId));
+                        }
                       }}
                       className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                         wizardMode === 'CLASS'
@@ -945,7 +1005,11 @@ export default function ReportsPage() {
                     </label>
                     <select
                       value={wizardSelectedClassId}
-                      onChange={(e) => setWizardSelectedClassId(Number(e.target.value))}
+                      onChange={(e) => {
+                        const cid = Number(e.target.value);
+                        setWizardSelectedClassId(cid);
+                        handleFetchWizardClassSample(cid);
+                      }}
                       className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
                     >
                       {classes.map((cls) => (
@@ -989,7 +1053,10 @@ export default function ReportsPage() {
                       onChange={(val) => {
                         setGlobalStart(val);
                         if (wizardMode === 'STUDENT' && wizardSelectedStudentId) {
-                          reportsService.previewStudentReport(Number(wizardSelectedStudentId), val, globalEnd).then(setWizardPreview).catch(() => {});
+                          reportsService.previewStudentReport(Number(wizardSelectedStudentId), val, globalEnd).then((p) => {
+                            setWizardPreview(p);
+                            setWizardEditableMessage(p.message);
+                          }).catch(() => {});
                         }
                       }}
                       showTodayShortcut={false}
@@ -1000,7 +1067,10 @@ export default function ReportsPage() {
                       onChange={(val) => {
                         setGlobalEnd(val);
                         if (wizardMode === 'STUDENT' && wizardSelectedStudentId) {
-                          reportsService.previewStudentReport(Number(wizardSelectedStudentId), globalStart, val).then(setWizardPreview).catch(() => {});
+                          reportsService.previewStudentReport(Number(wizardSelectedStudentId), globalStart, val).then((p) => {
+                            setWizardPreview(p);
+                            setWizardEditableMessage(p.message);
+                          }).catch(() => {});
                         }
                       }}
                       showTodayShortcut={false}
@@ -1016,38 +1086,55 @@ export default function ReportsPage() {
                   </div>
                 )}
 
-                {/* Single Student Preview in Wizard */}
-                {wizardMode === 'STUDENT' && (
-                  <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    {isLoadingWizardPreview ? (
-                      <div className="py-6 text-center text-slate-400">
-                        <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1 text-indigo-600" />
-                        <span>리포트 미리보기 계산 중...</span>
-                      </div>
-                    ) : wizardPreview ? (
-                      <div className="space-y-3 animate-in fade-in">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700">
-                            <span className="text-[11px] text-slate-400">출석률</span>
-                            <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                              {wizardPreview.attendance.attendanceRate}% ({wizardPreview.attendance.presentCount}/{wizardPreview.attendance.totalDays}일)
-                            </div>
-                          </div>
-                          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700">
-                            <span className="text-[11px] text-slate-400">과제 완수율</span>
-                            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                              {wizardPreview.homework.completionRate}% (평균 {wizardPreview.homework.averageScore ?? '-'}점)
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 text-slate-800 dark:text-slate-200 text-xs font-mono whitespace-pre-wrap max-h-40 overflow-y-auto leading-relaxed">
-                          {wizardPreview.message}
-                        </div>
-                      </div>
-                    ) : null}
+                {/* 4. Live Message Edit & Kakao Bubble Preview */}
+                <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <Edit3 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <span>카카오 알림톡 발송 내용 직접 수정</span>
+                    </label>
+                    {wizardPreview && (
+                      <button
+                        type="button"
+                        onClick={() => setWizardEditableMessage(wizardPreview.message)}
+                        className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold cursor-pointer"
+                        title="자동 계산된 기본 메시지로 되돌립니다"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>기본 문구로 초기화</span>
+                      </button>
+                    )}
                   </div>
-                )}
+
+                  {isLoadingWizardPreview ? (
+                    <div className="py-8 text-center text-slate-400">
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1 text-indigo-600" />
+                      <span>리포트 미리보기 계산 중...</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* Left: Textarea Editor */}
+                      <div className="space-y-1">
+                        <span className="text-[11px] text-slate-400 block font-medium">메시지 본문 편집 (자유 수정 가능)</span>
+                        <textarea
+                          rows={8}
+                          value={wizardEditableMessage}
+                          onChange={(e) => setWizardEditableMessage(e.target.value)}
+                          placeholder="발송할 알림톡 메시지 내용을 확인하고 수정하세요..."
+                          className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed"
+                        />
+                      </div>
+
+                      {/* Right: Kakao Yellow Bubble Preview */}
+                      <div className="space-y-1">
+                        <span className="text-[11px] text-slate-400 block font-medium">실제 학부모 수신 화면 (카카오 알림톡)</span>
+                        <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-52 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-xs">
+                          {wizardEditableMessage || '메시지 본문이 여기에 표시됩니다.'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Result Message */}
                 {wizardResult && (
@@ -1094,7 +1181,7 @@ export default function ReportsPage() {
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      <span>카카오 알림톡 즉시 발송</span>
+                      <span>카카오 알림톡 최종 발송</span>
                     </>
                   )}
                 </button>
@@ -1113,7 +1200,7 @@ export default function ReportsPage() {
             }}
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
           >
-            <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
+            <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
               <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
@@ -1121,7 +1208,7 @@ export default function ReportsPage() {
                   </div>
                   <div>
                     <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                      반 전체 리포트 일괄 발송
+                      반 전체 리포트 일괄 발송 확인
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {selectedClassForBatch.name} (재원생 {selectedClassForBatch.enrolledCount}명)
@@ -1145,9 +1232,42 @@ export default function ReportsPage() {
                     발송 대상 기간: <span className="text-indigo-600 dark:text-indigo-400 font-mono">{globalStart} ~ {globalEnd}</span>
                   </p>
                   <p className="text-slate-500 dark:text-slate-400">
-                    반에 속한 모든 재원생의 출결 및 과제 데이터가 집계되어 카카오 알림톡으로 전송됩니다.
+                    반에 속한 모든 재원생({selectedClassForBatch.enrolledCount}명)의 맞춤 출결 및 과제 데이터가 각각 계산되어 카카오 알림톡으로 전송됩니다.
                   </p>
                 </div>
+
+                {/* Additional Note Input */}
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Edit3 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <span>선생님 추가 전달사항 / 당부의 말씀 (공통 첨부)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={batchCustomNote}
+                    onChange={(e) => setBatchCustomNote(e.target.value)}
+                    placeholder="예: 다음 주부터 중간고사 대비 모의고사가 진행됩니다. 학생들의 적극적인 참여 부탁드립니다."
+                    className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                {/* Sample Kakao Bubble Preview */}
+                {isLoadingBatchPreview ? (
+                  <div className="py-6 text-center text-slate-400">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1 text-indigo-600" />
+                    <span>대표 학생 알림톡 미리보기 로드 중...</span>
+                  </div>
+                ) : batchSamplePreview ? (
+                  <div className="space-y-1.5">
+                    <span className="font-bold text-slate-700 dark:text-slate-300">
+                      실제 전송될 알림톡 메시지 샘플 ({batchSamplePreview.studentName} 학생 기준)
+                    </span>
+                    <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-48 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-xs">
+                      {batchSamplePreview.message}
+                      {batchCustomNote && `\n\n📌 선생님 전달사항:\n${batchCustomNote}`}
+                    </div>
+                  </div>
+                ) : null}
 
                 {batchError && (
                   <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2 animate-in fade-in">
@@ -1211,7 +1331,7 @@ export default function ReportsPage() {
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      <span>반 재원생 전원 발송</span>
+                      <span>반 재원생 전원 최종 발송</span>
                     </>
                   )}
                 </button>
@@ -1221,7 +1341,7 @@ export default function ReportsPage() {
         )}
 
         {/* ========================================================= */}
-        {/* MODAL 3: 원생 1인 리포트 미리보기 & 발송 모달             */}
+        {/* MODAL 3: 원생 1인 리포트 미리보기 & 직접 수정 & 발송 모달 */}
         {/* ========================================================= */}
         {isStudentModalOpen && selectedStudentForReport && (
           <div
@@ -1230,7 +1350,7 @@ export default function ReportsPage() {
             }}
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
           >
-            <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
+            <div className="w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
               <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
@@ -1238,7 +1358,7 @@ export default function ReportsPage() {
                   </div>
                   <div>
                     <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <span>{selectedStudentForReport.name} 학생 리포트</span>
+                      <span>{selectedStudentForReport.name} 학생 리포트 발송</span>
                     </h3>
                     <p className="text-xs text-slate-400 font-mono">
                       학부모 연락처: {selectedStudentForReport.parentPhone || '없음'}
@@ -1291,14 +1411,15 @@ export default function ReportsPage() {
                   </div>
                 )}
 
-                {/* Preview Card */}
+                {/* Preview & Edit Area */}
                 {isLoadingPreview ? (
                   <div className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    <span>리포트 미리보기를 생성하는 중...</span>
+                    <span>리포트 데이터를 집계하는 중...</span>
                   </div>
                 ) : reportPreview ? (
                   <div className="space-y-4 animate-in fade-in">
+                    {/* Metrics Summary */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
                         <span className="text-[11px] text-slate-400 font-semibold">출결 요약</span>
@@ -1321,12 +1442,38 @@ export default function ReportsPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="font-bold text-slate-700 dark:text-slate-300">
-                        알림톡 본문 실시간 미리보기
-                      </label>
-                      <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 text-slate-800 dark:text-slate-200 text-xs font-mono whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
-                        {reportPreview.message}
+                    {/* Live Message Edit + Kakao Bubble Preview */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <Edit3 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                          <span>발송 메시지 직접 수정 (편집 가능)</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setEditableMessage(reportPreview.message)}
+                          className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold cursor-pointer"
+                          title="자동 계산된 기본 텍스트로 복원"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>기본 문구로 초기화</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Editor */}
+                        <textarea
+                          rows={8}
+                          value={editableMessage}
+                          onChange={(e) => setEditableMessage(e.target.value)}
+                          placeholder="발송할 메시지를 확인하고 수정하세요..."
+                          className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed"
+                        />
+
+                        {/* Kakao Preview Bubble */}
+                        <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-52 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-xs">
+                          {editableMessage || '메시지 본문이 여기에 표시됩니다.'}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1370,7 +1517,7 @@ export default function ReportsPage() {
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      <span>카카오 알림톡 전송</span>
+                      <span>카카오 알림톡 최종 발송</span>
                     </>
                   )}
                 </button>
