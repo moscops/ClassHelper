@@ -4,46 +4,34 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  GraduationCap,
-  Building2,
   Bell,
   CheckCircle2,
   AlertTriangle,
   DoorOpen,
   Info,
-  Clock,
   Search,
-  Filter,
   Trash2,
   RefreshCw,
   CheckCheck,
   Loader2,
   ChevronLeft,
   ChevronRight,
-  ShieldCheck,
   Send,
   MessageSquare,
-  LogOut,
-  CalendarCheck2,
-  Users,
-  BookOpen,
   ArrowLeft,
-  Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { authService } from '@/lib/auth-service';
 import {
   notificationsService,
   NotificationItem,
   NotificationType,
   NotificationChannel,
 } from '@/lib/notifications-service';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { NotificationBell } from '@/components/NotificationBell';
+import { AppLayout } from '@/components/common/AppLayout';
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const { user, academy, isAuthenticated, isHydrated, logout } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
 
   // State: List & Filters
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -120,14 +108,6 @@ export default function NotificationsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await authService.logout();
-    } catch {}
-    logout();
-    router.push('/login');
   };
 
   const handleMarkAsRead = async (id: number) => {
@@ -228,85 +208,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex flex-col transition-colors duration-200">
-      {/* Top Header */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30 transition-colors shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <Link href="/dashboard" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-xs">
-                <GraduationCap className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-                Class<span className="text-indigo-600 dark:text-indigo-400">Helper</span>
-              </span>
-            </Link>
-
-            {academy && (
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-medium">
-                <Building2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>{academy.name}</span>
-              </div>
-            )}
-
-            <nav className="hidden md:flex items-center gap-1 ml-2">
-              <Link
-                href="/dashboard"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                대시보드
-              </Link>
-              <Link
-                href="/students"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                원생 관리
-              </Link>
-              <Link
-                href="/classes"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                반 & 수강생 관리
-              </Link>
-              <Link
-                href="/attendance"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                1초 출결 체크
-              </Link>
-              <Link
-                href="/class-logs"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                수업 일지 & 과제
-              </Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            {/* Header Notification Bell */}
-            <NotificationBell />
-
-            <ThemeToggle />
-
-            {user && (
-              <div className="hidden md:flex flex-col items-end mr-0.5">
-                <span className="text-xs font-bold text-slate-900 dark:text-white">{user.name}</span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">{user.email}</span>
-              </div>
-            )}
-
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-2xs"
-            >
-              <LogOut className="w-3.5 h-3.5 text-slate-400" />
-              <span>로그아웃</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
+    <AppLayout currentPath="/notifications">
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Title Bar */}
@@ -631,6 +533,6 @@ export default function NotificationsPage() {
           </div>
         )}
       </main>
-    </div>
+    </AppLayout>
   );
 }

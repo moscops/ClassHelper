@@ -32,17 +32,53 @@ body {
   height: 0 !important;
 }
 
-/* Vignette Surround Dot Pattern: Elegant smaller dots (1.8px) */
-.bg-dot-vignette {
-  background-image: radial-gradient(circle, rgba(71, 85, 105, 0.42) 1.8px, transparent 1.8px);
-  background-size: 24px 24px;
-  mask-image: radial-gradient(circle at 50% 50%, transparent 15%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 1) 80%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 15%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 1) 80%);
+
+
+/* Modern Ambient Background Mesh & Tech Grid */
+.bg-ambient-mesh {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.09) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.07) 0px, transparent 55%),
+    radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.06) 0px, transparent 55%);
 }
 
-.dark .bg-dot-vignette {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.35) 1.8px, transparent 1.8px);
-  background-size: 24px 24px;
-  mask-image: radial-gradient(circle at 50% 50%, transparent 15%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 1) 80%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 15%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 1) 80%);
+.dark .bg-ambient-mesh {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.16) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.13) 0px, transparent 55%),
+    radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.09) 0px, transparent 55%);
+}
+
+.bg-tech-grid {
+  background-size: 36px 36px;
+  background-image: 
+    linear-gradient(to right, rgba(100, 116, 139, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(100, 116, 139, 0.07) 1px, transparent 1px);
+}
+
+.dark .bg-tech-grid {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+}
+
+/* Modern Glassmorphism & UI Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.interactive-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
 }

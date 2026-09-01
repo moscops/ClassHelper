@@ -85,10 +85,12 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Main Body Section with Vignette Dot Background */}
-      <main className="flex-1 relative overflow-hidden flex flex-col items-center justify-center">
-        {/* Vignette Dot Surround Pattern */}
-        <div className="absolute inset-0 bg-dot-vignette pointer-events-none z-0" />
+      {/* Main Body Section with Ambient Glow Background */}
+      <main className="flex-1 relative overflow-hidden flex flex-col items-center justify-center bg-ambient-mesh bg-tech-grid">
+        {/* Atmospheric Ambient Glowing Orbs */}
+        <div className="absolute -top-32 -left-20 w-[36rem] h-[36rem] rounded-full bg-gradient-to-br from-indigo-500/15 via-purple-500/10 to-transparent blur-[120px] pointer-events-none -z-10" />
+        <div className="absolute top-1/3 -right-20 w-[36rem] h-[36rem] rounded-full bg-gradient-to-bl from-purple-500/12 via-pink-500/6 to-transparent blur-[120px] pointer-events-none -z-10" />
+        <div className="absolute -bottom-32 left-1/4 w-[36rem] h-[36rem] rounded-full bg-gradient-to-tr from-sky-400/10 via-cyan-400/5 to-transparent blur-[120px] pointer-events-none -z-10" />
 
         {/* Hero Container */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-20 flex flex-col items-center text-center justify-center relative z-10 w-full">

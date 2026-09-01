@@ -1,37 +1,29 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  GraduationCap,
   Building2,
   Users,
   BookOpen,
   CalendarCheck2,
   MessageSquare,
-  ShieldCheck,
   Search,
   CheckCircle2,
   AlertTriangle,
   RefreshCw,
-  LogOut,
-  ChevronRight,
   Clock,
-  ArrowUpRight,
   PauseCircle,
   PlayCircle,
   History,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { authService } from '@/lib/auth-service';
 import { adminService, PlatformStats, AdminAcademyItem, AdminAuditLogItem } from '@/lib/admin-service';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { NotificationBell } from '@/components/NotificationBell';
+import { AppLayout } from '@/components/common/AppLayout';
 
 export default function AdminPortalPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isHydrated, logout } = useAuthStore();
+  const { user, isAuthenticated, isHydrated } = useAuthStore();
 
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [academies, setAcademies] = useState<AdminAcademyItem[]>([]);
@@ -93,21 +85,10 @@ export default function AdminPortalPage() {
         `관리자 수동 ${actionName} 처리`,
       );
       await loadAdminData();
-    } catch (err) {
+    } catch {
       alert('학원 상태 변경 중 오류가 발생했습니다.');
     } finally {
       setActionLoadingId(null);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await authService.logout();
-    } catch {
-      // Ignore
-    } finally {
-      logout();
-      router.push('/login');
     }
   };
 
@@ -133,66 +114,9 @@ export default function AdminPortalPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
-      {/* Top Navigation Header (Solid Background, isolated from dots) */}
-      <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-2xs transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center shadow-xs">
-                <ShieldCheck className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                Class<span className="text-purple-600 dark:text-purple-400">Helper</span>
-              </span>
-            </Link>
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300">
-              플랫폼 관리자 센터
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-all"
-            >
-              <span>학원 대시보드 미리보기</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-
-            <NotificationBell />
-
-            <ThemeToggle />
-
-            <div className="h-4 w-px bg-slate-200 dark:bg-slate-800"></div>
-
-            <div className="flex items-center gap-2">
-              <div className="text-right hidden sm:block">
-                <div className="text-xs font-bold text-slate-900 dark:text-white">
-                  {user.name}
-                </div>
-                <div className="text-[10px] text-purple-600 dark:text-purple-400 font-medium">
-                  플랫폼 최고 권한
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:text-slate-400 dark:hover:text-rose-400 transition-colors cursor-pointer"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Body Section with Vignette Dot Pattern covering entire width including wings */}
+    <AppLayout currentPath="/admin">
+      {/* Main Body Section */}
       <main className="flex-1 relative overflow-hidden py-8">
-        {/* Full-bleed Vignette Dot Background */}
-        <div className="absolute inset-0 bg-dot-vignette pointer-events-none z-0" />
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8">
           {/* Header Title Section */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -567,6 +491,6 @@ export default function AdminPortalPage() {
           </div>
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }

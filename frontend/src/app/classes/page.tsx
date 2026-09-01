@@ -1,17 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  GraduationCap,
-  Building2,
   BookOpen,
   Users,
   Plus,
   Search,
   Clock,
-  User,
   CreditCard,
   Edit3,
   Trash2,
@@ -20,18 +16,11 @@ import {
   X,
   Loader2,
   RefreshCw,
-  LogOut,
-  Calendar,
   UserPlus,
-  ArrowRight,
-  Sparkles,
-  Phone,
-  ShieldCheck,
   ChevronDown,
   PauseCircle,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { authService } from '@/lib/auth-service';
 import {
   classesService,
   ClassItem,
@@ -40,13 +29,12 @@ import {
   EnrollmentStatus,
 } from '@/lib/classes-service';
 import { studentsService, StudentItem } from '@/lib/students-service';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { NotificationBell } from '@/components/NotificationBell';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
+import { AppLayout } from '@/components/common/AppLayout';
 
 export default function ClassesPage() {
   const router = useRouter();
-  const { user, academy, isAuthenticated, isHydrated, logout } = useAuthStore();
+  const { user, isAuthenticated, isHydrated } = useAuthStore();
 
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [allStudents, setAllStudents] = useState<StudentItem[]>([]);
@@ -94,44 +82,6 @@ export default function ClassesPage() {
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const studentSearchRef = useRef<HTMLDivElement>(null);
   const enrollmentRowStatusRef = useRef<HTMLDivElement>(null);
-
-  // Role Badge calculation
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'SUPER_ADMIN':
-        return {
-          label: '플랫폼 관리자',
-          color: 'bg-purple-50 dark:bg-purple-950/50 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
-        };
-      case 'OWNER':
-        return {
-          label: '원장님 (OWNER)',
-          color: 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-        };
-      case 'ADMIN':
-        return {
-          label: '부원장/실장 (ADMIN)',
-          color: 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
-        };
-      case 'TEACHER':
-        return {
-          label: '강사 (TEACHER)',
-          color: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-        };
-      case 'STAFF':
-        return {
-          label: '직원/조교 (STAFF)',
-          color: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
-        };
-      default:
-        return {
-          label: role,
-          color: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
-        };
-    }
-  };
-
-  const roleBadge = user ? getRoleBadge(user.role) : { label: '', color: '' };
 
   // Authentication check
   useEffect(() => {
@@ -388,14 +338,6 @@ export default function ClassesPage() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await authService.logout();
-    } catch {}
-    logout();
-    router.push('/login');
-  };
-
   const getSubjectColor = (subject?: string | null) => {
     switch (subject) {
       case '수학':
@@ -474,108 +416,9 @@ export default function ClassesPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
-      {/* Top Header - Exact 100% Mirror of Dashboard Header */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30 transition-colors shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <Link href="/dashboard" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-xs">
-                <GraduationCap className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-                Class<span className="text-indigo-600 dark:text-indigo-400">Helper</span>
-              </span>
-            </Link>
-
-            {academy && (
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-medium">
-                <Building2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>{academy.name}</span>
-              </div>
-            )}
-
-            {/* Navigation Tabs */}
-            <nav className="hidden md:flex items-center gap-1 ml-2">
-              <Link
-                href="/dashboard"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                대시보드
-              </Link>
-              <Link
-                href="/students"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                원생 관리
-              </Link>
-              <Link
-                href="/classes"
-                className="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 transition-colors"
-              >
-                반 & 수강생 관리
-              </Link>
-              <Link
-                href="/attendance"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                1초 출결 체크
-              </Link>
-              <Link
-                href="/class-logs"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                수업 일지 & 과제
-              </Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            {/* If SUPER_ADMIN, show button to return to /admin */}
-            {user.role === 'SUPER_ADMIN' && (
-              <Link
-                href="/admin"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs shadow-purple-600/20 transition-all cursor-pointer"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                <span>관리자 포털로 돌아가기</span>
-              </Link>
-            )}
-
-            {/* Notification Bell */}
-            <NotificationBell />
-
-            {/* Theme Toggle Button */}
-            <ThemeToggle />
-
-            {/* User Info */}
-            <div className="hidden md:flex flex-col items-end mr-0.5">
-              <span className="text-xs font-bold text-slate-900 dark:text-white">{user.name}</span>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">{user.email}</span>
-            </div>
-
-            <span
-              className={`text-[11px] px-2 py-0.5 rounded-md font-semibold border ${roleBadge.color}`}
-            >
-              {roleBadge.label}
-            </span>
-
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-2xs"
-            >
-              <LogOut className="w-3.5 h-3.5 text-slate-400" />
-              <span>로그아웃</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Body Section with Dot Vignette Pattern */}
+    <AppLayout currentPath="/classes">
+      {/* Main Body Section */}
       <main className="flex-1 relative overflow-hidden py-8">
-        <div className="absolute inset-0 bg-dot-vignette pointer-events-none z-0" />
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
           {/* Header Title & Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -1664,6 +1507,6 @@ export default function ClassesPage() {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 }

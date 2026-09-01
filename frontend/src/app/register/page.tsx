@@ -149,9 +149,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative transition-colors duration-200 overflow-hidden">
-      {/* Vignette Dot Pattern */}
-      <div className="absolute inset-0 bg-dot-vignette pointer-events-none z-0" />
+    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative transition-colors duration-200 overflow-hidden bg-ambient-mesh bg-tech-grid">
+      {/* Atmospheric Ambient Glowing Orbs */}
+      <div className="absolute -top-32 -left-20 w-[32rem] h-[32rem] rounded-full bg-gradient-to-br from-indigo-500/15 to-transparent blur-[100px] pointer-events-none -z-10" />
+      <div className="absolute -bottom-32 -right-20 w-[32rem] h-[32rem] rounded-full bg-gradient-to-tl from-purple-500/15 to-transparent blur-[100px] pointer-events-none -z-10" />
 
       {/* Top Floating Controls (Theme Toggle + Home Button) */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2.5 z-20">
