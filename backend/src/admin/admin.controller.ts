@@ -18,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { UpdateAcademyStatusDto } from './dto/update-academy-status.dto';
+import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -82,6 +83,23 @@ export class AdminController {
       id,
       dto.status,
       dto.reason,
+      ipAddress,
+    );
+  }
+
+  @Patch('academies/:id/subscription')
+  @ApiOperation({ summary: '학원 요금제 등급 변경 (FREE/PRO/ENTERPRISE)' })
+  async updateSubscription(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateSubscriptionDto,
+    @CurrentUser() user: CurrentUserPayload,
+    @Req() req: any,
+  ) {
+    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
+    return this.adminService.updateSubscription(
+      user.userId,
+      id,
+      dto,
       ipAddress,
     );
   }

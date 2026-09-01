@@ -9,7 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { UserRole } from '@prisma/client';
+import { UserRole, PlanTier, SubscriptionStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterOwnerDto } from './dto/register-owner.dto';
 import { RegisterStaffDto } from './dto/register-staff.dto';
@@ -69,7 +69,12 @@ export class AuthService {
         },
       });
 
-      return { academy, user };
+      // 신규 학원은 항상 FREE 요금제로 시작한다 (결제 연동 전까지는 관리자가 수동 변경).
+      const subscription = await tx.subscription.create({
+        data: { academyId: academy.id },
+      });
+
+      return { academy: { ...academy, subscription }, user };
     });
 
     this.logger.log(
@@ -127,7 +132,7 @@ export class AuthService {
   async login(dto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
-      include: { academy: true },
+      include: { academy: { include: { subscription: true } } },
     });
 
     if (!user) {
@@ -227,7 +232,7 @@ export class AuthService {
   async getMe(userId: number): Promise<UserDetailResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { academy: true },
+      include: { academy: { include: { subscription: true } } },
     });
 
     if (!user) {
@@ -329,6 +334,11 @@ export class AuthService {
       businessNumber: string | null;
       phoneNumber: string | null;
       address: string | null;
+      subscription?: {
+        tier: PlanTier;
+        status: SubscriptionStatus;
+        expiresAt: Date | null;
+      } | null;
     } | null,
   ): AcademySummaryDto | null {
     if (!academy) {
@@ -340,6 +350,19 @@ export class AuthService {
       businessNumber: academy.businessNumber,
       phoneNumber: academy.phoneNumber,
       address: academy.address,
+      // 구독 정보가 없는(마이그레이션 이전) 학원은 화면상 FREE로 취급한다 — 실제
+      // 결제 이력이 없으므로 의미상으로도 정확하다(별도 백필 배치 불필요).
+      subscription: academy.subscription
+        ? {
+            tier: academy.subscription.tier,
+            status: academy.subscription.status,
+            expiresAt: academy.subscription.expiresAt,
+          }
+        : {
+            tier: PlanTier.FREE,
+            status: SubscriptionStatus.ACTIVE,
+            expiresAt: null,
+          },
     };
   }
 }

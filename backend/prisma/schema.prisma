@@ -49,6 +49,7 @@ model Academy {
   classLogs       ClassLog[]
   notifications   Notification[]
   academyEvents   AcademyEvent[]
+  subscription    Subscription?
 
   @@index([status])
   @@map("academies")
@@ -81,7 +82,7 @@ model User {
 model AuditLog {
   id         BigInt   @id @default(autoincrement())
   adminId    Int
-  action     String   @db.VarChar(100) // 예: "UPDATE_ACADEMY_STATUS", "RESET_USER_PASSWORD", "SUSPEND_ACADEMY"
+  action     String   @db.VarChar(100) // 예: "UPDATE_ACADEMY_STATUS", "RESET_USER_PASSWORD", "SUSPEND_ACADEMY", "UPDATE_SUBSCRIPTION_TIER"
   targetType String   @db.VarChar(50)  // 예: "ACADEMY", "USER", "STUDENT", "INVOICE"
   targetId   String?  @db.VarChar(50)
   details    Json?    @db.JsonB
@@ -465,5 +466,37 @@ model AcademyEvent {
   @@index([academyId, startDate])
   @@index([academyId, category])
   @@map("academy_events")
+}
+
+// ==========================================
+// 8. 학원 요금제 구독 (플랫폼 자체 수익화) 모델
+// ==========================================
+
+enum PlanTier {
+  FREE       // 무료 (원생 50명, 1개 학원 제한)
+  PRO        // 유료 (무제한 원생/반, 단일 학원)
+  ENTERPRISE // 유료 (무제한 + 본원/분원 다중 학원 지원)
+}
+
+enum SubscriptionStatus {
+  ACTIVE   // 정상 이용 중
+  CANCELED // 해지됨 (관리자 수동 처리)
+}
+
+model Subscription {
+  id        Int                @id @default(autoincrement())
+  academyId Int                @unique
+  tier      PlanTier           @default(FREE)
+  status    SubscriptionStatus @default(ACTIVE)
+  startedAt DateTime           @default(now())
+  expiresAt DateTime?
+  notes     String?            @db.Text // 관리자 메모 (예: "6개월 프로모션 무료 제공")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  academy Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
 }
 

@@ -8,6 +8,25 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-01: 요금제 구독(Plan/Subscription) 모델 백엔드 구현
+- **작성자**: Claude (Backend)
+- **변경/추가된 API 엔드포인트**:
+  - `PATCH /admin/academies/:id/subscription`: 학원 요금제 등급 변경 (SUPER_ADMIN 전용)
+  - `GET /auth/me` (및 로그인/회원가입 응답)의 `academy` 객체에 `subscription: { tier, status, expiresAt }` 필드 추가
+  - `GET /admin/academies`, `GET /admin/academies/:id`의 응답에도 각 학원의 `subscription` 포함
+- **주요 DTO 및 스키마 변경 사항**:
+  - `PlanTier`: `FREE`(무료, 원생 50명/1개 학원 제한 — 참고용), `PRO`(유료, 무제한, 단일 학원), `ENTERPRISE`(유료, 무제한 + 본원/분원)
+  - `SubscriptionStatus`: `ACTIVE`, `CANCELED`
+  - 신규 가입 학원은 자동으로 `FREE` 구독 생성됨. 기존 학원은 구독 레코드가 없으며 FE에서도 `null` → FREE로 취급하면 됨 (백엔드가 이미 그렇게 응답함)
+  - ⚠️ **한도가 실제로 강제되지는 않습니다** (원생 51번째 생성을 막지 않음) — 결제 연동 이후 별도 작업 예정
+- **프론트엔드 연동 요청 사항 (Gemini에게 전달)**:
+  - 관리자(SUPER_ADMIN) 학원 목록/상세 페이지에 요금제 등급 배지 표시 및 변경 UI(드롭다운 + 사유 입력) 필요
+  - 일반 사용자 화면(대시보드 등)에 본인 학원 요금제 표시 위젯 — `/auth/me` 응답의 `academy.subscription.tier`를 그대로 사용
+  - `frontend/src/lib/admin-service.ts`에 `updateSubscription(academyId, dto)` 함수 추가, `frontend/src/lib/auth-service.ts`(또는 관련 타입)에 `subscription` 필드 반영
+- **상태**: ⏳ Gemini 프론트엔드 연동 대기 중 (백엔드는 테스트 103/103 PASS, 빌드 성공, 실 DB round-trip 검증 완료 — 등록→기본 FREE 생성→관리자 등급 변경→감사 로그 기록→캐스케이드 삭제까지 확인)
+
+---
+
 ### 📅 2026-09-01: 원생 CSV 일괄 등록 (Bulk Import) 백엔드 구현
 - **작성자**: Claude (Backend)
 - **변경/추가된 API 엔드포인트**:

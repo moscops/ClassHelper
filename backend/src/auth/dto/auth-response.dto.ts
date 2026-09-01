@@ -1,5 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PlanTier, SubscriptionStatus } from '@prisma/client';
+
+export class SubscriptionSummaryDto {
+  @ApiProperty({ enum: PlanTier, example: PlanTier.FREE })
+  tier: PlanTier;
+
+  @ApiProperty({ enum: SubscriptionStatus, example: SubscriptionStatus.ACTIVE })
+  status: SubscriptionStatus;
+
+  @ApiPropertyOptional({ example: null })
+  expiresAt?: Date | null;
+}
 
 export class UserProfileDto {
   @ApiProperty({ example: 1 })
@@ -39,6 +50,9 @@ export class AcademySummaryDto {
 
   @ApiPropertyOptional({ example: '서울시 강남구 테헤란로 123' })
   address?: string | null;
+
+  @ApiPropertyOptional({ type: SubscriptionSummaryDto })
+  subscription?: SubscriptionSummaryDto | null;
 }
 
 export class TokensResponseDto {

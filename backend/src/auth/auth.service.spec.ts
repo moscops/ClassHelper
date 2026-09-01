@@ -53,6 +53,9 @@ describe('AuthService', () => {
       academy: {
         create: jest.fn(),
       },
+      subscription: {
+        create: jest.fn(),
+      },
       $transaction: jest.fn((callback) => callback(prisma)),
     };
 
@@ -104,6 +107,13 @@ describe('AuthService', () => {
       prisma.academy.create.mockResolvedValue(mockUser.academy);
       prisma.user.create.mockResolvedValue(mockUser);
       prisma.user.update.mockResolvedValue(mockUser);
+      prisma.subscription.create.mockResolvedValue({
+        id: 1,
+        academyId: mockUser.academy.id,
+        tier: 'FREE',
+        status: 'ACTIVE',
+        expiresAt: null,
+      });
 
       const result = await service.registerOwner({
         academyName: '클래스헬퍼 어학원',
@@ -116,6 +126,10 @@ describe('AuthService', () => {
       expect(result.refreshToken).toBe('mocked-refresh-token');
       expect(result.user.email).toBe('owner@classhelper.kr');
       expect(result.academy.name).toBe('클래스헬퍼 어학원');
+      expect(result.academy.subscription?.tier).toBe('FREE');
+      expect(prisma.subscription.create).toHaveBeenCalledWith({
+        data: { academyId: mockUser.academy.id },
+      });
       expect(prisma.user.update).toHaveBeenCalled();
     });
 
