@@ -21,6 +21,7 @@ import {
   Sparkles,
   Zap,
   Crown,
+  FileText,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/lib/auth-service';
@@ -169,6 +170,12 @@ export function AppNavbar({ currentPath }: AppNavbarProps) {
       href: '/tuition',
       icon: CreditCard,
       active: activePath === '/tuition',
+    },
+    {
+      label: '리포트 관리',
+      href: '/reports',
+      icon: FileText,
+      active: activePath === '/reports',
     },
   ];
 

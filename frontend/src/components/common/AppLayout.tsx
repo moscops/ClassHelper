@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   CreditCard,
   Calendar,
+  FileText,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/lib/auth-service';
@@ -198,6 +199,12 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
           active: activePath === '/notifications',
           hasExclamation: unreadNotificationCount > 0,
           unreadCount: unreadNotificationCount,
+        },
+        {
+          label: '리포트 관리',
+          href: '/reports',
+          icon: FileText,
+          active: activePath === '/reports',
         },
         ...(user?.role === 'SUPER_ADMIN'
           ? [

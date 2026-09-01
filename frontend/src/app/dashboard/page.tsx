@@ -32,6 +32,7 @@ import {
   Zap,
   X,
   Check,
+  FileText,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/lib/auth-service';
@@ -418,7 +419,7 @@ export default function DashboardPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {/* 1. 원생 관리 */}
               <Link
                 href="/students"
@@ -564,11 +565,33 @@ export default function DashboardPage() {
                     수강료 & 수납
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                    월간 청구서 자동 발행, 분할 수납 처리 및 미납 알림톡
+                    월간 청구서 자동 발행, 분할 수납 처리 및 미납 관리
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-amber-600 dark:text-amber-400 font-semibold">
                   <span>수강료 관리</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </div>
+              </Link>
+
+              {/* 6. 학습 & 출결 리포트 관리 */}
+              <Link
+                href="/reports"
+                className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md transition-all shadow-2xs flex flex-col justify-between interactive-card"
+              >
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/60 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-3.5 group-hover:scale-105 transition-transform">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                    리포트 관리
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    출결 & 과제 종합 통계 및 카카오 알림톡 정기 리포트
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-purple-600 dark:text-purple-400 font-semibold">
+                  <span>리포트 발송</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
               </Link>
