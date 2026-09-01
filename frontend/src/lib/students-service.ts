@@ -125,4 +125,50 @@ export const studentsService = {
     const response = await api.delete<{ success: boolean; message: string }>(`/students/${id}`);
     return response.data;
   },
+
+  /**
+   * 원생 CSV 일괄 등록 템플릿 파일 다운로드
+   */
+  async downloadBulkImportTemplate(): Promise<Blob> {
+    const response = await api.get('/students/bulk-import/template', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  /**
+   * 원생 CSV 파일 일괄 등록 업로드
+   */
+  async bulkImportStudents(file: File): Promise<BulkImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post<BulkImportResult>('/students/bulk-import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
+
+export interface BulkImportSkippedItem {
+  row: number;
+  name: string;
+  reason: string;
+}
+
+export interface BulkImportFailedItem {
+  row: number;
+  name?: string;
+  errors: string[];
+}
+
+export interface BulkImportResult {
+  totalRows: number;
+  createdCount: number;
+  skippedCount: number;
+  failedCount: number;
+  created: StudentItem[];
+  skipped: BulkImportSkippedItem[];
+  failed: BulkImportFailedItem[];
+}

@@ -23,6 +23,12 @@ import {
   PauseCircle,
   User,
   ArrowRight,
+  UploadCloud,
+  FileSpreadsheet,
+  Download,
+  AlertTriangle,
+  FileText,
+  CheckCircle,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -31,6 +37,7 @@ import {
   StudentDetailItem,
   StudentStatus,
   Gender,
+  BulkImportResult,
 } from '@/lib/students-service';
 import { classesService, ClassItem } from '@/lib/classes-service';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
@@ -82,6 +89,15 @@ export default function StudentsPage() {
   // Status Quick Change Dropdown State per row
   const [activeStatusRowId, setActiveStatusRowId] = useState<number | null>(null);
   const [statusDropdownDirection, setStatusDropdownDirection] = useState<'down' | 'up'>('down');
+
+  // CSV Bulk Import States
+  const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
+  const [selectedCsvFile, setSelectedCsvFile] = useState<File | null>(null);
+  const [isUploadingCsv, setIsUploadingCsv] = useState(false);
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
+  const [bulkImportResult, setBulkImportResult] = useState<BulkImportResult | null>(null);
+  const [bulkImportError, setBulkImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Click outside ref
   const modalStatusRef = useRef<HTMLDivElement>(null);
@@ -265,6 +281,72 @@ export default function StudentsPage() {
     }
   };
 
+  // CSV Bulk Import Handlers
+  const handleOpenBulkImportModal = () => {
+    setIsBulkImportModalOpen(true);
+    setSelectedCsvFile(null);
+    setBulkImportResult(null);
+    setBulkImportError(null);
+  };
+
+  const handleDownloadTemplate = async () => {
+    setIsDownloadingTemplate(true);
+    try {
+      const blob = await studentsService.downloadBulkImportTemplate();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'student_bulk_import_template.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || '템플릿 다운로드에 실패했습니다.');
+    } finally {
+      setIsDownloadingTemplate(false);
+    }
+  };
+
+  const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        setBulkImportError('CSV 파일(.csv)만 업로드할 수 있습니다.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setBulkImportError('파일 크기는 최대 5MB까지 업로드 가능합니다.');
+        return;
+      }
+      setSelectedCsvFile(file);
+      setBulkImportError(null);
+      setBulkImportResult(null);
+    }
+  };
+
+  const handleBulkImportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCsvFile) {
+      setBulkImportError('업로드할 CSV 파일을 선택해 주세요.');
+      return;
+    }
+
+    setIsUploadingCsv(true);
+    setBulkImportError(null);
+    try {
+      const result = await studentsService.bulkImportStudents(selectedCsvFile);
+      setBulkImportResult(result);
+      await loadStudents();
+    } catch (err: any) {
+      setBulkImportError(
+        err.response?.data?.message || err.message || 'CSV 일괄 등록 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsUploadingCsv(false);
+    }
+  };
+
   const handleQuickStatusChange = async (studentId: number, newStatus: StudentStatus) => {
     try {
       await studentsService.updateStudentStatus(studentId, { status: newStatus });
@@ -374,6 +456,18 @@ export default function StudentsPage() {
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
+
+              {/* CSV Bulk Import Button (SUPER_ADMIN, OWNER, ADMIN) */}
+              {(user.role === 'SUPER_ADMIN' || user.role === 'OWNER' || user.role === 'ADMIN') && (
+                <button
+                  type="button"
+                  onClick={handleOpenBulkImportModal}
+                  className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold shadow-2xs transition-all cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>CSV 일괄 등록</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -1548,6 +1642,301 @@ export default function StudentsPage() {
               >
                 닫기
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. CSV Bulk Import Modal */}
+      {isBulkImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    원생 CSV 대량 일괄 등록
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    엑셀/CSV 파일로 수백 명의 원생을 한 번에 안전하게 등록하세요.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsBulkImportModalOpen(false)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              {bulkImportError && (
+                <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">업로드 실패: </span>
+                    <span>{bulkImportError}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* View 1: Upload Form & Guide (when no result yet) */}
+              {!bulkImportResult ? (
+                <div className="space-y-5">
+                  {/* Template Download Section */}
+                  <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-900 dark:text-indigo-200">
+                        <FileText className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <span>표준 CSV 양식 템플릿 다운로드</span>
+                      </div>
+                      <p className="text-[11px] text-indigo-700/80 dark:text-indigo-300/80">
+                        헤더 컬럼 규격과 예시 데이터가 포함된 표준 CSV 파일을 먼저 받아보세요.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleDownloadTemplate}
+                      disabled={isDownloadingTemplate}
+                      className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 text-xs font-bold shadow-2xs transition-all cursor-pointer shrink-0"
+                    >
+                      {isDownloadingTemplate ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Download className="w-3.5 h-3.5" />
+                      )}
+                      <span>양식 템플릿 다운로드</span>
+                    </button>
+                  </div>
+
+                  {/* Drag & Drop / File Input Box */}
+                  <form onSubmit={handleBulkImportSubmit} className="space-y-4">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      onChange={handleCsvFileChange}
+                      className="hidden"
+                    />
+
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`p-8 border-2 border-dashed rounded-3xl text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
+                        selectedCsvFile
+                          ? 'border-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/20'
+                          : 'border-slate-300 dark:border-slate-700 hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <div
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                          selectedCsvFile
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        {selectedCsvFile ? (
+                          <FileSpreadsheet className="w-6 h-6" />
+                        ) : (
+                          <UploadCloud className="w-6 h-6" />
+                        )}
+                      </div>
+
+                      {selectedCsvFile ? (
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">
+                            {selectedCsvFile.name}
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            {(selectedCsvFile.size / 1024).toFixed(1)} KB • 클릭하여 다른 파일 선택
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            이곳을 클릭하거나 CSV 파일을 드래그하여 업로드하세요
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-1">
+                            최대 5MB, 최대 2,000행까지 지원됩니다 (.csv 파일만 가능)
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Column Guide Help */}
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5">
+                      <p className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                        <span>CSV 작성 필수 안내</span>
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-500 dark:text-slate-400">
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">필수 항목:</strong> 이름, 학부모연락처 (예: 010-1234-5678)
+                        </li>
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">선택 항목:</strong> 성별(남/여), 생년월일(YYYY-MM-DD), 학교명, 학년, 학생연락처, 학부모이름, 학부모관계, 재원상태(재원/휴원/퇴원), 등록일, 메모
+                        </li>
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">중복 방지:</strong> 이미 등록된 원생(동일 이름 & 학부모연락처)은 중복 생성되지 않고 자동으로 건너뜁니다.
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="pt-2 flex justify-end gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsBulkImportModalOpen(false)}
+                        className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer text-xs"
+                      >
+                        취소
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={!selectedCsvFile || isUploadingCsv}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                      >
+                        {isUploadingCsv ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>데이터 검증 및 등록 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-4 h-4" />
+                            <span>원생 데이터 일괄 등록 시작</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                /* View 2: Result Report */
+                <div className="space-y-6">
+                  {/* Summary KPI Badges */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-semibold">총 데이터 행</span>
+                      <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5 block">
+                        {bulkImportResult.totalRows}건
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-center">
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-semibold">신규 등록 성공</span>
+                      <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                        {bulkImportResult.createdCount}건
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-center">
+                      <span className="text-[11px] text-amber-600 dark:text-amber-400 block font-semibold">중복 건너뜀</span>
+                      <span className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 block">
+                        {bulkImportResult.skippedCount}건
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-center">
+                      <span className="text-[11px] text-rose-600 dark:text-rose-400 block font-semibold">검증 실패</span>
+                      <span className="text-xl font-extrabold text-rose-600 dark:text-rose-400 mt-0.5 block">
+                        {bulkImportResult.failedCount}건
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Skipped Details Table (if any) */}
+                  {bulkImportResult.skipped.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        <span>중복 건너뜀 상세 내역 ({bulkImportResult.skipped.length}건)</span>
+                      </h4>
+                      <div className="max-h-36 overflow-y-auto rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50/40 dark:bg-amber-950/20 text-xs">
+                        <table className="w-full text-left">
+                          <thead className="bg-amber-100/60 dark:bg-amber-900/40 text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                            <tr>
+                              <th className="py-2 px-3">행</th>
+                              <th className="py-2 px-3">원생명</th>
+                              <th className="py-2 px-3">사유</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-amber-100 dark:divide-amber-900/40 text-[11px] text-amber-950 dark:text-amber-200">
+                            {bulkImportResult.skipped.map((s, idx) => (
+                              <tr key={idx}>
+                                <td className="py-1.5 px-3 font-semibold">{s.row}행</td>
+                                <td className="py-1.5 px-3 font-bold">{s.name}</td>
+                                <td className="py-1.5 px-3">{s.reason}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Failed Details Table (if any) */}
+                  {bulkImportResult.failed.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>검증 실패 상세 내역 ({bulkImportResult.failed.length}건)</span>
+                      </h4>
+                      <div className="max-h-36 overflow-y-auto rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50/40 dark:bg-rose-950/20 text-xs">
+                        <table className="w-full text-left">
+                          <thead className="bg-rose-100/60 dark:bg-rose-900/40 text-[11px] font-bold text-rose-900 dark:text-rose-200">
+                            <tr>
+                              <th className="py-2 px-3">행</th>
+                              <th className="py-2 px-3">원생명</th>
+                              <th className="py-2 px-3">오류 내용</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-rose-100 dark:divide-rose-900/40 text-[11px] text-rose-950 dark:text-rose-200">
+                            {bulkImportResult.failed.map((f, idx) => (
+                              <tr key={idx}>
+                                <td className="py-1.5 px-3 font-semibold">{f.row}행</td>
+                                <td className="py-1.5 px-3 font-bold">{f.name || '(이름 누락)'}</td>
+                                <td className="py-1.5 px-3 text-rose-600 dark:text-rose-400">
+                                  {f.errors.join(', ')}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Modal Action Buttons */}
+                  <div className="pt-2 flex justify-end gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBulkImportResult(null);
+                        setSelectedCsvFile(null);
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer text-xs"
+                    >
+                      다른 파일 추가 등록
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsBulkImportModalOpen(false)}
+                      className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      <span>완료 및 원생 목록 닫기</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

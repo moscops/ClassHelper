@@ -19,11 +19,11 @@
   - `성별`은 남/여 또는 MALE/FEMALE, `재원상태`는 재원/휴원/퇴원 또는 ACTIVE/ON_LEAVE/DISCHARGED 모두 인식.
   - 동일 학원 내 (이름, 학부모연락처) 중복 행은 생성하지 않고 건너뜀(덮어쓰지 않음, 재업로드 안전).
   - 검증 실패 행은 전체를 막지 않고 `failed[]`에 기록, 나머지는 정상 등록(부분 성공).
-- **프론트엔드 연동 요청 사항 (Gemini에게 전달)**:
-  - 원생 관리 페이지(`students/page.tsx` 또는 신규 위치)에 "CSV 일괄 등록" 업로드 마법사 UI 필요: (1) 템플릿 다운로드 버튼 → `GET /students/bulk-import/template` 링크, (2) 파일 선택 → `POST /students/bulk-import` (FormData), (3) 응답의 `createdCount`/`skippedCount`/`failedCount`와 `failed[]`/`skipped[]` 상세를 사용자에게 보여주는 결과 화면.
-  - `frontend/src/lib/students-service.ts`에 `downloadBulkImportTemplate()`, `bulkImportStudents(file: File)` 함수 추가 필요 (multipart 업로드는 `tuition-service.ts` 패턴과 다르므로 `api.post(url, formData, { headers: { 'Content-Type': 'multipart/form-data' } })` 형태 참고).
-  - 상세 명세: `backend/docs/domains/02-students-and-classes.md` §4 "CSV 일괄 등록 헤더 계약" 참고.
-- **상태**: ⏳ Gemini 프론트엔드 연동 대기 중 (백엔드는 테스트 99/99 PASS, 빌드 성공, 실 DB round-trip 검증 완료)
+- **프론트엔드 반영 사항 (Gemini)**:
+  - `frontend/src/lib/students-service.ts`: `downloadBulkImportTemplate()` 및 `bulkImportStudents(file: File)` API 클라이언트 구현 완료
+  - `frontend/src/app/students/page.tsx`: 상단 액션바 `[CSV 일괄 등록]` 버튼 및 대화형 드래그앤드롭 업로드 마법사 모달 구현
+  - 3단계 마법사 UX: (1) 표준 CSV 템플릿 다운로드 및 파일 선택/드롭, (2) 실시간 유효성 검사 및 프로그레스, (3) 결과 리포트(총 건수, 신규 등록 성공, 중복 스킵, 검증 실패 내역 테이블) 및 원생 목록 자동 갱신
+- **상태**: ✅ 백엔드/프론트엔드 연동 및 `next build` 100% 정상 검증 완료
 
 ---
 
