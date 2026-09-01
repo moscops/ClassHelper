@@ -298,49 +298,6 @@ export default function DashboardPage() {
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{academy?.name}</span>의 1초 출결, 수업 진도, 원비 수납 현황 및 실시간 알림을 스마트하게 관리하세요.
                 </p>
               </div>
-
-              {/* Quick Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-                <Link
-                  href="/students"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                >
-                  <UserPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span>원생 등록</span>
-                </Link>
-
-                <Link
-                  href="/classes"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                >
-                  <PlusCircle className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span>반 개설</span>
-                </Link>
-
-                <Link
-                  href="/calendar"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                >
-                  <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                  <span>스마트 캘린더</span>
-                </Link>
-
-                <Link
-                  href="/attendance"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                >
-                  <CalendarCheck2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>1초 출결</span>
-                </Link>
-
-                <Link
-                  href="/tuition"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer hover:scale-102"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  <span>수강료 & 수납</span>
-                </Link>
-              </div>
             </div>
           </div>
 

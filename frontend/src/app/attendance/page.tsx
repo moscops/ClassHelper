@@ -1218,10 +1218,6 @@ export default function AttendancePage() {
           {/* Header Title & Quick Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-800 text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-2">
-                <CalendarCheck2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>Phase 3-4: 1-Second Attendance & Notification</span>
-              </div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                 1초 출결 체크 및 현황 관리
               </h1>

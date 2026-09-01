@@ -476,9 +476,6 @@ export default function ClassLogsPage() {
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
                 <span>수업 일지 및 과제 관리</span>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                  Phase 3-6
-                </span>
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
                 매 수업의 교재 진도와 과제를 기록하고, 원생별 숙제 검사 결과 및 피드백을 축적합니다.

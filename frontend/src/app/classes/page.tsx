@@ -423,10 +423,6 @@ export default function ClassesPage() {
           {/* Header Title & Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-800 text-xs font-semibold text-indigo-700 dark:text-indigo-300 mb-2">
-                <BookOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>Phase 3-3: Classes & Enrollments</span>
-              </div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                 수업 반 및 수강생 배정 관리
               </h1>

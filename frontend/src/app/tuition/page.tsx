@@ -440,10 +440,6 @@ export default function TuitionPage() {
           {/* Header Title & Month Switcher & Generate Action */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-800 text-xs font-semibold text-indigo-700 dark:text-indigo-300 mb-2">
-                <CreditCard className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>Phase 3-5: Billing & Tuition Management</span>
-              </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                 수강료 청구 및 수납 관리
               </h1>

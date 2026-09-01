@@ -51,7 +51,3 @@ prisma/*.db
 prisma/*.db-journal
 generated/
 
-# AI / Assistant custom rules
-GEMINI.md
-gemini.md
-
