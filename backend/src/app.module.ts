@@ -12,6 +12,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ClassLogsModule } from './class-logs/class-logs.module';
 import { TuitionModule } from './tuition/tuition.module';
 import { CalendarModule } from './calendar/calendar.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CalendarModule } from './calendar/calendar.module';
     ClassLogsModule,
     TuitionModule,
     CalendarModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -447,6 +447,70 @@ export class ClassLogsService {
   }
 
   /**
+   * 7-1. 원생 리포트용: 특정 원생의 기간별 과제 수행 통계 (리포트 도메인에서 사용)
+   */
+  async getStudentHomeworkStats(
+    academyId: number,
+    studentId: number,
+    startDate: string,
+    endDate: string,
+  ): Promise<{
+    totalAssignments: number;
+    completedAssignments: number;
+    completionRate: number;
+    averageScore: number | null;
+  }> {
+    const student = await this.prisma.student.findFirst({
+      where: { id: studentId, academyId },
+    });
+    if (!student) {
+      throw new NotFoundException('해당 원생을 찾을 수 없습니다.');
+    }
+
+    const submissions = await this.prisma.homeworkSubmission.findMany({
+      where: {
+        studentId,
+        classLog: {
+          academyId,
+          date: {
+            gte: new Date(`${startDate}T00:00:00.000Z`),
+            lte: new Date(`${endDate}T00:00:00.000Z`),
+          },
+        },
+      },
+    });
+
+    const totalAssignments = submissions.length;
+    const completedAssignments = submissions.filter(
+      (s) => s.status === HomeworkStatus.COMPLETED,
+    ).length;
+    const completionRate =
+      totalAssignments > 0
+        ? Number(((completedAssignments / totalAssignments) * 100).toFixed(1))
+        : 0;
+
+    const scoredSubmissions = submissions.filter(
+      (s) => s.score !== null && s.score !== undefined,
+    );
+    const averageScore =
+      scoredSubmissions.length > 0
+        ? Number(
+            (
+              scoredSubmissions.reduce((sum, s) => sum + (s.score || 0), 0) /
+              scoredSubmissions.length
+            ).toFixed(1),
+          )
+        : null;
+
+    return {
+      totalAssignments,
+      completedAssignments,
+      completionRate,
+      averageScore,
+    };
+  }
+
+  /**
    * Helper: DTO Mapping and Aggregations
    */
   private mapToResponseDto(classLog: any): ClassLogResponseDto {

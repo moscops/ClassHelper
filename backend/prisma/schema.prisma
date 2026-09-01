@@ -380,6 +380,7 @@ enum NotificationType {
   ATTENDANCE_CHECKOUT// 하원 완료 알림
   TUITION_DUE        // 수강료 납부 안내
   SYSTEM_NOTICE      // 시스템 공지
+  STUDENT_REPORT     // 원생 출결/과제 리포트 (주간/월간)
 }
 
 enum NotificationChannel {

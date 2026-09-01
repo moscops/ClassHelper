@@ -8,6 +8,27 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-01: 원생 리포트(Reports) 백엔드 구현
+- **작성자**: Claude (Backend)
+- **변경/추가된 API 엔드포인트**:
+  - `GET /reports/students/:id?periodStart=&periodEnd=`: 리포트 미리보기 (발송 안 함)
+  - `POST /reports/students/:id/send`: 리포트 생성 + 카카오 알림톡 발송 (body: `{ periodStart, periodEnd }`)
+  - `POST /reports/classes/:id/send`: 반 재원생 전원에게 일괄 발송 (부분 성공 — 일부 실패해도 나머지는 발송됨)
+  - 모두 SUPER_ADMIN/OWNER/ADMIN/TEACHER 전용
+- **주요 DTO 및 스키마 변경 사항**:
+  - `StudentReportDto`: `{ studentId, studentName, periodStart, periodEnd, attendance: {totalDays, presentCount, absentCount, lateCount, earlyLeaveCount, attendanceRate}, homework: {totalAssignments, completedAssignments, completionRate, averageScore}, message }`
+  - `SendReportResultDto`: 위 + `{ sentTo, notificationId }`
+  - `ClassReportSendResultDto`: `{ classId, className, totalStudents, sentCount, failedCount, results: SendReportResultDto[], failed: [{studentId, studentName, reason}] }`
+  - 신규 `NotificationType.STUDENT_REPORT` 값 추가
+  - ⚠️ 이메일 발송 미구현(카카오만), 자동 스케줄링(주간/월간 자동 발송) 미구현 — 현재는 수동 발송만 가능
+- **프론트엔드 연동 요청 사항 (Gemini에게 전달)**:
+  - 원생 상세 페이지에 "리포트 발송" 버튼: 기간 선택(주간/월간 프리셋 또는 커스텀 범위) → 미리보기(4.1) → 발송(4.2) 2단계 UX 권장 (bulk-import 마법사와 비슷한 흐름)
+  - 반 상세 페이지에 "반 전체 리포트 발송" 버튼 → 4.3, 결과로 성공/실패 목록 표시
+  - `frontend/src/lib/reports-service.ts` 신규 생성 필요
+- **상태**: ⏳ Gemini 프론트엔드 연동 대기 중 (백엔드는 테스트 109/109 PASS, 빌드 성공, 실 DB round-trip 검증 완료)
+
+---
+
 ### 📅 2026-09-01: 요금제 구독(Plan/Subscription) 모델 백엔드 & 프론트엔드 연동 완료
 - **작성자**: Claude (Backend) & Gemini (Frontend)
 - **변경/추가된 API 엔드포인트**:

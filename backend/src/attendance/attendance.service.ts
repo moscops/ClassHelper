@@ -727,6 +727,76 @@ export class AttendanceService {
   }
 
   /**
+   * 6-1. 원생 리포트용: 특정 원생의 기간별 출결 통계 (리포트 도메인에서 사용)
+   */
+  async getStudentAttendanceStats(
+    academyId: number,
+    studentId: number,
+    startDate: string,
+    endDate: string,
+  ): Promise<{
+    totalDays: number;
+    presentCount: number;
+    absentCount: number;
+    lateCount: number;
+    earlyLeaveCount: number;
+    attendanceRate: number;
+  }> {
+    const student = await this.prisma.student.findFirst({
+      where: { id: studentId, academyId },
+    });
+    if (!student) {
+      throw new NotFoundException('해당 학원의 수강생을 찾을 수 없습니다.');
+    }
+
+    const attendances = await this.prisma.attendance.findMany({
+      where: {
+        academyId,
+        studentId,
+        date: {
+          gte: this.parseDateOnly(startDate),
+          lte: this.parseDateOnly(endDate),
+        },
+      },
+    });
+
+    let presentCount = 0;
+    let absentCount = 0;
+    let lateCount = 0;
+    let earlyLeaveCount = 0;
+
+    for (const att of attendances) {
+      switch (att.status) {
+        case AttendanceStatus.PRESENT:
+          presentCount++;
+          break;
+        case AttendanceStatus.ABSENT:
+          absentCount++;
+          break;
+        case AttendanceStatus.LATE:
+          lateCount++;
+          break;
+        case AttendanceStatus.EARLY_LEAVE:
+          earlyLeaveCount++;
+          break;
+      }
+    }
+
+    const totalDays = attendances.length;
+    const attendanceRate =
+      totalDays > 0 ? Number(((presentCount / totalDays) * 100).toFixed(1)) : 0;
+
+    return {
+      totalDays,
+      presentCount,
+      absentCount,
+      lateCount,
+      earlyLeaveCount,
+      attendanceRate,
+    };
+  }
+
+  /**
    * 7. 보강 수업(Makeup) 대상 지정 및 완료 상태 토글
    */
   async updateMakeup(
