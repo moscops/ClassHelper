@@ -19,6 +19,12 @@ import {
   UserPlus,
   ChevronDown,
   PauseCircle,
+  FileText,
+  Send,
+  Calendar,
+  Sparkles,
+  AlertTriangle,
+  CheckCircle,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -29,6 +35,7 @@ import {
   EnrollmentStatus,
 } from '@/lib/classes-service';
 import { studentsService, StudentItem } from '@/lib/students-service';
+import { reportsService, ClassReportSendResult } from '@/lib/reports-service';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
 import { AppLayout } from '@/components/common/AppLayout';
 
@@ -77,6 +84,15 @@ export default function ClassesPage() {
   );
   const [isEnrollingStudent, setIsEnrollingStudent] = useState(false);
   const [enrollError, setEnrollError] = useState<string | null>(null);
+
+  // Class Report Bulk Send Modal States
+  const [isClassReportModalOpen, setIsClassReportModalOpen] = useState(false);
+  const [selectedClassForReport, setSelectedClassForReport] = useState<ClassItem | null>(null);
+  const [classReportStart, setClassReportStart] = useState<string>('');
+  const [classReportEnd, setClassReportEnd] = useState<string>('');
+  const [isSendingClassReport, setIsSendingClassReport] = useState(false);
+  const [classReportResult, setClassReportResult] = useState<ClassReportSendResult | null>(null);
+  const [classReportError, setClassReportError] = useState<string | null>(null);
 
   // Click Outside Dropdown Refs
   const statusDropdownRef = useRef<HTMLDivElement>(null);
@@ -350,6 +366,61 @@ export default function ClassesPage() {
         return 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
       default:
         return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+    }
+  };
+
+  const handleOpenClassReportModal = (cls: ClassItem) => {
+    setSelectedClassForReport(cls);
+    setIsClassReportModalOpen(true);
+    setClassReportResult(null);
+    setClassReportError(null);
+
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    setClassReportStart(firstDay.toISOString().split('T')[0]);
+    setClassReportEnd(now.toISOString().split('T')[0]);
+  };
+
+  const handleApplyClassPreset = (preset: 'THIS_MONTH' | 'LAST_MONTH' | 'LAST_7_DAYS') => {
+    const now = new Date();
+    if (preset === 'THIS_MONTH') {
+      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      setClassReportStart(first.toISOString().split('T')[0]);
+      setClassReportEnd(now.toISOString().split('T')[0]);
+    } else if (preset === 'LAST_MONTH') {
+      const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const last = new Date(now.getFullYear(), now.getMonth(), 0);
+      setClassReportStart(first.toISOString().split('T')[0]);
+      setClassReportEnd(last.toISOString().split('T')[0]);
+    } else if (preset === 'LAST_7_DAYS') {
+      const past7 = new Date();
+      past7.setDate(now.getDate() - 7);
+      setClassReportStart(past7.toISOString().split('T')[0]);
+      setClassReportEnd(now.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleSendClassReport = async () => {
+    if (!selectedClassForReport || !classReportStart || !classReportEnd) return;
+
+    setIsSendingClassReport(true);
+    setClassReportError(null);
+    setClassReportResult(null);
+
+    try {
+      const result = await reportsService.sendClassReports(
+        selectedClassForReport.id,
+        classReportStart,
+        classReportEnd,
+      );
+      setClassReportResult(result);
+    } catch (err: any) {
+      console.error('Failed to send class reports:', err);
+      setClassReportError(
+        err.response?.data?.message || '반 리포트 일괄 발송 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSendingClassReport(false);
     }
   };
 
@@ -758,7 +829,17 @@ export default function ClassesPage() {
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
+                          onClick={() => handleOpenClassReportModal(c)}
+                          title="반 전체 카카오 리포트 일괄 발송"
+                          className="p-2 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 dark:text-slate-400 dark:hover:text-purple-400 transition-colors cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
                           onClick={() => handleOpenEditModal(c)}
+                          title="반 정보 수정"
                           className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -767,6 +848,7 @@ export default function ClassesPage() {
                         <button
                           type="button"
                           onClick={() => handleDeleteClass(c)}
+                          title="반 삭제"
                           className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:text-slate-400 dark:hover:text-rose-400 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1498,6 +1580,194 @@ export default function ClassesPage() {
                 className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold cursor-pointer"
               >
                 닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* 3. Class Reports Bulk Send Modal          */}
+      {/* ========================================== */}
+      {isClassReportModalOpen && selectedClassForReport && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSendingClassReport) {
+              setIsClassReportModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold border border-purple-200 dark:border-purple-800/80">
+                  <FileText className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>반 전체 학습 리포트 일괄 발송</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold">
+                      {selectedClassForReport.name}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    반에 재원 중인 원생 전원에게 개인별 출결/과제 리포트를 생성하여 카카오로 발송합니다.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsClassReportModalOpen(false)}
+                disabled={isSendingClassReport}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs flex-1">
+              {/* 1. Period Selection */}
+              <div className="space-y-2">
+                <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <span>리포트 대상 기간 설정</span>
+                  <span className="text-[11px] text-slate-400 font-normal">프리셋 버튼으로 빠른 설정</span>
+                </label>
+
+                {/* Presets */}
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleApplyClassPreset('THIS_MONTH')}
+                    className="py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-center"
+                  >
+                    이번 달
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyClassPreset('LAST_MONTH')}
+                    className="py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-center"
+                  >
+                    지난 달
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyClassPreset('LAST_7_DAYS')}
+                    className="py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-center"
+                  >
+                    최근 7일
+                  </button>
+                </div>
+
+                {/* Date Inputs */}
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="date"
+                    value={classReportStart}
+                    onChange={(e) => setClassReportStart(e.target.value)}
+                    className="flex-1 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <span className="text-slate-400 font-bold">~</span>
+                  <input
+                    type="date"
+                    value={classReportEnd}
+                    onChange={(e) => setClassReportEnd(e.target.value)}
+                    className="flex-1 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
+              {/* Error Alert */}
+              {classReportError && (
+                <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2.5 animate-in fade-in">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-xs">발송 실패</p>
+                    <p className="text-[11px] mt-0.5">{classReportError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Result Report */}
+              {classReportResult && (
+                <div className="space-y-4 animate-in fade-in">
+                  {/* Summary Metric Card */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+                    <h4 className="font-bold text-slate-900 dark:text-white flex items-center justify-between mb-2">
+                      <span>발송 처리 결과 요약</span>
+                      <span className="text-[11px] text-slate-400 font-normal">
+                        총 {classReportResult.totalStudents}명 대상
+                      </span>
+                    </h4>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800">
+                        <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">발송 성공</span>
+                        <div className="text-lg font-extrabold text-emerald-800 dark:text-emerald-200">
+                          {classReportResult.sentCount}건
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <span className="text-[10px] text-slate-500 font-semibold">제외 / 실패</span>
+                        <div className="text-lg font-extrabold text-slate-700 dark:text-slate-300">
+                          {classReportResult.failedCount}건
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Failure / Skipped List if any */}
+                  {classReportResult.failed && classReportResult.failed.length > 0 && (
+                    <div className="space-y-1.5">
+                      <span className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">
+                        발송 제외 또는 실패 내역
+                      </span>
+                      <div className="max-h-36 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-800">
+                        {classReportResult.failed.map((f, idx) => (
+                          <div key={idx} className="p-2 flex items-center justify-between text-[11px]">
+                            <span className="font-bold text-slate-800 dark:text-slate-200">{f.studentName}</span>
+                            <span className="text-rose-600 dark:text-rose-400">{f.reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+              <button
+                type="button"
+                onClick={() => setIsClassReportModalOpen(false)}
+                disabled={isSendingClassReport}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer text-xs"
+              >
+                닫기
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSendClassReport}
+                disabled={isSendingClassReport || !classReportStart || !classReportEnd}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm shadow-purple-600/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSendingClassReport ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>전체 발송 처리 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>반 재원생 전원 발송하기</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

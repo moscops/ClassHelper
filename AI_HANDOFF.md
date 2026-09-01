@@ -8,8 +8,8 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
-### 📅 2026-09-01: 원생 리포트(Reports) 백엔드 구현
-- **작성자**: Claude (Backend)
+### 📅 2026-09-01: 원생 리포트(Reports) 백엔드 & 프론트엔드 연동 및 메인 랜딩 리뉴얼 완료
+- **작성자**: Claude (Backend) & Gemini (Frontend)
 - **변경/추가된 API 엔드포인트**:
   - `GET /reports/students/:id?periodStart=&periodEnd=`: 리포트 미리보기 (발송 안 함)
   - `POST /reports/students/:id/send`: 리포트 생성 + 카카오 알림톡 발송 (body: `{ periodStart, periodEnd }`)
@@ -20,12 +20,19 @@
   - `SendReportResultDto`: 위 + `{ sentTo, notificationId }`
   - `ClassReportSendResultDto`: `{ classId, className, totalStudents, sentCount, failedCount, results: SendReportResultDto[], failed: [{studentId, studentName, reason}] }`
   - 신규 `NotificationType.STUDENT_REPORT` 값 추가
-  - ⚠️ 이메일 발송 미구현(카카오만), 자동 스케줄링(주간/월간 자동 발송) 미구현 — 현재는 수동 발송만 가능
-- **프론트엔드 연동 요청 사항 (Gemini에게 전달)**:
-  - 원생 상세 페이지에 "리포트 발송" 버튼: 기간 선택(주간/월간 프리셋 또는 커스텀 범위) → 미리보기(4.1) → 발송(4.2) 2단계 UX 권장 (bulk-import 마법사와 비슷한 흐름)
-  - 반 상세 페이지에 "반 전체 리포트 발송" 버튼 → 4.3, 결과로 성공/실패 목록 표시
-  - `frontend/src/lib/reports-service.ts` 신규 생성 필요
-- **상태**: ⏳ Gemini 프론트엔드 연동 대기 중 (백엔드는 테스트 109/109 PASS, 빌드 성공, 실 DB round-trip 검증 완료)
+- **프론트엔드 반영 사항 (Gemini)**:
+  - `frontend/src/lib/reports-service.ts`: 원생 리포트 미리보기, 1인 발송, 반 전체 일괄 발송 REST API 클라이언트 구현
+  - `frontend/src/app/students/page.tsx`:
+    - 원생 목록 테이블 행 및 상세 모달 내 `[학습/출결 리포트 발송]` 버튼 배치
+    - 기간 선택 프리셋(이번 달, 지난 달, 최근 7일, 직접 입력) → 실시간 출결/과제 집계 통계 및 카카오 알림톡 메시지 본문 미리보기 → 알림톡 즉시 발송 2단계 대화형 모달 구현
+  - `frontend/src/app/classes/page.tsx`:
+    - 반 카드 액션바에 `[반 전체 카카오 리포트 일괄 발송]` 버튼 배치
+    - 기간 선택 후 반 재원생 전원 일괄 발송 및 성공/실패 결과 요약 리포트 모달 구현
+  - `frontend/src/app/page.tsx` (메인 랜딩 전면 리뉴얼):
+    - 스크롤 다운 시 나타나는 **요금제 안내 섹션 (Pricing Table: Free, Pro, Enterprise 3단 비교 카드 & 혜택)** 구현
+    - 스크롤 다운 시 순차적으로 나타나는 **도메인 핵심 기능 쇼케이스 (1초 출결 & 미등원 경고, 원생 CSV 일괄 등록 & 스마트 캘린더, 반 개설 & 스마트 학생 배정, 수업 일지 & 과제 검사, 수강료 복합 수납, 학습/출결 리포트 발송)**
+    - 자주 묻는 질문(FAQ 아코디언) 및 인터랙티브 데모 대시보드 윈도우 프리뷰
+- **상태**: ✅ 백엔드/프론트엔드 100% 연동, Jest 109/109 PASS & Next.js 프로덕션 빌드(16/16 routes) 정상 통과
 
 ---
 
