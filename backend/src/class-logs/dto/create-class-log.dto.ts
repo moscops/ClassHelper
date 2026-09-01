@@ -26,7 +26,8 @@ export class CreateHomeworkSubmissionDto {
   @ApiPropertyOptional({
     enum: HomeworkStatus,
     example: HomeworkStatus.COMPLETED,
-    description: '과제 완성 상태 (COMPLETED, INCOMPLETE, NOT_SUBMITTED, EXCUSED)',
+    description:
+      '과제 완성 상태 (COMPLETED, INCOMPLETE, NOT_SUBMITTED, EXCUSED)',
     default: HomeworkStatus.NOT_SUBMITTED,
   })
   @IsEnum(HomeworkStatus)
@@ -105,7 +106,8 @@ export class CreateClassLogDto {
 
   @ApiPropertyOptional({
     type: [CreateHomeworkSubmissionDto],
-    description: '수강생별 과제 검사 및 피드백 초기 목록 (생략 시 반 수강생 전체 NOT_SUBMITTED로 자동 생성)',
+    description:
+      '수강생별 과제 검사 및 피드백 초기 목록 (생략 시 반 수강생 전체 NOT_SUBMITTED로 자동 생성)',
   })
   @IsArray()
   @ValidateNested({ each: true })

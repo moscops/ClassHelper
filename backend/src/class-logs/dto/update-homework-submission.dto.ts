@@ -25,7 +25,8 @@ export class UpdateHomeworkSubmissionItemDto {
   @ApiProperty({
     enum: HomeworkStatus,
     example: HomeworkStatus.COMPLETED,
-    description: '과제 완성 상태 (COMPLETED, INCOMPLETE, NOT_SUBMITTED, EXCUSED)',
+    description:
+      '과제 완성 상태 (COMPLETED, INCOMPLETE, NOT_SUBMITTED, EXCUSED)',
   })
   @IsEnum(HomeworkStatus)
   @IsNotEmpty()

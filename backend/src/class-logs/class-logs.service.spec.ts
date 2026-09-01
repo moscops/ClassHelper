@@ -86,7 +86,9 @@ describe('ClassLogsService', () => {
         notes: null,
       };
       mockPrismaService.classLog.create.mockResolvedValue(createdLog);
-      mockPrismaService.homeworkSubmission.createMany.mockResolvedValue({ count: 2 });
+      mockPrismaService.homeworkSubmission.createMany.mockResolvedValue({
+        count: 2,
+      });
 
       mockPrismaService.classLog.findUniqueOrThrow.mockResolvedValue({
         ...createdLog,
@@ -100,7 +102,12 @@ describe('ClassLogsService', () => {
             status: HomeworkStatus.NOT_SUBMITTED,
             score: null,
             feedback: null,
-            student: { id: 10, name: '김원생', grade: '중2', parentPhone: '010-1234-5678' },
+            student: {
+              id: 10,
+              name: '김원생',
+              grade: '중2',
+              parentPhone: '010-1234-5678',
+            },
           },
           {
             id: 2,
@@ -109,7 +116,12 @@ describe('ClassLogsService', () => {
             status: HomeworkStatus.NOT_SUBMITTED,
             score: null,
             feedback: null,
-            student: { id: 11, name: '이원생', grade: '중2', parentPhone: '010-9876-5432' },
+            student: {
+              id: 11,
+              name: '이원생',
+              grade: '중2',
+              parentPhone: '010-9876-5432',
+            },
           },
         ],
       });
@@ -167,7 +179,10 @@ describe('ClassLogsService', () => {
 
   describe('getStudentHomeworkHistory', () => {
     it('should return student cumulative homework history and rate', async () => {
-      mockPrismaService.student.findFirst.mockResolvedValue({ id: 10, name: '김민준' });
+      mockPrismaService.student.findFirst.mockResolvedValue({
+        id: 10,
+        name: '김민준',
+      });
       mockPrismaService.homeworkSubmission.findMany.mockResolvedValue([
         {
           id: 1,

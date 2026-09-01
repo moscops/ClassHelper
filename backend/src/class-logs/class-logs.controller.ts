@@ -42,12 +42,7 @@ export class ClassLogsController {
   constructor(private readonly classLogsService: ClassLogsService) {}
 
   @Post()
-  @Roles(
-    UserRole.SUPER_ADMIN,
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.TEACHER,
-  )
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
   @ApiOperation({
     summary: '수업 일지 신규 작성',
     description:
@@ -118,12 +113,7 @@ export class ClassLogsController {
   }
 
   @Patch(':id')
-  @Roles(
-    UserRole.SUPER_ADMIN,
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.TEACHER,
-  )
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
   @ApiOperation({
     summary: '수업 일지 수정',
     description: '수업 진도, 핵심 내용, 과제 공지, 특이사항을 수정합니다.',
@@ -143,12 +133,7 @@ export class ClassLogsController {
   }
 
   @Delete(':id')
-  @Roles(
-    UserRole.SUPER_ADMIN,
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.TEACHER,
-  )
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
   @ApiOperation({
     summary: '수업 일지 삭제',
     description: '수업 일지와 연결된 과제 검사 이력을 삭제합니다.',
@@ -166,12 +151,7 @@ export class ClassLogsController {
   }
 
   @Patch(':id/homework-submissions')
-  @Roles(
-    UserRole.SUPER_ADMIN,
-    UserRole.OWNER,
-    UserRole.ADMIN,
-    UserRole.TEACHER,
-  )
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
   @ApiOperation({
     summary: '원생별 과제 검사 및 피드백 일괄 수정',
     description:
@@ -214,6 +194,9 @@ export class ClassLogsController {
     @CurrentUser('academyId') academyId: number,
     @Param('studentId', ParseIntPipe) studentId: number,
   ): Promise<StudentHomeworkHistoryResponseDto> {
-    return this.classLogsService.getStudentHomeworkHistory(academyId, studentId);
+    return this.classLogsService.getStudentHomeworkHistory(
+      academyId,
+      studentId,
+    );
   }
 }

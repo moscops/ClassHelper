@@ -62,8 +62,13 @@ export class ClassLogsService {
 
       // 3) 원생별 HomeworkSubmission 생성
       // dto.submissions 가 명시적으로 제공되었으면 해당 내용 사용, 없으면 활성 수강생 전원 NOT_SUBMITTED 로 생성
-      const enrolledStudentIds = classEntity.enrollments.map((e) => e.studentId);
-      const submissionMap = new Map<number, { status: HomeworkStatus; score?: number; feedback?: string }>();
+      const enrolledStudentIds = classEntity.enrollments.map(
+        (e) => e.studentId,
+      );
+      const submissionMap = new Map<
+        number,
+        { status: HomeworkStatus; score?: number; feedback?: string }
+      >();
 
       if (dto.submissions && dto.submissions.length > 0) {
         for (const sub of dto.submissions) {
@@ -76,8 +81,8 @@ export class ClassLogsService {
       }
 
       // 수강생 전원에 대해 생성
-      const submissionsToCreate: Prisma.HomeworkSubmissionCreateManyInput[] = enrolledStudentIds.map(
-        (studentId) => {
+      const submissionsToCreate: Prisma.HomeworkSubmissionCreateManyInput[] =
+        enrolledStudentIds.map((studentId) => {
           const customSub = submissionMap.get(studentId);
           return {
             classLogId: classLog.id,
@@ -86,8 +91,7 @@ export class ClassLogsService {
             score: customSub ? customSub.score : null,
             feedback: customSub ? customSub.feedback : null,
           };
-        },
-      );
+        });
 
       if (submissionsToCreate.length > 0) {
         await tx.homeworkSubmission.createMany({
@@ -132,7 +136,15 @@ export class ClassLogsService {
     academyId: number,
     query: QueryClassLogsDto,
   ): Promise<PaginatedClassLogsResponseDto> {
-    const { classId, teacherId, startDate, endDate, search, page = 1, limit = 20 } = query;
+    const {
+      classId,
+      teacherId,
+      startDate,
+      endDate,
+      search,
+      page = 1,
+      limit = 20,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ClassLogWhereInput = {
@@ -399,7 +411,9 @@ export class ClassLogsService {
         ? Number(((completedAssignments / totalAssignments) * 100).toFixed(1))
         : 0;
 
-    const scoredSubmissions = submissions.filter((s) => s.score !== null && s.score !== undefined);
+    const scoredSubmissions = submissions.filter(
+      (s) => s.score !== null && s.score !== undefined,
+    );
     const averageScore =
       scoredSubmissions.length > 0
         ? Number(
@@ -456,7 +470,9 @@ export class ClassLogsService {
         ? Number(((completedCount / totalStudents) * 100).toFixed(1))
         : 0;
 
-    const scored = submissions.filter((s: any) => s.score !== null && s.score !== undefined);
+    const scored = submissions.filter(
+      (s: any) => s.score !== null && s.score !== undefined,
+    );
     const averageScore =
       scored.length > 0
         ? Number(
@@ -472,7 +488,10 @@ export class ClassLogsService {
       academyId: classLog.academyId,
       classId: classLog.classId,
       teacherId: classLog.teacherId,
-      date: classLog.date instanceof Date ? classLog.date.toISOString().split('T')[0] : classLog.date,
+      date:
+        classLog.date instanceof Date
+          ? classLog.date.toISOString().split('T')[0]
+          : classLog.date,
       curriculum: classLog.curriculum,
       lessonContent: classLog.lessonContent,
       homework: classLog.homework,

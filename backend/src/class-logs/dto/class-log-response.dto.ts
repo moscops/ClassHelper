@@ -100,7 +100,9 @@ export class ClassLogResponseDto {
   @ApiProperty({ example: '개념원리 수학(상) p.45~62 다항식의 연산' })
   curriculum: string;
 
-  @ApiPropertyOptional({ example: '다항식의 곱셈 공식 1~5번 암기 및 예제 풀이' })
+  @ApiPropertyOptional({
+    example: '다항식의 곱셈 공식 1~5번 암기 및 예제 풀이',
+  })
   lessonContent?: string | null;
 
   @ApiPropertyOptional({ example: '워크북 p.20~24 풀기' })
