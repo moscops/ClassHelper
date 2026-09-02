@@ -8,6 +8,15 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-02: 새 수업 일지 작성 모달 폼 입력창 포커스 시 좌측 가림 현상 완벽 해결
+- **작성자**: Gemini (Frontend)
+- **프론트엔드 반영 사항 (Gemini)**:
+  - **1. 모달 폼 컨테이너 안전 여백 확보 (`class-logs/page.tsx`)**:
+    - `form` 스크롤 영역에 `px-1.5 py-1`의 안전 패딩을 제공하여 `overflow-y-auto` 컨테이너 내부에서 포커스 링(`focus:ring`)이 좌측 틀에 잘리거나 가려지는 현상 완벽 해소
+  - **2. 입력 필드 포커스 링 & 패딩 최적화 (`class-logs/page.tsx`)**:
+    - 모든 `input` 및 `textarea`의 좌측 내부 패딩을 `px-4`로 확장하고, `focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all`을 적용하여 포커스 시 텍스트 및 테두리가 가림 없이 깔끔하게 렌더링되도록 개선
+- **상태**: ✅ Next.js 16 프로덕션 빌드 (17/17 routes) 완벽 통과, Jest 109/109 PASS 검증 완료
+
 ### 📅 2026-09-02: 반별 출결 체크 화면 전원 출석 일괄 처리 버튼 위치를 시간대별 화면과 100% 동일하게 통일
 - **작성자**: Gemini (Frontend)
 - **프론트엔드 반영 사항 (Gemini)**:
