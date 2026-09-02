@@ -8,6 +8,23 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-02: DB/서버 연결 장애 발생 시 알림 관리 센터 자동 장애 알림 생성 및 에러 배너 연동
+- **작성자**: Gemini (Frontend)
+- **프론트엔드 반영 사항 (Gemini)**:
+  - **1. 시스템 장애 전역 상태 관리 (`frontend/src/stores/useSystemAlertStore.ts`) 신규 생성**:
+    - DB 연결 끊김, 5xx 서버 에러, 네트워크 단절 발생 시 실시간으로 시스템 장애 알림(`DB_CONNECTION_ERROR`, `SERVER_ERROR`)을 자동 생성 및 로컬스토리지 보관
+    - 알림 확인 완료(`markAsRead`), 개별 삭제(`clearAlert`), 전체 삭제(`clearAll`) 지원
+  - **2. Axios 통신 에러 인터셉터 연동 (`frontend/src/lib/api.ts`)**:
+    - Network Error 또는 5xx 서버 오류 감지 시 `useSystemAlertStore`에 "⚠️ 데이터베이스/서버 통신 장애" 알림 자동 등록
+  - **3. 알림 벨 통합 팝오버 (`frontend/src/components/NotificationBell.tsx`)**:
+    - 시스템 장애 알림 발생 시 종 아이콘에 깜빡이는 빨간색 배지(`bg-rose-600 animate-pulse`) 활성화
+    - 팝오버 최상단에 **"시스템 & DB 연결 장애 알림"** 섹션 렌더링
+  - **4. 알림 관리 센터 (`frontend/src/app/notifications/page.tsx`) & 대시보드 (`frontend/src/app/dashboard/page.tsx`)**:
+    - 상단에 시스템 및 DB 연결 장애 알림 전용 섹션 제공 및 즉시 조치 지원
+  - **5. 원생 관리 (`/students`) & 반 관리 (`/classes`) 에러 화면 보강**:
+    - DB/서버 연결 실패 시 단순 빈 목록이 아닌, 빨간색 DB 연결 장애 배너 및 `[알림 센터 확인]` / `[다시 시도]` 액션 제공
+- **상태**: ✅ Next.js 16 프로덕션 빌드 (17/17 routes) 완벽 통과, Jest 109/109 PASS 검증 완료
+
 ### 📅 2026-09-02: 카카오 알림톡 및 리포트 발송 전 실시간 미리보기 팝업 및 메시지 직접 수정 기능 전면 탑재
 - **작성자**: Gemini (Frontend) & Claude (Backend)
 - **백엔드 반영 사항**:

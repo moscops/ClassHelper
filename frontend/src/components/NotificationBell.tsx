@@ -14,6 +14,9 @@ import {
   ExternalLink,
   Loader2,
   Sparkles,
+  ServerCrash,
+  Database,
+  Trash2,
 } from 'lucide-react';
 import {
   notificationsService,
@@ -21,10 +24,19 @@ import {
   UnreadCountResponse,
 } from '@/lib/notifications-service';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useSystemAlertStore, SystemAlert } from '@/stores/useSystemAlertStore';
 
 export function NotificationBell() {
   const router = useRouter();
   const { isAuthenticated, isHydrated } = useAuthStore();
+  const {
+    alerts: systemAlerts,
+    unreadCount: systemUnreadCount,
+    markAsRead: markSystemAlertAsRead,
+    clearAlert: clearSystemAlert,
+    clearAll: clearAllSystemAlerts,
+  } = useSystemAlertStore();
+
   const [unreadInfo, setUnreadInfo] = useState<UnreadCountResponse>({
     unreadCount: 0,
     unattendedAlertCount: 0,
@@ -38,6 +50,10 @@ export function NotificationBell() {
   const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Total unread count including system alerts
+  const totalUnreadCount = unreadInfo.unreadCount + systemUnreadCount;
+  const hasCriticalAlert = unreadInfo.hasUnattendedAlert || systemUnreadCount > 0;
 
   // Poll unread count every 30 seconds only when authenticated
   useEffect(() => {
@@ -134,6 +150,7 @@ export function NotificationBell() {
     setIsMarkingAll(true);
     try {
       await notificationsService.markAllAsRead();
+      useSystemAlertStore.getState().markAllAsRead();
       setUnreadInfo({
         unreadCount: 0,
         unattendedAlertCount: 0,
@@ -195,12 +212,12 @@ export function NotificationBell() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Bell Button with Active Pulse if Unattended Alert is Active */}
+      {/* Bell Button with Active Pulse if Critical / System Alert is Active */}
       <button
         onClick={handleToggleOpen}
         aria-label="알림"
         className={`relative p-2 rounded-xl transition-all cursor-pointer border ${
-          unreadInfo.hasUnattendedAlert
+          hasCriticalAlert
             ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 animate-pulse'
             : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
         } shadow-2xs`}
@@ -208,15 +225,15 @@ export function NotificationBell() {
         <Bell className="w-4 h-4" />
 
         {/* Badge */}
-        {unreadInfo.unreadCount > 0 && (
+        {totalUnreadCount > 0 && (
           <span
             className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow-xs ${
-              unreadInfo.hasUnattendedAlert
+              hasCriticalAlert
                 ? 'bg-rose-600 animate-bounce'
                 : 'bg-indigo-600'
             }`}
           >
-            {unreadInfo.unreadCount > 99 ? '99+' : unreadInfo.unreadCount}
+            {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
           </span>
         )}
       </button>
@@ -228,16 +245,16 @@ export function NotificationBell() {
           <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
             <div className="flex items-center gap-2">
               <span className="font-bold text-sm text-slate-900 dark:text-white">
-                알림
+                알림 관리 센터
               </span>
-              {unreadInfo.unreadCount > 0 && (
+              {totalUnreadCount > 0 && (
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                  {unreadInfo.unreadCount}건 미확인
+                  {totalUnreadCount}건 미확인
                 </span>
               )}
             </div>
 
-            {unreadInfo.unreadCount > 0 && (
+            {totalUnreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={isMarkingAll}
@@ -253,14 +270,72 @@ export function NotificationBell() {
             )}
           </div>
 
-          {/* List */}
-          <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+          {/* List Section (System Alerts + Recent In-App Notifications) */}
+          <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+            {/* 1. Critical System Alerts Section (DB/Server Errors) */}
+            {systemAlerts.length > 0 && (
+              <div className="bg-rose-50/50 dark:bg-rose-950/20 p-2 space-y-2 border-b border-rose-100 dark:border-rose-900/40">
+                <div className="flex items-center justify-between px-2 pt-1 text-[11px] font-bold text-rose-700 dark:text-rose-300">
+                  <span className="flex items-center gap-1.5">
+                    <ServerCrash className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
+                    <span>시스템 & DB 연결 장애 알림</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => clearAllSystemAlerts()}
+                    className="text-[10px] text-rose-500 hover:text-rose-700 underline font-normal cursor-pointer"
+                  >
+                    전체 지우기
+                  </button>
+                </div>
+
+                {systemAlerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800/80 shadow-2xs space-y-1 relative"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-rose-800 dark:text-rose-200">
+                        <Database className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span>{alert.title}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => clearSystemAlert(alert.id)}
+                        className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {alert.message}
+                    </p>
+
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                      <span>{formatRelativeTime(alert.createdAt)}</span>
+                      {!alert.isRead && (
+                        <button
+                          type="button"
+                          onClick={() => markSystemAlertAsRead(alert.id)}
+                          className="text-rose-600 dark:text-rose-400 font-semibold hover:underline cursor-pointer"
+                        >
+                          확인 완료
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 2. Standard Notifications List */}
             {isLoading ? (
               <div className="py-8 flex flex-col items-center justify-center text-slate-400 gap-2">
                 <Loader2 className="w-5 h-5 animate-spin text-indigo-600 dark:text-indigo-400" />
                 <span className="text-xs">알림을 불러오는 중...</span>
               </div>
-            ) : recentNotifications.length === 0 ? (
+            ) : recentNotifications.length === 0 && systemAlerts.length === 0 ? (
               <div className="py-10 text-center text-slate-400 text-xs">
                 <Bell className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600 stroke-1" />
                 <p>새로운 알림이 없습니다.</p>
@@ -312,13 +387,21 @@ export function NotificationBell() {
           </div>
 
           {/* Footer */}
-          <div className="p-2.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-center">
+          <div className="p-2.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-center flex items-center justify-between px-4">
             <Link
               href="/dashboard"
               onClick={() => setIsOpen(false)}
-              className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 flex items-center justify-center gap-1.5 transition-colors"
+              className="py-1.5 px-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-indigo-600 flex items-center gap-1 transition-colors"
             >
-              <span>대시보드 알림 센터 바로가기</span>
+              <span>대시보드</span>
+            </Link>
+
+            <Link
+              href="/notifications"
+              onClick={() => setIsOpen(false)}
+              className="py-1.5 px-3 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 flex items-center gap-1.5 transition-colors"
+            >
+              <span>전체 알림 관리</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>

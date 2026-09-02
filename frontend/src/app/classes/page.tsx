@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   BookOpen,
@@ -158,13 +159,19 @@ export default function ClassesPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isStudentDropdownOpen, activeEnrollmentStatusRowId]);
 
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   const loadClasses = async () => {
     setIsLoading(true);
+    setFetchError(null);
     try {
       const response = await classesService.getClasses();
       setClasses(response.items || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch classes:', err);
+      setFetchError(
+        '데이터베이스 또는 서버 연결에 실패하여 수업 반 및 수강생 목록을 불러오지 못했습니다. 알림 관리 센터에 시스템 장애 알림이 기록되었습니다.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -732,6 +739,45 @@ export default function ClassesPage() {
               </div>
             </div>
           </div>
+
+          {/* Critical DB / Server Connection Error Banner */}
+          {fetchError && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-rose-950 dark:text-rose-100 flex items-center gap-2">
+                    <span>데이터베이스 연결 및 서버 통신 장애</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200">
+                      알림 관리 센터 등록됨
+                    </span>
+                  </h3>
+                  <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5 leading-relaxed">
+                    {fetchError}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <Link
+                  href="/notifications"
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300 font-bold text-xs hover:bg-rose-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  알림 센터 확인
+                </Link>
+                <button
+                  type="button"
+                  onClick={loadClasses}
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>다시 시도</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Classes Grid */}
           {isLoading ? (
