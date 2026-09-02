@@ -287,19 +287,19 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border transition-colors duration-150 select-none ${
                       item.active
-                        ? 'bg-indigo-600 text-white font-bold shadow-xs shadow-indigo-600/20'
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs shadow-indigo-600/20'
                         : item.alert
-                        ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 animate-pulse'
+                        ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800 animate-pulse'
                         : item.adminOnly
-                        ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 hover:bg-purple-100'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'
+                        ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-transparent hover:bg-purple-100 dark:hover:bg-purple-900/40'
+                        : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <Icon
-                        className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-105 ${
+                        className={`w-4 h-4 shrink-0 ${
                           item.active ? 'text-white' : ''
                         }`}
                       />
@@ -463,16 +463,16 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
                         key={item.href}
                         href={item.href}
                         onClick={() => setIsMobileDrawerOpen(false)}
-                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold border transition-colors duration-150 select-none ${
                           item.active
-                            ? 'bg-indigo-600 text-white font-bold shadow-xs'
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                             : item.alert
-                            ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800'
+                            : 'text-slate-700 dark:text-slate-300 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
-                          <Icon className="w-4 h-4" />
+                          <Icon className="w-4 h-4 shrink-0" />
                           <span>{item.label}</span>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
