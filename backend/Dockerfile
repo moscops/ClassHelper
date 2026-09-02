@@ -5,6 +5,9 @@
 # 이미지 용량보다 "일단 확실하게 빌드/구동되는 것"을 우선했습니다.
 FROM node:22-slim AS base
 WORKDIR /app
+# Prisma 쿼리 엔진이 필요로 함 — 없으면 "failed to detect the libssl/openssl version" 경고
+# 후 잘못된 엔진 바이너리를 골라 조용히 오작동할 수 있음.
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # ---- 의존성 설치 + 빌드 ----
 FROM base AS build
