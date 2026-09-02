@@ -35,6 +35,7 @@ import {
   FileText,
   ServerCrash,
   Database,
+  UserCheck,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useSystemAlertStore } from '@/stores/useSystemAlertStore';
@@ -439,7 +440,7 @@ export default function DashboardPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4">
               {/* 1. 원생 관리 */}
               <Link
                 href="/students"
@@ -615,6 +616,30 @@ export default function DashboardPage() {
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
               </Link>
+
+              {/* 7. 교직원 & 강사 관리 (원장/관리자 전용) */}
+              {(user?.role === 'OWNER' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                <Link
+                  href="/staff"
+                  className="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-600 hover:shadow-md transition-all shadow-2xs flex flex-col justify-between interactive-card"
+                >
+                  <div>
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3.5 group-hover:scale-105 transition-transform">
+                      <UserCheck className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      교직원 관리
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                      강사/실장/조교 계정 등록, 권한 설정 및 담당 반 확인
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span>교직원 목록</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </div>
+                </Link>
+              )}
             </div>
           </div>
 

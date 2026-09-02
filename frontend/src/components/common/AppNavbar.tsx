@@ -22,6 +22,7 @@ import {
   Zap,
   Crown,
   FileText,
+  UserCheck,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useSystemAlertStore } from '@/stores/useSystemAlertStore';
@@ -179,6 +180,16 @@ export function AppNavbar({ currentPath }: AppNavbarProps) {
       icon: FileText,
       active: activePath === '/reports',
     },
+    ...(user?.role === 'OWNER' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
+      ? [
+          {
+            label: '교직원 관리',
+            href: '/staff',
+            icon: UserCheck,
+            active: activePath === '/staff',
+          },
+        ]
+      : []),
   ];
 
   if (!isHydrated || !isAuthenticated || !user) {

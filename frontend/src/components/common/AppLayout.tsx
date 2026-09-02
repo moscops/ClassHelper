@@ -19,6 +19,7 @@ import {
   CreditCard,
   Calendar,
   FileText,
+  UserCheck,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/lib/auth-service';
@@ -206,6 +207,16 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
           icon: FileText,
           active: activePath === '/reports',
         },
+        ...(user?.role === 'OWNER' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
+          ? [
+              {
+                label: '교직원 관리',
+                href: '/staff',
+                icon: UserCheck,
+                active: activePath === '/staff',
+              },
+            ]
+          : []),
         ...(user?.role === 'SUPER_ADMIN'
           ? [
               {

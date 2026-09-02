@@ -8,6 +8,35 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-02: 원장님/관리자 전용 교직원(Staff) 관리 전용 페이지(/staff) 신규 구축 및 네비게이션 연동 완료
+- **작성자**: Gemini (Frontend)
+- **프론트엔드 반영 사항 (Gemini)**:
+  - **1. 교직원 관리 전용 페이지 (`frontend/src/app/staff/page.tsx`) 신규 구축**:
+    - **상단 통계 카드 4종**: 전체 교직원 수(Total Staff), 개설 반 매핑 현황(담당 반 배정), 강사진/조교 직책 구성 비중, 계정 보안 & RTR 이중 암호화 상태 100% 정상 가동
+    - **실시간 검색 & 필터링 툴바**: 이름/이메일/연락처/담당반 실시간 검색 + 직책별(`ALL`, `OWNER`, `ADMIN`, `TEACHER`, `STAFF`) 필터 드롭다운 + 카드 그리드(`GRID`) / 목록 테이블(`TABLE`) 뷰 모드 토글
+    - **카드 그리드 & 테이블 뷰**: 프로필 아바타(직책별 컬러 링), 직책 뱃지, 로그인 이메일(원클릭 복사), 연락처(전화걸기 링크), 등록일자, 담당 수업 반 뱃지 태그
+    - **대화형 모달 5종 완벽 구현 (표준 Header/Body/Footer + safe focus ring 적용)**:
+      - ➕ **신규 교직원 등록 모달 (`isCreateModalOpen`)**: 직책 선택(`CustomDropdown`), 이름, 이메일, 초기 비밀번호, 연락처 및 직책별 RBAC 권한 안내 가이드
+      - ✏️ **교직원 정보 수정 모달 (`isEditModalOpen`)**: 직책(원장은 보호), 이름, 연락처 수정
+      - 🔑 **비밀번호 초기화 모달 (`isPasswordModalOpen`)**: 원장님이 강사/직원의 비밀번호를 즉시 재설정
+      - 🗑️ **퇴사 / 삭제 확인 모달 (`isDeleteModalOpen`)**: 담당 반 배정 해제 경고 및 안전한 삭제 확인
+      - 📚 **담당 수업 반 목록 모달 (`isClassModalOpen`)**: 강사의 배정된 반 목록, 정원/수강생 수, 시간표 확인 및 반 관리 바로가기
+  - **2. 교직원 서비스 클라이언트 (`frontend/src/lib/staff-service.ts`, `frontend/src/types/staff.ts`) 구현**:
+    - `getStaffList()`, `createStaff()`, `updateStaff()`, `resetStaffPassword()`, `deleteStaff()`, `calculateStats()` 구현
+    - 백엔드 `POST /auth/register-staff` 연동 및 `GET/PATCH/DELETE` 백엔드 배포 대기 시 수업 반 강사 데이터 & 로컬 스토리지와 자동 병합되는 폴백 로직 탑재
+  - **3. 전역 네비게이션 & 대시보드 연동**:
+    - `AppNavbar.tsx`: `OWNER`, `ADMIN`, `SUPER_ADMIN`에게 상단 및 모바일 네비게이션에 **`교직원 관리` (`/staff`)** 메뉴 표시
+    - `AppLayout.tsx`: 사이드바 '알림 & 운영' 그룹에 **`교직원 관리` (`/staff`)** 추가
+    - `dashboard/page.tsx`: 핵심 학원 관리 도메인 7대 그리드에 **`교직원 관리`** 바로가기 카드 배치
+- **백엔드 연동 요청 사항 (Claude에게 전달)**:
+  - 현재 백엔드에는 `POST /auth/register-staff`가 구현되어 있습니다.
+  - 추가로 원장님/관리자 전용 교직원 관리 API 4종 구현을 요청드립니다:
+    1. `GET /auth/staff` (또는 `GET /staff`): 소속 학원(`academyId`) 전체 교직원 목록 조회 (담당 반 `taughtClasses` include) - `OWNER`, `ADMIN` 전용
+    2. `PATCH /auth/staff/:id`: 교직원 정보(이름, 연락처, 직책) 수정 - `OWNER`, `ADMIN` 전용 (원장 직책 변경 불가)
+    3. `PATCH /auth/staff/:id/password`: 교직원 비밀번호 초기화/재설정 - `OWNER`, `ADMIN` 전용
+    4. `DELETE /auth/staff/:id`: 교직원 삭제/퇴사 처리 (담당 반 `teacherId` SetNull) - `OWNER` 전용
+- **상태**: ✅ Next.js 16 프로덕션 빌드 (18/18 routes) 완벽 통과, 프론트엔드 연동 완료
+
 ### 📅 2026-09-02: 수강료 청구 대상 반 드롭다운 스크롤 개선 및 모달(Header/Body/Footer) 구조 전면 표준화 완료
 - **작성자**: Gemini (Frontend)
 - **프론트엔드 반영 사항 (Gemini)**:
