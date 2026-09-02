@@ -1280,22 +1280,6 @@ export default function AttendancePage() {
               >
                 <RefreshCw className={`w-4 h-4 ${isLoadingRoster || isLoadingTimeline ? 'animate-spin' : ''}`} />
               </button>
-
-              {displayMode === 'CLASS' && (
-                <button
-                  type="button"
-                  onClick={handleBatchAllPresent}
-                  disabled={isBatchLoading || !roster || roster.students.length === 0}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isBatchLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <CheckCheck className="w-4 h-4" />
-                  )}
-                  <span>전원 출석 일괄 처리</span>
-                </button>
-              )}
             </div>
           </div>
 
@@ -1959,27 +1943,89 @@ export default function AttendancePage() {
                       검색어 또는 필터를 변경하거나 반에 수강생을 먼저 배정해주세요.
                     </p>
                   </div>
-                ) : viewLayout === 'LARGE_LIST' ? (
-                  <div className="space-y-3">
-                    {filteredClassStudents.map((st) =>
-                      renderStudentLargeListItem(
-                        st,
-                        selectedClassId,
-                        roster?.class.name,
-                        roster?.class.schedule,
-                      ),
-                    )}
-                  </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredClassStudents.map((st) =>
-                      renderStudentCardItem(
-                        st,
-                        selectedClassId,
-                        roster?.class.name,
-                        roster?.class.schedule,
-                      ),
-                    )}
+                  <div className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
+                    {/* Class Info & Batch Check Header Banner (시간대별 타임슬롯 헤더와 동일한 위치/구조) */}
+                    <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50">
+                      <div className="flex items-start sm:items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <BookOpen className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                              {roster?.class.name || '수업 반'}
+                            </h3>
+                            {roster?.class.subject && (
+                              <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold border ${getSubjectColor(roster.class.subject)}`}>
+                                {roster.class.subject}
+                              </span>
+                            )}
+                            {roster?.class.schedule && (
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                                {roster.class.schedule}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                            {classes.find((c) => c.id === selectedClassId)?.teacher?.name && (
+                              <>
+                                <span>담당: {classes.find((c) => c.id === selectedClassId)?.teacher?.name}</span>
+                                <span>•</span>
+                              </>
+                            )}
+                            <span className="font-semibold text-slate-700 dark:text-slate-300">
+                              총 {filteredClassStudents.length}명 (출석 {filteredClassStudents.filter((s) => s.attendance?.status === 'PRESENT').length}명, 미체크 {filteredClassStudents.filter((s) => !s.attendance?.status).length}명)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Batch All Present Button (시간대별 화면과 완전히 동일한 위치!) */}
+                      <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                        <button
+                          type="button"
+                          onClick={handleBatchAllPresent}
+                          disabled={isBatchLoading || !roster || roster.students.length === 0}
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          {isBatchLoading ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <CheckCheck className="w-3.5 h-3.5" />
+                          )}
+                          <span>전원 출석 일괄 처리</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Students List in Class */}
+                    <div className="p-4 sm:p-5 animate-in fade-in duration-150">
+                      {viewLayout === 'LARGE_LIST' ? (
+                        <div className="space-y-3">
+                          {filteredClassStudents.map((st) =>
+                            renderStudentLargeListItem(
+                              st,
+                              selectedClassId,
+                              roster?.class.name,
+                              roster?.class.schedule,
+                            ),
+                          )}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {filteredClassStudents.map((st) =>
+                            renderStudentCardItem(
+                              st,
+                              selectedClassId,
+                              roster?.class.name,
+                              roster?.class.schedule,
+                            ),
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </>
