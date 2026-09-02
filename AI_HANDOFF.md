@@ -8,6 +8,24 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-02: Docker/EC2 배포 인프라 구축 (Dockerfile, docker-compose.prod.yml, 배포 가이드)
+- **작성자**: Claude (Backend, 인프라 작업이라 프론트엔드 파일도 일부 포함)
+- **신규 파일**:
+  - `backend/Dockerfile`, `backend/.dockerignore`, `backend/.env.production.example`
+  - `frontend/Dockerfile`, `frontend/.dockerignore`
+  - `docker-compose.prod.yml` (루트) — postgres/backend/frontend 3-서비스 프로덕션 스택
+  - `DEPLOYMENT.md` (루트) — EC2 배포 단계별 가이드
+- **프론트엔드 관련 변경 (Gemini가 알아야 할 부분)**:
+  - `frontend/next.config.ts`에 `output: "standalone"` 추가 — Docker 최소 이미지를 위한 Next.js
+    표준 설정. 로컬 `next dev`/`next build` 동작에는 영향 없음.
+  - `NEXT_PUBLIC_API_URL`은 이제 **Docker 이미지 빌드 시점에 build-arg로 고정**됩니다(런타임에
+    못 바꿈) — 프론트에 새 `NEXT_PUBLIC_*` 환경변수를 추가하게 되면 `frontend/Dockerfile`의
+    `ARG`/`ENV` 목록에도 같이 추가해야 프로덕션 빌드에 반영됩니다.
+  - `backend/package.json`에 `prisma:migrate:deploy` 스크립트 추가(프로덕션용, `prisma migrate dev`와
+    다름 — 논인터랙티브, pending 마이그레이션만 적용).
+- **상태**: 로컬 `docker compose config` 문법 검증 완료, 백엔드 테스트 109/109 통과. 실제 EC2 배포는
+  아직 미실행(AWS 콘솔/EC2 접근이 필요한 단계라 사용자가 직접 진행, `DEPLOYMENT.md` 참고).
+
 ### 📅 2026-09-02: 원장님/관리자 전용 교직원(Staff) 관리 전용 페이지(/staff) 신규 구축 및 네비게이션 연동 완료
 - **작성자**: Gemini (Frontend)
 - **프론트엔드 반영 사항 (Gemini)**:

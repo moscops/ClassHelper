@@ -40,6 +40,7 @@ coverage/
 # Environment variables
 .env
 .env.*
+!.env.production.example
 .env.local
 .env.development.local
 .env.test.local

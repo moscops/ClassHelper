@@ -1,0 +1,57 @@
+# ClassHelper 프로덕션 배포용 스택 (EC2 등 단일 서버에서 docker compose로 실행).
+# 로컬 개발용 docker-compose.yml(Postgres만 띄움)과는 별개 파일입니다.
+#
+# 사용법: repo 루트에서
+#   1) 이 파일과 같은 위치에 .env 파일을 만들고 POSTGRES_PASSWORD를 채운다
+#   2) backend/.env.production.example -> backend/.env 로 복사 후 값 채움
+#      (DATABASE_URL의 비밀번호는 위 POSTGRES_PASSWORD와 반드시 동일해야 함)
+#   3) docker compose -f docker-compose.prod.yml up --build -d
+#   4) docker compose -f docker-compose.prod.yml exec backend yarn prisma:migrate:deploy
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: classhelper-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: classhelper_user
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:?POSTGRES_PASSWORD가 루트 .env에 설정되어야 합니다}'
+      POSTGRES_DB: classhelper_db
+      TZ: Asia/Seoul
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U classhelper_user -d classhelper_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: classhelper-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL이 루트 .env에 설정되어야 합니다}'
+    container_name: classhelper-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - '3001:3000'
+
+volumes:
+  pgdata:
