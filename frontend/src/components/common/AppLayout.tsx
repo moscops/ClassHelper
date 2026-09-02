@@ -22,9 +22,8 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useNavStatusStore } from '@/stores/useNavStatusStore';
 import { authService } from '@/lib/auth-service';
-import { attendanceService } from '@/lib/attendance-service';
-import { notificationsService } from '@/lib/notifications-service';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface NavItem {
@@ -54,40 +53,23 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
   const router = useRouter();
   const activePath = currentPath || pathname;
   const { user, academy, isAuthenticated, isHydrated, logout } = useAuthStore();
+  const {
+    hasUnattendedAlert,
+    unattendedCount,
+    unreadNotificationCount,
+    updateStatus,
+  } = useNavStatusStore();
 
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-  const [hasUnattendedAlert, setHasUnattendedAlert] = useState(false);
-  const [unattendedCount, setUnattendedCount] = useState(0);
-  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
-  // Poll status for attendance alert and unread notifications
+  // Background sync for status (preserves global cache across route changes)
   useEffect(() => {
     if (isHydrated && isAuthenticated) {
-      const checkStatus = async () => {
-        try {
-          const [attRes, notifRes] = await Promise.all([
-            attendanceService.getUnattendedStatus().catch(() => null),
-            notificationsService.getUnreadCount().catch(() => null),
-          ]);
-
-          if (attRes) {
-            setHasUnattendedAlert(attRes.isUnattendedAlertActive);
-            setUnattendedCount(attRes.unattendedCount);
-          }
-
-          if (notifRes) {
-            setUnreadNotificationCount(notifRes.unreadCount || 0);
-          }
-        } catch {
-          // ignore
-        }
-      };
-
-      checkStatus();
-      const interval = setInterval(checkStatus, 20000);
+      updateStatus();
+      const interval = setInterval(updateStatus, 25000);
       return () => clearInterval(interval);
     }
-  }, [isHydrated, isAuthenticated]);
+  }, [isHydrated, isAuthenticated, updateStatus]);
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -291,7 +273,7 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
                       item.active
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs shadow-indigo-600/20'
                         : item.alert
-                        ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800 animate-pulse'
+                        ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800'
                         : item.adminOnly
                         ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-transparent hover:bg-purple-100 dark:hover:bg-purple-900/40'
                         : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80'
@@ -309,15 +291,25 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
                     <div className="flex items-center gap-1 shrink-0">
                       {/* 미등원 긴급 알림 뱃지 */}
                       {item.alert && (
-                        <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-600 text-white">
+                        <span
+                          className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0 ${
+                            item.active
+                              ? 'bg-white text-rose-700'
+                              : 'bg-rose-600 text-white'
+                          }`}
+                        >
                           {item.alertCount}명
                         </span>
                       )}
 
-                      {/* 알림 관리 센터 연한 주황색 느낌표 뱃지 */}
+                      {/* 알림 관리 센터 느낌표 뱃지 */}
                       {item.hasExclamation && (
                         <span
-                          className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 font-black text-xs shadow-xs animate-pulse"
+                          className={`inline-flex items-center justify-center w-4.5 h-4.5 rounded-full text-xs font-black shrink-0 ${
+                            item.active
+                              ? 'bg-white text-indigo-700'
+                              : 'bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
+                          }`}
                           title={`읽지 않은 알림 ${item.unreadCount}건`}
                         >
                           !
@@ -477,13 +469,23 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {item.alert && (
-                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-600 text-white">
+                            <span
+                              className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0 ${
+                                item.active
+                                  ? 'bg-white text-rose-700'
+                                  : 'bg-rose-600 text-white'
+                              }`}
+                            >
                               {item.alertCount}명
                             </span>
                           )}
                           {item.hasExclamation && (
                             <span
-                              className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 font-black text-xs shadow-xs animate-pulse"
+                              className={`inline-flex items-center justify-center w-4.5 h-4.5 rounded-full text-xs font-black shrink-0 ${
+                                item.active
+                                  ? 'bg-white text-indigo-700'
+                                  : 'bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
+                              }`}
                               title={`읽지 않은 알림 ${item.unreadCount}건`}
                             >
                               !
