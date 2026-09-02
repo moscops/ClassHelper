@@ -663,7 +663,7 @@ export default function ReportsPage() {
                       placeholder="원생 이름, 학부모 연락처..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-8.5 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      className="w-full pl-8.5 pr-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
 
@@ -1126,7 +1126,7 @@ export default function ReportsPage() {
                           value={wizardEditableMessage}
                           onChange={(e) => setWizardEditableMessage(e.target.value)}
                           placeholder="발송할 알림톡 메시지 내용을 확인하고 수정하세요..."
-                          className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed"
+                          className="w-full p-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 leading-relaxed transition-all resize-none"
                         />
                       </div>
 
@@ -1252,7 +1252,7 @@ export default function ReportsPage() {
                     value={batchCustomNote}
                     onChange={(e) => setBatchCustomNote(e.target.value)}
                     placeholder="예: 다음 주부터 중간고사 대비 모의고사가 진행됩니다. 학생들의 적극적인 참여 부탁드립니다."
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
                   />
                 </div>
 
@@ -1472,7 +1472,7 @@ export default function ReportsPage() {
                           value={editableMessage}
                           onChange={(e) => setEditableMessage(e.target.value)}
                           placeholder="발송할 메시지를 확인하고 수정하세요..."
-                          className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed"
+                          className="w-full p-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 leading-relaxed transition-all resize-none"
                         />
 
                         {/* Kakao Preview Bubble */}

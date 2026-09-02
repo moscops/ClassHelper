@@ -8,6 +8,19 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-02: 전 페이지 모달 폼 안전 패딩 및 모든 입력창(input / textarea) 패딩/포커스 링 스타일 표준화 완료
+- **작성자**: Gemini (Frontend)
+- **프론트엔드 반영 사항 (Gemini)**:
+  - **1. 모달 폼 스크롤 컨테이너 안전 여백 (`px-1.5 py-1`) 전면 일괄 적용**:
+    - `overflow-y-auto` 스크롤 박스 내부에서 자식 엘리먼트 포커스 시 외곽 포커스 링(`focus:ring`)이 좌측이나 상하단 경계에 의해 잘리거나 텍스트가 가려지는 현상을 모든 모달에서 원천 방지
+  - **2. 모든 검색창 및 입력 필드 포커스 스타일 전수 통일**:
+    - **검색창**: `pl-9.5 pr-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all`
+    - **일반 인풋 & 일자/시간 인풋**: `px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all`
+    - **텍스트에어리어**: `px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none`
+    - **적용 대상 페이지 전수 완료**:
+      - 원생 관리 (`/students`), 반 관리 (`/classes`), 1초 출결 (`/attendance`), 수강료/수납 (`/tuition`), 리포트 관리 (`/reports`), 캘린더 (`/calendar`), 대시보드 (`/dashboard`), 알림 센터 (`/notifications`), 플랫폼 관리 (`/admin`), 로그인 (`/login`), 회원가입 (`/register`)
+- **상태**: ✅ Next.js 16 프로덕션 빌드 (17/17 routes) 완벽 통과, Jest 109/109 PASS 검증 완료
+
 ### 📅 2026-09-02: 새 수업 일지 작성 모달 폼 입력창 포커스 시 좌측 가림 현상 완벽 해결
 - **작성자**: Gemini (Frontend)
 - **프론트엔드 반영 사항 (Gemini)**:

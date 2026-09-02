@@ -659,7 +659,7 @@ export default function StudentsPage() {
                   placeholder="원생 이름, 학부모/학생 연락처, 학교, 학년 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
                 {searchTerm && (
                   <button
@@ -1257,10 +1257,10 @@ export default function StudentsPage() {
                         setStudentFormData({ ...studentFormData, name: e.target.value });
                         if (nameError) setNameError(null);
                       }}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-all ${
+                      className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none transition-all ${
                         nameError
-                          ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                          : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
+                          ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 dark:bg-rose-950/20'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'
                       }`}
                     />
                     {nameError && (
@@ -1275,7 +1275,7 @@ export default function StudentsPage() {
                     <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       성별
                     </label>
-                    <div className="flex p-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl h-[42px] items-center">
+                    <div className="flex p-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl h-[42px] items-center">
                       {[
                         { value: '', label: '미지정' },
                         { value: 'MALE', label: '남' },
@@ -1285,7 +1285,7 @@ export default function StudentsPage() {
                           key={g.value}
                           type="button"
                           onClick={() => setStudentFormData({ ...studentFormData, gender: g.value as Gender })}
-                          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                             studentFormData.gender === g.value
                               ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
                               : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -1309,7 +1309,7 @@ export default function StudentsPage() {
                       placeholder="예: 초6, 중2, 고1"
                       value={studentFormData.grade}
                       onChange={(e) => setStudentFormData({ ...studentFormData, grade: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
 
@@ -1324,7 +1324,7 @@ export default function StudentsPage() {
                       onChange={(e) =>
                         setStudentFormData({ ...studentFormData, schoolName: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                 </div>
@@ -1343,10 +1343,10 @@ export default function StudentsPage() {
                         setStudentFormData({ ...studentFormData, parentPhone: e.target.value });
                         if (parentPhoneError) setParentPhoneError(null);
                       }}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-all ${
+                      className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none transition-all ${
                         parentPhoneError
-                          ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                          : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
+                          ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 dark:bg-rose-950/20'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'
                       }`}
                     />
                     {parentPhoneError && (
@@ -1369,7 +1369,7 @@ export default function StudentsPage() {
                         onChange={(e) =>
                           setStudentFormData({ ...studentFormData, parentName: e.target.value })
                         }
-                        className="flex-1 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                       />
                       <div
                         ref={parentRelRef}
@@ -1427,7 +1427,7 @@ export default function StudentsPage() {
                       onChange={(e) =>
                         setStudentFormData({ ...studentFormData, studentPhone: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
 
@@ -1440,6 +1440,8 @@ export default function StudentsPage() {
                       onChange={(val) => setStudentFormData({ ...studentFormData, birthDate: val })}
                       placeholder="YYYY-MM-DD"
                       showTodayShortcut={false}
+                      align="right"
+                      className="w-full"
                     />
                   </div>
                 </div>
@@ -1455,6 +1457,7 @@ export default function StudentsPage() {
                       onChange={(val) => setStudentFormData({ ...studentFormData, enrolledAt: val })}
                       placeholder="YYYY-MM-DD"
                       showTodayShortcut={true}
+                      className="w-full"
                     />
                   </div>
 
@@ -1466,7 +1469,7 @@ export default function StudentsPage() {
                     <button
                       type="button"
                       onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                      className="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white text-xs hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                     >
                       <div className="flex items-center gap-2">
                         {studentFormData.status === 'ACTIVE' && (
@@ -1575,7 +1578,7 @@ export default function StudentsPage() {
                     placeholder="원생의 학습 성향, 희망 진도, 특이사항 등을 기록하세요."
                     value={studentFormData.memo}
                     onChange={(e) => setStudentFormData({ ...studentFormData, memo: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
                   />
                 </div>
               </div>
@@ -2214,14 +2217,14 @@ export default function StudentsPage() {
                     type="date"
                     value={reportPeriodStart}
                     onChange={(e) => setReportPeriodStart(e.target.value)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                   />
                   <span className="text-slate-400 font-bold">~</span>
                   <input
                     type="date"
                     value={reportPeriodEnd}
                     onChange={(e) => setReportPeriodEnd(e.target.value)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                   />
                   <button
                     type="button"
@@ -2230,7 +2233,7 @@ export default function StudentsPage() {
                         fetchReportPreview(selectedStudentForReport.id, reportPeriodStart, reportPeriodEnd);
                       }
                     }}
-                    className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer shrink-0 transition-colors"
+                    className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer shrink-0 transition-colors"
                   >
                     새로고침
                   </button>
@@ -2334,7 +2337,7 @@ export default function StudentsPage() {
                             value={editableReportMessage}
                             onChange={(e) => setEditableReportMessage(e.target.value)}
                             placeholder="발송할 알림톡 본문을 확인하고 수정하세요..."
-                            className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 leading-relaxed"
+                            className="w-full p-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 leading-relaxed transition-all resize-none"
                           />
                         </div>
 

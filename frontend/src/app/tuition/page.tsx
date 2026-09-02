@@ -629,7 +629,7 @@ export default function TuitionPage() {
                   placeholder="원생 이름, 학년, 학부모 연락처 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-10 pr-9 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
                 {searchTerm && (
                   <button
@@ -1057,7 +1057,7 @@ export default function TuitionPage() {
                     setGenerateDueDate(`${e.target.value}-10`);
                   }}
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
               </div>
 
@@ -1215,9 +1215,9 @@ export default function TuitionPage() {
                     min={1}
                     max={selectedInvoiceForPayment.remainingAmount}
                     placeholder="수납할 금액 입력"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                   />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
                     원
                   </span>
                 </div>
@@ -1239,7 +1239,7 @@ export default function TuitionPage() {
                       key={m.id}
                       type="button"
                       onClick={() => setPaymentMethod(m.id as PaymentMethod)}
-                      className={`py-2 px-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      className={`py-2.5 px-3 rounded-2xl border text-center transition-all cursor-pointer ${
                         paymentMethod === m.id
                           ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                           : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
@@ -1260,6 +1260,7 @@ export default function TuitionPage() {
                   value={paymentDate}
                   onChange={setPaymentDate}
                   placeholder="결제 일자 선택"
+                  className="w-full"
                 />
               </div>
 
@@ -1273,7 +1274,7 @@ export default function TuitionPage() {
                   value={paymentReceiptNumber}
                   onChange={(e) => setPaymentReceiptNumber(e.target.value)}
                   placeholder="예: APPR-12345678"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                 />
               </div>
 
@@ -1287,7 +1288,7 @@ export default function TuitionPage() {
                   value={paymentMemo}
                   onChange={(e) => setPaymentMemo(e.target.value)}
                   placeholder="예: 1회차 분할 납부, 학부모 카드 결제"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                 />
               </div>
 

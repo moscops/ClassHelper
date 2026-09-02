@@ -579,7 +579,7 @@ export default function ClassesPage() {
                   placeholder="반 명칭, 과목, 학년, 수업 시간표 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
                 {searchTerm && (
                   <button
@@ -1006,10 +1006,10 @@ export default function ClassesPage() {
                       setClassFormData({ ...classFormData, name: e.target.value });
                       if (nameError) setNameError(null);
                     }}
-                    className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-all ${
+                    className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none transition-all ${
                       nameError
-                        ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
+                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 dark:bg-rose-950/20'
+                        : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'
                     }`}
                   />
                   {nameError && (
@@ -1030,7 +1030,7 @@ export default function ClassesPage() {
                       placeholder="예: 수학, 영어, 국어"
                       value={classFormData.subject}
                       onChange={(e) => setClassFormData({ ...classFormData, subject: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                   <div>
@@ -1042,7 +1042,7 @@ export default function ClassesPage() {
                       placeholder="예: 초6, 중2, 고1"
                       value={classFormData.targetGrade}
                       onChange={(e) => setClassFormData({ ...classFormData, targetGrade: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                 </div>
@@ -1056,7 +1056,7 @@ export default function ClassesPage() {
                     placeholder="예: 월/수/금 17:00-19:00"
                     value={classFormData.schedule}
                     onChange={(e) => setClassFormData({ ...classFormData, schedule: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                 </div>
 
@@ -1071,7 +1071,7 @@ export default function ClassesPage() {
                       placeholder="예: 15 (명)"
                       value={classFormData.capacity}
                       onChange={(e) => setClassFormData({ ...classFormData, capacity: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                   <div>
@@ -1085,7 +1085,7 @@ export default function ClassesPage() {
                       placeholder="예: 350,000 (원)"
                       value={classFormData.monthlyFee}
                       onChange={(e) => setClassFormData({ ...classFormData, monthlyFee: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                 </div>
@@ -1329,12 +1329,12 @@ export default function ClassesPage() {
                           }
                         }}
                         onFocus={() => setIsStudentDropdownOpen(true)}
-                        className={`w-full pl-9 pr-8 py-2.5 bg-white dark:bg-slate-900 border rounded-xl text-slate-900 dark:text-white text-xs placeholder-slate-400 focus:outline-none transition-all ${
+                        className={`w-full pl-9 pr-8 py-2.5 bg-white dark:bg-slate-900 border rounded-2xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none transition-all ${
                           enrollError && !selectedStudentIdToEnroll
-                            ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
+                            ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 dark:bg-rose-950/20'
                             : selectedStudentIdToEnroll
-                            ? 'border-indigo-500 ring-1 ring-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/20 font-semibold'
-                            : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
+                            ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/20 dark:bg-indigo-950/20 font-semibold'
+                            : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'
                         }`}
                       />
                       {studentSearchTerm && (
@@ -1751,14 +1751,14 @@ export default function ClassesPage() {
                     type="date"
                     value={classReportStart}
                     onChange={(e) => setClassReportStart(e.target.value)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                   />
                   <span className="text-slate-400 font-bold">~</span>
                   <input
                     type="date"
                     value={classReportEnd}
                     onChange={(e) => setClassReportEnd(e.target.value)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                   />
                 </div>
               </div>
@@ -1774,7 +1774,7 @@ export default function ClassesPage() {
                   value={classReportCustomNote}
                   onChange={(e) => setClassReportCustomNote(e.target.value)}
                   placeholder="예: 다음 주부터 중간고사 대비 모의고사가 진행됩니다. 학생들의 적극적인 참여 부탁드립니다."
-                  className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 leading-relaxed"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 leading-relaxed transition-all resize-none"
                 />
               </div>
 

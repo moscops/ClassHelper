@@ -159,9 +159,9 @@ export default function LoginPage() {
                   placeholder="name@academy.kr"
                   className={`block w-full pl-9 pr-3.5 py-2.5 bg-white dark:bg-slate-900 border ${
                     errors.email
-                      ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
-                      : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                  } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-all`}
+                      ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                      : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20'
+                  } rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none transition-all`}
                   {...register('email')}
                 />
               </div>
@@ -175,7 +175,7 @@ export default function LoginPage() {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 비밀번호
               </label>
-              <div className="relative rounded-xl shadow-xs">
+              <div className="relative rounded-2xl shadow-xs">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />
                 </div>
@@ -185,9 +185,9 @@ export default function LoginPage() {
                   placeholder="비밀번호 입력"
                   className={`block w-full pl-9 pr-10 py-2.5 bg-white dark:bg-slate-900 border ${
                     errors.password
-                      ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
-                      : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                  } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-all`}
+                      ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                      : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20'
+                  } rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none transition-all`}
                   {...register('password')}
                 />
                 <button
