@@ -37,6 +37,7 @@ import {
 import { classesService, ClassItem } from '@/lib/classes-service';
 import { studentsService, StudentItem } from '@/lib/students-service';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
+import { CustomDropdown } from '@/components/CustomDropdown';
 import { AppLayout } from '@/components/common/AppLayout';
 
 export default function ReportsPage() {
@@ -666,18 +667,19 @@ export default function ReportsPage() {
                     />
                   </div>
 
-                  <select
+                  <CustomDropdown
                     value={classFilter}
-                    onChange={(e) => setClassFilter(e.target.value)}
-                    className="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 font-semibold focus:outline-none shrink-0"
-                  >
-                    <option value="ALL">전체 반</option>
-                    {classes.map((cls) => (
-                      <option key={cls.id} value={String(cls.id)}>
-                        {cls.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setClassFilter(val)}
+                    placeholder="전체 반"
+                    options={[
+                      { value: 'ALL', label: '전체 반' },
+                      ...classes.map((cls) => ({
+                        value: String(cls.id),
+                        label: cls.name,
+                        count: cls.enrolledCount,
+                      })),
+                    ]}
+                  />
                 </div>
               )}
             </div>
@@ -1003,42 +1005,45 @@ export default function ReportsPage() {
                     <label className="font-bold text-slate-700 dark:text-slate-300">
                       대상 수업 반
                     </label>
-                    <select
-                      value={wizardSelectedClassId}
-                      onChange={(e) => {
-                        const cid = Number(e.target.value);
+                    <CustomDropdown
+                      value={String(wizardSelectedClassId || '')}
+                      onChange={(val) => {
+                        const cid = Number(val);
                         setWizardSelectedClassId(cid);
                         handleFetchWizardClassSample(cid);
                       }}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
-                    >
-                      {classes.map((cls) => (
-                        <option key={cls.id} value={cls.id}>
-                          {cls.name} ({cls.subject || '과목미지정'} • 재원생 {cls.enrolledCount}명)
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="수업 반을 선택하세요"
+                      fullWidth
+                      searchable
+                      options={classes.map((cls) => ({
+                        value: String(cls.id),
+                        label: cls.name,
+                        subLabel: cls.subject || '과목미지정',
+                        count: cls.enrolledCount,
+                      }))}
+                    />
                   </div>
                 ) : (
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-700 dark:text-slate-300">
                       대상 원생
                     </label>
-                    <select
-                      value={wizardSelectedStudentId}
-                      onChange={(e) => {
-                        const sid = Number(e.target.value);
+                    <CustomDropdown
+                      value={String(wizardSelectedStudentId || '')}
+                      onChange={(val) => {
+                        const sid = Number(val);
                         setWizardSelectedStudentId(sid);
                         handleFetchWizardStudentPreview(sid);
                       }}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
-                    >
-                      {students.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name} ({s.grade || '학년미지정'} • {s.parentPhone || '연락처없음'})
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="원생을 선택하세요"
+                      fullWidth
+                      searchable
+                      options={students.map((s) => ({
+                        value: String(s.id),
+                        label: s.name,
+                        subLabel: `${s.grade || '학년미지정'} • ${s.parentPhone || '연락처없음'}`,
+                      }))}
+                    />
                   </div>
                 )}
 

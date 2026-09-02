@@ -38,6 +38,7 @@ import {
 } from '@/lib/calendar-service';
 import { AppLayout } from '@/components/common/AppLayout';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
+import { CustomDropdown } from '@/components/CustomDropdown';
 
 type CalendarViewMode = 'MONTH' | 'WEEK_TIMETABLE' | 'AGENDA';
 
@@ -532,18 +533,21 @@ export default function CalendarPage() {
               </div>
 
               {/* Target Class Selector */}
-              <select
+              <CustomDropdown
                 value={classFilter}
-                onChange={(e) => setClassFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="ALL">전체 개설 반 ({classes.length}개)</option>
-                {classes.map((cls) => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.name} ({cls.schedule || '시간 미지정'})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setClassFilter(val)}
+                placeholder="전체 개설 반"
+                searchable
+                options={[
+                  { value: 'ALL', label: `전체 개설 반 (${classes.length}개)` },
+                  ...classes.map((cls) => ({
+                    value: String(cls.id),
+                    label: cls.name,
+                    subLabel: cls.schedule || '시간 미지정',
+                    count: cls.enrolledCount,
+                  })),
+                ]}
+              />
             </div>
           </div>
 
@@ -1129,21 +1133,20 @@ export default function CalendarPage() {
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     카테고리
                   </label>
-                  <select
+                  <CustomDropdown
                     value={eventCategory}
-                    onChange={(e) => {
-                      const cat = e.target.value as EventCategory;
+                    onChange={(val) => {
+                      const cat = val as EventCategory;
                       setEventCategory(cat);
                       setEventColor(EVENT_CATEGORY_META[cat]?.defaultColor || 'INDIGO');
                     }}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {(Object.keys(EVENT_CATEGORY_META) as EventCategory[]).map((cat) => (
-                      <option key={cat} value={cat}>
-                        {EVENT_CATEGORY_META[cat].label}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="카테고리 선택"
+                    fullWidth
+                    options={(Object.keys(EVENT_CATEGORY_META) as EventCategory[]).map((cat) => ({
+                      value: cat,
+                      label: EVENT_CATEGORY_META[cat].label,
+                    }))}
+                  />
                 </div>
 
                 <div>
@@ -1177,6 +1180,7 @@ export default function CalendarPage() {
                     value={eventStartDate}
                     onChange={setEventStartDate}
                     placeholder="시작 날짜 선택"
+                    className="w-full"
                   />
                 </div>
                 <div>
@@ -1187,6 +1191,8 @@ export default function CalendarPage() {
                     value={eventEndDate}
                     onChange={setEventEndDate}
                     placeholder="종료 날짜 (당일이면 공란)"
+                    align="right"
+                    className="w-full"
                   />
                 </div>
               </div>

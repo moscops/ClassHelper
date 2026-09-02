@@ -32,6 +32,7 @@ import {
   StudentHomeworkHistoryResponse,
 } from '@/lib/class-logs-service';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
+import { CustomDropdown } from '@/components/CustomDropdown';
 import { AppLayout } from '@/components/common/AppLayout';
 
 export default function ClassLogsPage() {
@@ -579,79 +580,26 @@ export default function ClassLogsPage() {
         <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
             {/* 1. 수업 반 선택 */}
-            <div className="md:col-span-4 relative" ref={classDropdownRef}>
+            <div className="md:col-span-4">
               <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                 수업 반 필터
               </label>
-              <button
-                type="button"
-                onClick={() => setIsClassDropdownOpen(!isClassDropdownOpen)}
-                className="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-left font-semibold text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-2xs"
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                  {selectedClass ? (
-                    <span className="truncate">
-                      {selectedClass.name}
-                      <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">
-                        ({selectedClass.schedule || '시간표 미정'})
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="text-slate-600 dark:text-slate-300">
-                      전체 수업 반 일지 보기
-                    </span>
-                  )}
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${
-                    isClassDropdownOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-
-              {/* Dropdown Menu */}
-              {isClassDropdownOpen && (
-                <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-1.5 max-h-64 overflow-y-auto space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedClassId(null);
-                      setIsClassDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all text-left cursor-pointer ${
-                      selectedClassId === null
-                        ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-bold'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <span>전체 수업 반 보기</span>
-                  </button>
-
-                  {classes.map((cls) => (
-                    <button
-                      key={cls.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedClassId(cls.id);
-                        setIsClassDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all text-left cursor-pointer ${
-                        selectedClassId === cls.id
-                          ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-bold'
-                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <span className="truncate">{cls.name}</span>
-                      </div>
-                      <span className="text-[11px] text-slate-400 shrink-0">
-                        {cls.enrolledCount}명
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
+              <CustomDropdown
+                value={selectedClassId ? String(selectedClassId) : 'ALL'}
+                onChange={(val) => setSelectedClassId(val === 'ALL' ? null : Number(val))}
+                placeholder="전체 수업 반 일지 보기"
+                fullWidth
+                searchable
+                options={[
+                  { value: 'ALL', label: '전체 수업 반 일지 보기' },
+                  ...classes.map((cls) => ({
+                    value: String(cls.id),
+                    label: cls.name,
+                    subLabel: cls.schedule || '시간표 미정',
+                    count: cls.enrolledCount,
+                  })),
+                ]}
+              />
             </div>
 
             {/* 2. Date Range Filter */}
@@ -1155,24 +1103,24 @@ export default function ClassLogsPage() {
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     수업 반 <span className="text-rose-500">*</span>
                   </label>
-                  <select
-                    value={logFormData.classId}
-                    onChange={(e) =>
+                  <CustomDropdown
+                    value={String(logFormData.classId || '')}
+                    onChange={(val) =>
                       setLogFormData({
                         ...logFormData,
-                        classId: Number(e.target.value) || '',
+                        classId: Number(val) || '',
                       })
                     }
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">수업 반을 선택하세요</option>
-                    {classes.map((cls) => (
-                      <option key={cls.id} value={cls.id}>
-                        {cls.name} ({cls.schedule || '시간표 미정'})
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="수업 반을 선택하세요"
+                    fullWidth
+                    searchable
+                    options={classes.map((cls) => ({
+                      value: String(cls.id),
+                      label: cls.name,
+                      subLabel: cls.schedule || '시간표 미정',
+                      count: cls.enrolledCount,
+                    }))}
+                  />
                 </div>
 
                 <div>
@@ -1185,6 +1133,8 @@ export default function ClassLogsPage() {
                       setLogFormData({ ...logFormData, date: newDate })
                     }
                     placeholder="YYYY-MM-DD"
+                    align="right"
+                    className="w-full"
                   />
                 </div>
               </div>

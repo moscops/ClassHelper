@@ -32,6 +32,7 @@ import {
   RevenueStatsResponse,
 } from '@/lib/tuition-service';
 import { classesService, ClassItem } from '@/lib/classes-service';
+import { CustomDropdown } from '@/components/CustomDropdown';
 import { AppLayout } from '@/components/common/AppLayout';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
 
@@ -1069,6 +1070,8 @@ export default function TuitionPage() {
                   value={generateDueDate}
                   onChange={setGenerateDueDate}
                   placeholder="납부 마감일 선택"
+                  align="right"
+                  className="w-full"
                 />
               </div>
 
@@ -1077,18 +1080,22 @@ export default function TuitionPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   청구 대상 반
                 </label>
-                <select
+                <CustomDropdown
                   value={generateClassId}
-                  onChange={(e) => setGenerateClassId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="ALL">전체 개설 반 (학원 전체 재원생 대상)</option>
-                  {classes.map((cls) => (
-                    <option key={cls.id} value={cls.id}>
-                      {cls.name} ({cls.subject} / 월 {(cls.monthlyFee || 0).toLocaleString()}원)
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setGenerateClassId(val)}
+                  placeholder="청구 대상 반을 선택하세요"
+                  fullWidth
+                  searchable
+                  options={[
+                    { value: 'ALL', label: '전체 개설 반 (학원 전체 재원생 대상)' },
+                    ...classes.map((cls) => ({
+                      value: String(cls.id),
+                      label: `${cls.name} (${cls.subject || '과목'})`,
+                      subLabel: `월 ${(cls.monthlyFee || 0).toLocaleString()}원`,
+                      count: cls.enrolledCount,
+                    })),
+                  ]}
+                />
                 <p className="text-[11px] text-slate-400 mt-1">
                   * 이미 해당 월 청구서가 존재하는 원생은 자동 제외(중복 청구 방지)됩니다.
                 </p>
