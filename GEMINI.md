@@ -120,18 +120,18 @@
 1. **기본 브랜치**:
    - `main`: 프로덕션 배포 가능한 안정 버전 (Production)
    - `dev`: 모든 개발 작업이 통합되는 개발 기준 브랜치 (Development Base)
-2. **작업 브랜치 규칙 (분기: `dev` ➔ 머지: `dev`)**:
-   - **백엔드 작업**: `feat/backend/<도메인>-<기능명>` (예: `feat/backend/attendance-qr-api`, `feat/backend/tuition-billing-calc`)
-   - **프론트엔드 작업**: `feat/frontend/<도메인>-<기능명>` (예: `feat/frontend/attendance-dashboard-ui`, `feat/frontend/tuition-invoice-modal`)
-   - **풀스택 통합 작업**: `feat/fullstack/<도메인>-<기능명>` (예: `feat/fullstack/attendance-checkin`)
-   - **버그 수정**: `fix/backend/<도메인>-<수정명>`, `fix/frontend/<도메인>-<수정명>`
-   - **긴급 운영 수정**: `hotfix/backend/<수정명>`, `hotfix/frontend/<수정명>` (분기: `main` ➔ 머지: `main` & `dev`)
+2. **일반 작업 방식 (2026-09-02부터, Direct Commit)**:
+   - 백엔드(Claude)·프론트엔드(Gemini) 모두 `feat/*`, `fix/*` 등 별도 작업 브랜치를 만들지 않고 **`dev`에 직접 커밋**합니다.
+   - 이전에는 `feat/backend/<도메인>-<기능명>`, `feat/frontend/<도메인>-<기능명>`, `feat/fullstack/<도메인>-<기능명>`, `fix/backend|frontend/<도메인>-<수정명>` 브랜치를 분기해 PR로 병합했으나, 두 AI가 동시에 짧은 주기로 작업하는 협업 특성상 브랜치·PR 오버헤드가 크다고 판단해 폐지했습니다.
+   - 커밋 전 반드시 `git pull`(또는 `fetch` 후 `ff-only` 머지)로 최신 `dev`를 받아 상대 AI가 그 사이 올린 변경과 충돌하지 않는지 확인한 뒤 커밋·푸시합니다.
+3. **긴급 운영 수정(Hotfix)은 예외**: 프로덕션(`main`)에 이미 배포된 버전의 치명적 버그를 즉시 고쳐야 할 때만 기존 방식을 유지합니다.
+   - `hotfix/backend/<수정명>`, `hotfix/frontend/<수정명>` (분기: `main` ➔ 머지: `main` & `dev`)
 
 ### 6.2. 머지 전략 (Merge Strategy)
-1. **`feat/*`, `fix/*` ➔ `dev` 머지 시**: **`Squash and Merge`**
-   - 세부 작업 커밋들을 1개의 명확한 기능 단위 커밋으로 압축 머지하여 `dev` 히스토리 가독성 확보.
-2. **`dev` ➔ `main` 머지 시**: **`Create a merge commit` (Merge Commit)**
-   - 마일스톤 및 릴리스 배포 단위를 기록하고 버전 태그(`v1.x.x`) 부여.
+1. **일반 작업**: 브랜치를 만들지 않으므로 별도 병합 절차가 없습니다 — `dev`에 커밋 후 바로 `git push`.
+2. **Hotfix**: 브랜치를 `main`과 `dev` 양쪽에 **`Create a merge commit`**으로 반영합니다.
+3. **`dev` ➔ `main` 머지 시** (마일스톤/릴리스 배포 단위): **`Create a merge commit` (Merge Commit)**
+   - 버전 태그(`v1.x.x`) 부여.
 
 ### 6.3. 커밋 메시지 규칙 (`타입(영역/도메인): 설명`)
 - **예시**:
