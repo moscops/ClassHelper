@@ -13,10 +13,8 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  Sparkles,
   AlertCircle,
   Home,
-  ShieldCheck,
 } from 'lucide-react';
 import { authService } from '@/lib/auth-service';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -39,7 +37,6 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -81,18 +78,6 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleFillOwnerDemo = () => {
-    setValue('email', 'owner@classhelper.kr');
-    setValue('password', 'password123!');
-    setErrorMessage(null);
-  };
-
-  const handleFillAdminDemo = () => {
-    setValue('email', 'admin@classhelper.kr');
-    setValue('password', 'password123!');
-    setErrorMessage(null);
   };
 
   return (
@@ -219,31 +204,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Fill Helper */}
-          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-            <div className="text-[11px] font-medium text-slate-400 text-center mb-1">
-              빠른 테스트용 계정 자동 입력
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={handleFillOwnerDemo}
-                className="w-full flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                <span className="truncate">원장님 계정</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleFillAdminDemo}
-                className="w-full flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
-                <span className="truncate">관리자 계정</span>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Link to Register */}
