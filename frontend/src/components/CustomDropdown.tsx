@@ -21,6 +21,7 @@ interface CustomDropdownProps {
   className?: string;
   dropdownClassName?: string;
   align?: 'left' | 'right';
+  direction?: 'auto' | 'up' | 'down';
   fullWidth?: boolean;
   disabled?: boolean;
   searchable?: boolean;
@@ -34,6 +35,7 @@ export function CustomDropdown({
   className = '',
   dropdownClassName = '',
   align = 'left',
+  direction = 'auto',
   fullWidth = false,
   disabled = false,
   searchable = false,
@@ -91,9 +93,13 @@ export function CustomDropdown({
 
   const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!isOpen) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setOpenDirection(spaceBelow < 200 && rect.top > spaceBelow ? 'up' : 'down');
+      if (direction === 'up' || direction === 'down') {
+        setOpenDirection(direction);
+      } else {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        setOpenDirection(spaceBelow < 280 && rect.top > spaceBelow ? 'up' : 'down');
+      }
     }
     setIsOpen(!isOpen);
   };
@@ -102,7 +108,7 @@ export function CustomDropdown({
     <div
       ref={containerRef}
       className={`relative ${fullWidth ? 'w-full block' : 'inline-block'} text-xs ${
-        isOpen ? 'z-50' : 'z-10'
+        isOpen ? 'z-[60]' : 'z-10'
       }`}
     >
       {/* Trigger Button */}
@@ -110,7 +116,7 @@ export function CustomDropdown({
         type="button"
         disabled={disabled}
         onClick={handleToggle}
-        className={`px-3 py-2.5 rounded-2xl text-xs font-semibold border flex items-center justify-between gap-2 transition-all cursor-pointer shadow-2xs ${
+        className={`px-3.5 py-2.5 rounded-2xl text-xs font-semibold border flex items-center justify-between gap-2 transition-all cursor-pointer shadow-2xs ${
           fullWidth ? 'w-full' : ''
         } ${
           disabled
@@ -143,9 +149,9 @@ export function CustomDropdown({
         <div
           className={`absolute ${
             openDirection === 'up' ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-          } z-[70] ${
-            fullWidth ? 'w-full left-0' : align === 'right' ? 'right-0 min-w-[180px]' : 'left-0 min-w-[180px]'
-          } bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 ${dropdownClassName}`}
+          } z-[80] ${
+            fullWidth ? 'w-full left-0' : align === 'right' ? 'right-0 min-w-[200px]' : 'left-0 min-w-[200px]'
+          } bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 max-h-60 overflow-y-auto overscroll-contain touch-pan-y animate-in fade-in zoom-in-95 duration-100 ${dropdownClassName}`}
         >
           {/* Optional Search Input */}
           {searchable && (

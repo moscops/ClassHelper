@@ -8,6 +8,20 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-02: 수강료 청구 대상 반 드롭다운 스크롤 개선 및 모달(Header/Body/Footer) 구조 전면 표준화 완료
+- **작성자**: Gemini (Frontend)
+- **프론트엔드 반영 사항 (Gemini)**:
+  - **1. 수강료 모달(`tuition/page.tsx`) 스크롤 불능 및 드롭다운 잘림 완벽 해결**:
+    - 기존 모달 전체 `overflow-hidden`으로 인해 `CustomDropdown` 목록이 모달 바닥 밖으로 넘칠 때 잘리거나 스크롤이 불가했던 문제를 해결
+    - 청구서 일괄 생성, 수납 처리, 청구서 수정, 수납 영수증 내역 4개 모달 모두 고정 Header(`shrink-0 border-b`) + 스크롤 가능한 Form Body(`flex-1 overflow-y-auto px-5 py-4 min-h-0`) + 고정 Footer(`shrink-0 border-t bg-slate-50/60`) 구조로 전면 표준화
+  - **2. `CustomDropdown` 스마트 방향 판별 및 내부 스크롤 격리(`overscroll-contain`) 지원**:
+    - `direction?: 'auto' | 'up' | 'down'` 프로퍼티 추가 및 바닥 여백 임계값(`280px`)을 상향하여 공간 부족 시 위로 자동 펼침
+    - 드롭다운 팝오버에 `overscroll-contain touch-pan-y` 및 `max-h-60`을 적용하여 드롭다운 리스트 내부에서 마우스 휠이나 터치 스크롤 시 부모 모달과 충돌 없이 드롭다운 아이템만 매끄럽게 스크롤되도록 개선
+    - `isOpen` 시 `z-[60]` / 팝오버 `z-[80]`으로 모달 내부 레이어 간섭 완벽 차단
+  - **3. 수업 일지(`class-logs/page.tsx`) 및 캘린더(`calendar/page.tsx`) 모달 구조 일괄 최적화**:
+    - 수업 일지 작성/수정 모달 및 일정 등록/수정 모달 또한 동일한 Header / Scrollable Body / Footer 구조로 통일하여 드롭다운 및 폼 요소들의 스크롤과 포커스가 쾌적하게 동작하도록 일원화
+- **상태**: ✅ Next.js 16 프로덕션 빌드 (17/17 routes) 완벽 통과 (11.87s)
+
 ### 📅 2026-09-02: 전 페이지 모달 폼 안전 패딩 및 모든 입력창(input / textarea) 패딩/포커스 링 스타일 표준화 완료
 - **작성자**: Gemini (Frontend)
 - **프론트엔드 반영 사항 (Gemini)**:

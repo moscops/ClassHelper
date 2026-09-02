@@ -1071,152 +1071,160 @@ export default function ClassLogsPage() {
       {isLogModalOpen && (
         <div
           onClick={(e) => {
-            if (e.target === e.currentTarget && !isSubmittingLog) {
+            if (e.target === e.currentTarget) {
               setIsLogModalOpen(false);
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
         >
-          <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col p-6 sm:p-7 my-auto animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
+          <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                  <FileText className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <FileText className="w-4.5 h-4.5" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  {editingLogId ? '수업 일지 수정' : '새 수업 일지 작성'}
-                </h3>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    {editingLogId ? '수업 일지 수정' : '새 수업 일지 작성'}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    진도 범위, 과제 부여 및 학생별 개별 피드백을 기록하세요.
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsLogModalOpen(false)}
-                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmitLogForm} className="space-y-4 overflow-y-auto flex-1 px-1.5 py-1 mt-4">
-              {/* Class & Date Selection Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Modal Body / Form */}
+            <form onSubmit={handleSubmitLogForm} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 px-5 py-4 text-xs">
+                {/* Class & Date Selection Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                      수업 반 <span className="text-rose-500">*</span>
+                    </label>
+                    <CustomDropdown
+                      value={String(logFormData.classId || '')}
+                      onChange={(val) =>
+                        setLogFormData({
+                          ...logFormData,
+                          classId: Number(val) || '',
+                        })
+                      }
+                      placeholder="수업 반을 선택하세요"
+                      fullWidth
+                      searchable
+                      options={classes.map((cls) => ({
+                        value: String(cls.id),
+                        label: cls.name,
+                        subLabel: cls.schedule || '시간표 미정',
+                        count: cls.enrolledCount,
+                      }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                      수업 일자 <span className="text-rose-500">*</span>
+                    </label>
+                    <CustomDatePicker
+                      value={logFormData.date}
+                      onChange={(newDate) =>
+                        setLogFormData({ ...logFormData, date: newDate })
+                      }
+                      placeholder="YYYY-MM-DD"
+                      align="right"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                {/* Curriculum */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    수업 반 <span className="text-rose-500">*</span>
+                    교재 및 진도 범위 <span className="text-rose-500">*</span>
                   </label>
-                  <CustomDropdown
-                    value={String(logFormData.classId || '')}
-                    onChange={(val) =>
-                      setLogFormData({
-                        ...logFormData,
-                        classId: Number(val) || '',
-                      })
+                  <input
+                    type="text"
+                    placeholder="예: 개념원리 수학(상) p.45~62 다항식의 연산"
+                    value={logFormData.curriculum}
+                    onChange={(e) =>
+                      setLogFormData({ ...logFormData, curriculum: e.target.value })
                     }
-                    placeholder="수업 반을 선택하세요"
-                    fullWidth
-                    searchable
-                    options={classes.map((cls) => ({
-                      value: String(cls.id),
-                      label: cls.name,
-                      subLabel: cls.schedule || '시간표 미정',
-                      count: cls.enrolledCount,
-                    }))}
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                 </div>
 
+                {/* Lesson Content */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    수업 일자 <span className="text-rose-500">*</span>
+                    수업 핵심 내용 요약 (선택)
                   </label>
-                  <CustomDatePicker
-                    value={logFormData.date}
-                    onChange={(newDate) =>
-                      setLogFormData({ ...logFormData, date: newDate })
+                  <textarea
+                    rows={2}
+                    placeholder="당일 진행한 핵심 개념 및 예제 풀이 내용"
+                    value={logFormData.lessonContent}
+                    onChange={(e) =>
+                      setLogFormData({ ...logFormData, lessonContent: e.target.value })
                     }
-                    placeholder="YYYY-MM-DD"
-                    align="right"
-                    className="w-full"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                  />
+                </div>
+
+                {/* Homework Assigned */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    당일 부여 과제 (숙제) (선택)
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="예: 쎈 수학(상) 150번~180번 오답노트 작성"
+                    value={logFormData.homework}
+                    onChange={(e) =>
+                      setLogFormData({ ...logFormData, homework: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                  />
+                </div>
+
+                {/* Daily Notes */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    수업 분위기 및 특이사항 메모 (선택)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="수업 집중도, 주요 질문 사항, 다음 시간 예고 등"
+                    value={logFormData.notes}
+                    onChange={(e) =>
+                      setLogFormData({ ...logFormData, notes: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                 </div>
               </div>
 
-              {/* Curriculum */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  교재 및 진도 범위 <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="예: 개념원리 수학(상) p.45~62 다항식의 연산"
-                  value={logFormData.curriculum}
-                  onChange={(e) =>
-                    setLogFormData({ ...logFormData, curriculum: e.target.value })
-                  }
-                  required
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                />
-              </div>
-
-              {/* Lesson Content */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  수업 핵심 내용 요약
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="당일 진행한 핵심 개념 및 예제 풀이 내용"
-                  value={logFormData.lessonContent}
-                  onChange={(e) =>
-                    setLogFormData({ ...logFormData, lessonContent: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
-                />
-              </div>
-
-              {/* Homework Assignment */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  당일 부여 과제 (숙제)
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="예: 워크북 p.20~24 짝수번 풀기 및 오답노트 작성"
-                  value={logFormData.homework}
-                  onChange={(e) =>
-                    setLogFormData({ ...logFormData, homework: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
-                />
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  특이사항 및 메모
-                </label>
-                <input
-                  type="text"
-                  placeholder="수업 집중도, 다음 시간 쪽지시험 공지 등"
-                  value={logFormData.notes}
-                  onChange={(e) =>
-                    setLogFormData({ ...logFormData, notes: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                />
-              </div>
-
-              {/* Submit / Cancel Buttons */}
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+              {/* Modal Footer */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsLogModalOpen(false)}
-                  className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingLog}
-                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isSubmittingLog && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>{editingLogId ? '수정 완료' : '수업 일지 등록'}</span>

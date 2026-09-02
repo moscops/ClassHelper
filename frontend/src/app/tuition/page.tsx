@@ -1013,106 +1013,112 @@ export default function TuitionPage() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
         >
-          <div className="w-full max-w-md max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
-            <button
-              type="button"
-              onClick={() => setIsGenerateModalOpen(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                <Sparkles className="w-5 h-5" />
+          <div className="w-full max-w-md max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-2xs">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    월간 수강료 청구서 일괄 자동 생성
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    재원 중인 활성 수강생들의 수강료 청구서를 생성합니다.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  월간 수강료 청구서 일괄 자동 생성
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  재원 중인 활성 수강생들의 수강료 청구서를 생성합니다.
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsGenerateModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {generateError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{generateError}</span>
-              </div>
-            )}
+            {/* Modal Body / Form */}
+            <form onSubmit={handleGenerateInvoicesSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 text-xs px-5 py-4">
+                {generateError && (
+                  <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{generateError}</span>
+                  </div>
+                )}
 
-            <form onSubmit={handleGenerateInvoicesSubmit} className="space-y-4">
-              {/* Year-Month */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  청구 대상 년월 <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="month"
-                  value={generateYearMonth}
-                  onChange={(e) => {
-                    setGenerateYearMonth(e.target.value);
-                    setGenerateDueDate(`${e.target.value}-10`);
-                  }}
-                  required
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                />
+                {/* Year-Month */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    청구 대상 년월 <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="month"
+                    value={generateYearMonth}
+                    onChange={(e) => {
+                      setGenerateYearMonth(e.target.value);
+                      setGenerateDueDate(`${e.target.value}-10`);
+                    }}
+                    required
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  />
+                </div>
+
+                {/* Due Date */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    납부 마감일 <span className="text-rose-500">*</span>
+                  </label>
+                  <CustomDatePicker
+                    value={generateDueDate}
+                    onChange={setGenerateDueDate}
+                    placeholder="납부 마감일 선택"
+                    align="right"
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Target Class Filter */}
+                <div className="pb-8">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    청구 대상 반
+                  </label>
+                  <CustomDropdown
+                    value={generateClassId}
+                    onChange={(val) => setGenerateClassId(val)}
+                    placeholder="청구 대상 반을 선택하세요"
+                    fullWidth
+                    searchable
+                    options={[
+                      { value: 'ALL', label: '전체 개설 반 (학원 전체 재원생 대상)' },
+                      ...classes.map((cls) => ({
+                        value: String(cls.id),
+                        label: `${cls.name} (${cls.subject || '과목'})`,
+                        subLabel: `월 ${(cls.monthlyFee || 0).toLocaleString()}원`,
+                        count: cls.enrolledCount,
+                      })),
+                    ]}
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1.5">
+                    * 이미 해당 월 청구서가 존재하는 원생은 자동 제외(중복 청구 방지)됩니다.
+                  </p>
+                </div>
               </div>
 
-              {/* Due Date */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  납부 마감일 <span className="text-rose-500">*</span>
-                </label>
-                <CustomDatePicker
-                  value={generateDueDate}
-                  onChange={setGenerateDueDate}
-                  placeholder="납부 마감일 선택"
-                  align="right"
-                  className="w-full"
-                />
-              </div>
-
-              {/* Target Class Filter */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  청구 대상 반
-                </label>
-                <CustomDropdown
-                  value={generateClassId}
-                  onChange={(val) => setGenerateClassId(val)}
-                  placeholder="청구 대상 반을 선택하세요"
-                  fullWidth
-                  searchable
-                  options={[
-                    { value: 'ALL', label: '전체 개설 반 (학원 전체 재원생 대상)' },
-                    ...classes.map((cls) => ({
-                      value: String(cls.id),
-                      label: `${cls.name} (${cls.subject || '과목'})`,
-                      subLabel: `월 ${(cls.monthlyFee || 0).toLocaleString()}원`,
-                      count: cls.enrolledCount,
-                    })),
-                  ]}
-                />
-                <p className="text-[11px] text-slate-400 mt-1">
-                  * 이미 해당 월 청구서가 존재하는 원생은 자동 제외(중복 청구 방지)됩니다.
-                </p>
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+              {/* Modal Footer */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsGenerateModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={isGenerating}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isGenerating ? (
                     <>
@@ -1139,182 +1145,185 @@ export default function TuitionPage() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
         >
-          <div className="w-full max-w-md max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
-            <button
-              type="button"
-              onClick={() => setIsPaymentModalOpen(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <Wallet className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  수강료 수납 처리
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {selectedInvoiceForPayment.student?.name} 학생 ({selectedInvoiceForPayment.billingYearMonth})
-                </p>
-              </div>
-            </div>
-
-            {/* Invoice Summary Box */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-1.5 mb-4">
-              <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">최종 청구 금액:</span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {selectedInvoiceForPayment.finalAmount.toLocaleString()}원
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">기존 수납액:</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                  {selectedInvoiceForPayment.paidAmount.toLocaleString()}원
-                </span>
-              </div>
-              <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
-                <span className="font-bold text-slate-800 dark:text-slate-200">잔여 미납 금액:</span>
-                <span className="font-extrabold text-rose-600 dark:text-rose-400 text-sm">
-                  {selectedInvoiceForPayment.remainingAmount.toLocaleString()}원
-                </span>
-              </div>
-            </div>
-
-            {paymentError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{paymentError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleRecordPaymentSubmit} className="space-y-4">
-              {/* Payment Amount */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    이번 수납 금액 <span className="text-rose-500">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentAmount(selectedInvoiceForPayment.remainingAmount)}
-                    className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
-                  >
-                    잔액 전액 입력 ({selectedInvoiceForPayment.remainingAmount.toLocaleString()}원)
-                  </button>
+          <div className="w-full max-w-md max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-2xs">
+                  <Wallet className="w-5 h-5" />
                 </div>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={paymentAmount || ''}
-                    onChange={(e) => setPaymentAmount(Number(e.target.value))}
-                    required
-                    min={1}
-                    max={selectedInvoiceForPayment.remainingAmount}
-                    placeholder="수납할 금액 입력"
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                    원
-                  </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    수강료 수납 처리
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {selectedInvoiceForPayment.student?.name} 학생 ({selectedInvoiceForPayment.billingYearMonth})
+                  </p>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => setIsPaymentModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              {/* Payment Method Selector */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  결제 수단 <span className="text-rose-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
-                  {[
-                    { id: 'CARD', label: '💳 카드' },
-                    { id: 'CASH', label: '💵 현금' },
-                    { id: 'BANK_TRANSFER', label: '🏦 계좌이체' },
-                    { id: 'EASY_PAY', label: '📱 간편결제' },
-                  ].map((m) => (
+            {/* Modal Body / Form */}
+            <form onSubmit={handleRecordPaymentSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 text-xs px-5 py-4">
+                {/* Invoice Summary Box */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">최종 청구 금액:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">
+                      {selectedInvoiceForPayment.finalAmount.toLocaleString()}원
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">기납부 누적액:</span>
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                      {selectedInvoiceForPayment.paidAmount.toLocaleString()}원
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
+                    <span className="font-bold text-slate-900 dark:text-white">현재 잔여 미납액:</span>
+                    <span className="font-extrabold text-rose-600 dark:text-rose-400 text-sm">
+                      {selectedInvoiceForPayment.remainingAmount.toLocaleString()}원
+                    </span>
+                  </div>
+                </div>
+
+                {paymentError && (
+                  <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{paymentError}</span>
+                  </div>
+                )}
+
+                {/* Amount to Pay */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      금회 수납 금액 <span className="text-rose-500">*</span>
+                    </label>
                     <button
-                      key={m.id}
                       type="button"
-                      onClick={() => setPaymentMethod(m.id as PaymentMethod)}
-                      className={`py-2.5 px-3 rounded-2xl border text-center transition-all cursor-pointer ${
-                        paymentMethod === m.id
-                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
-                      }`}
+                      onClick={() => setPaymentAmount(selectedInvoiceForPayment.remainingAmount)}
+                      className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                     >
-                      {m.label}
+                      잔액 전액 입력 ({selectedInvoiceForPayment.remainingAmount.toLocaleString()}원)
                     </button>
-                  ))}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={paymentAmount || ''}
+                      onChange={(e) => setPaymentAmount(Number(e.target.value))}
+                      required
+                      min={1}
+                      max={selectedInvoiceForPayment.remainingAmount}
+                      placeholder="수납할 금액 입력"
+                      className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                      원
+                    </span>
+                  </div>
+                </div>
+
+                {/* Payment Method Selector */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    결제 수단 <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
+                    {[
+                      { id: 'CARD', label: '💳 카드' },
+                      { id: 'CASH', label: '💵 현금' },
+                      { id: 'BANK_TRANSFER', label: '🏦 계좌이체' },
+                      { id: 'EASY_PAY', label: '📱 간편결제' },
+                    ].map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setPaymentMethod(m.id as PaymentMethod)}
+                        className={`py-2.5 px-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                          paymentMethod === m.id
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Payment Date */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    결제 일자
+                  </label>
+                  <CustomDatePicker
+                    value={paymentDate}
+                    onChange={setPaymentDate}
+                    placeholder="결제 일자 선택"
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Receipt Number */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    카드 승인번호 / 영수증 번호 (선택)
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentReceiptNumber}
+                    onChange={(e) => setPaymentReceiptNumber(e.target.value)}
+                    placeholder="예: APPR-12345678"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                  />
+                </div>
+
+                {/* Memo */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    수납 메모 (선택)
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentMemo}
+                    onChange={(e) => setPaymentMemo(e.target.value)}
+                    placeholder="예: 1회차 분할 납부, 학부모 카드 결제"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                  />
+                </div>
+
+                {/* Kakao notification note */}
+                <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 flex items-start gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 mt-1 shrink-0 animate-pulse"></span>
+                  <p className="text-[11px] text-slate-700 dark:text-slate-300 font-sans leading-relaxed">
+                    수납 등록 시 학부모({selectedInvoiceForPayment.student?.parentPhone || '연락처'})님께 <strong>{paymentAmount.toLocaleString()}원</strong> 수납 확인 알림톡이 자동 발송됩니다.
+                  </p>
                 </div>
               </div>
 
-              {/* Payment Date */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  결제 일자
-                </label>
-                <CustomDatePicker
-                  value={paymentDate}
-                  onChange={setPaymentDate}
-                  placeholder="결제 일자 선택"
-                  className="w-full"
-                />
-              </div>
-
-              {/* Receipt Number */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  카드 승인번호 / 영수증 번호 (선택)
-                </label>
-                <input
-                  type="text"
-                  value={paymentReceiptNumber}
-                  onChange={(e) => setPaymentReceiptNumber(e.target.value)}
-                  placeholder="예: APPR-12345678"
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-              </div>
-
-              {/* Memo */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  수납 메모 (선택)
-                </label>
-                <input
-                  type="text"
-                  value={paymentMemo}
-                  onChange={(e) => setPaymentMemo(e.target.value)}
-                  placeholder="예: 1회차 분할 납부, 학부모 카드 결제"
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-              </div>
-
-              {/* Kakao Notification Notice Box */}
-              <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 text-xs space-y-1">
-                <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1 text-[11px]">
-                  <Sparkles className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                  <span>학부모 카카오 알림톡 수납 영수증 자동 발송</span>
-                </span>
-                <p className="text-[11px] text-slate-700 dark:text-slate-300 font-sans leading-relaxed">
-                  수납 등록 시 학부모({selectedInvoiceForPayment.student?.parentPhone || '연락처'})님께 <strong>{paymentAmount.toLocaleString()}원</strong> 수납 확인 알림톡이 자동 발송됩니다.
-                </p>
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+              {/* Modal Footer */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsPaymentModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={isRecordingPayment}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isRecordingPayment ? (
                     <>
@@ -1341,112 +1350,119 @@ export default function TuitionPage() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
         >
-          <div className="w-full max-w-md max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
-            <button
-              type="button"
-              onClick={() => setIsEditModalOpen(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                <Edit3 className="w-5 h-5" />
+          <div className="w-full max-w-md max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center shadow-2xs">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    청구서 할인 및 상세 수정
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {selectedInvoiceForEdit.student?.name} 학생 ({selectedInvoiceForEdit.billingYearMonth})
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  청구서 할인 및 상세 수정
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {selectedInvoiceForEdit.student?.name} 학생 ({selectedInvoiceForEdit.billingYearMonth})
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {editError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{editError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleEditInvoiceSubmit} className="space-y-4">
-              {/* Original Amount display */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">정규 수강료 원금:</span>
-                  <span className="font-bold text-slate-900 dark:text-white">
-                    {selectedInvoiceForEdit.originalAmount.toLocaleString()}원
-                  </span>
+            {/* Modal Body / Form */}
+            <form onSubmit={handleEditInvoiceSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 text-xs px-5 py-4">
+                {/* Original Amount display */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">정규 수강료 원금:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">
+                      {selectedInvoiceForEdit.originalAmount.toLocaleString()}원
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
+                    <span className="font-bold text-purple-600 dark:text-purple-400">최종 청구 예정액:</span>
+                    <span className="font-extrabold text-purple-600 dark:text-purple-400 text-sm">
+                      {Math.max(0, selectedInvoiceForEdit.originalAmount - editDiscountAmount).toLocaleString()}원
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
-                  <span className="font-bold text-purple-600 dark:text-purple-400">최종 청구 예정액:</span>
-                  <span className="font-extrabold text-purple-600 dark:text-purple-400 text-sm">
-                    {Math.max(0, selectedInvoiceForEdit.originalAmount - editDiscountAmount).toLocaleString()}원
-                  </span>
-                </div>
-              </div>
 
-              {/* Discount Amount */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  할인 금액 설정
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={editDiscountAmount || ''}
-                    onChange={(e) => setEditDiscountAmount(Number(e.target.value))}
-                    min={0}
-                    max={selectedInvoiceForEdit.originalAmount}
-                    placeholder="0"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                {editError && (
+                  <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{editError}</span>
+                  </div>
+                )}
+
+                {/* Discount Amount */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    할인 금액 설정
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={editDiscountAmount || ''}
+                      onChange={(e) => setEditDiscountAmount(Number(e.target.value))}
+                      min={0}
+                      max={selectedInvoiceForEdit.originalAmount}
+                      placeholder="0"
+                      className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                      원
+                    </span>
+                  </div>
+                </div>
+
+                {/* Due Date */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    납부 마감일
+                  </label>
+                  <CustomDatePicker
+                    value={editDueDate}
+                    onChange={setEditDueDate}
+                    placeholder="납부 마감일 선택"
+                    className="w-full"
                   />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                    원
-                  </span>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    청구 상세 메모 (예: 형제 할인 10% 적용)
+                  </label>
+                  <input
+                    type="text"
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    placeholder="할인 사유 또는 비고 메모"
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  />
                 </div>
               </div>
 
-              {/* Due Date */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  납부 마감일
-                </label>
-                <CustomDatePicker
-                  value={editDueDate}
-                  onChange={setEditDueDate}
-                  placeholder="납부 마감일 선택"
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  청구 상세 메모 (예: 형제 할인 10% 적용)
-                </label>
-                <input
-                  type="text"
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  placeholder="할인 사유 또는 비고 메모"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+              {/* Modal Footer */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingEdit}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmittingEdit ? (
                     <>
@@ -1473,115 +1489,121 @@ export default function TuitionPage() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
         >
-          <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
-            <button
-              type="button"
-              onClick={() => setIsHistoryModalOpen(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                <Receipt className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  수강료 청구 및 수납 영수증 내역
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {selectedInvoiceForHistory.student?.name} 학생 ({selectedInvoiceForHistory.billingYearMonth})
-                </p>
-              </div>
-            </div>
-
-            {/* Bill Summary */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs mb-5">
-              <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">정규 수강료 원금:</span>
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  {selectedInvoiceForHistory.originalAmount.toLocaleString()}원
-                </span>
-              </div>
-              {selectedInvoiceForHistory.discountAmount > 0 && (
-                <div className="flex justify-between text-purple-600 dark:text-purple-400">
-                  <span>할인 적용:</span>
-                  <span className="font-semibold">
-                    -{selectedInvoiceForHistory.discountAmount.toLocaleString()}원
-                  </span>
+          <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-2xs">
+                  <Receipt className="w-5 h-5" />
                 </div>
-              )}
-              <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
-                <span className="font-bold text-slate-900 dark:text-white">최종 청구 금액:</span>
-                <span className="font-extrabold text-slate-900 dark:text-white text-sm">
-                  {selectedInvoiceForHistory.finalAmount.toLocaleString()}원
-                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    수강료 청구 및 수납 영수증 내역
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {selectedInvoiceForHistory.student?.name} 학생 ({selectedInvoiceForHistory.billingYearMonth})
+                  </p>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">누적 수납액:</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                  {selectedInvoiceForHistory.paidAmount.toLocaleString()}원
-                </span>
-              </div>
-              {selectedInvoiceForHistory.status !== 'PAID' && (
-                <div className="flex justify-between text-rose-600 dark:text-rose-400">
-                  <span className="font-bold">잔여 미납액:</span>
-                  <span className="font-extrabold">
-                    {selectedInvoiceForHistory.remainingAmount.toLocaleString()}원
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Payment Installments Timeline */}
-            <div>
-              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2.5 flex items-center justify-between">
-                <span>회차별 수납 영수증 이력</span>
-                <span className="text-[11px] text-slate-400 font-normal">
-                  총 {selectedInvoiceForHistory.payments?.length || 0}건
-                </span>
-              </h4>
-
-              {!selectedInvoiceForHistory.payments || selectedInvoiceForHistory.payments.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-xs bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <p>아직 등록된 수납 내역이 없습니다.</p>
-                </div>
-              ) : (
-                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                  {selectedInvoiceForHistory.payments.map((p, idx) => (
-                    <div
-                      key={p.id}
-                      className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs flex items-center justify-between"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 dark:text-white">
-                            #{idx + 1}회차
-                          </span>
-                          {getMethodBadge(p.method)}
-                          <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
-                            +{p.amount.toLocaleString()}원
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-slate-400 flex items-center gap-2">
-                          <span>{p.paidAt ? p.paidAt.split('T')[0] : ''}</span>
-                          {p.processedBy && <span>• 처리자: {p.processedBy.name}</span>}
-                          {p.receiptNumber && <span>• 승인: {p.receiptNumber}</span>}
-                        </div>
-                        {p.memo && <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.memo}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsHistoryModalOpen(false)}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold transition-all shadow-xs"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5 text-xs min-h-0">
+              {/* Bill Summary */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">정규 수강료 원금:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {selectedInvoiceForHistory.originalAmount.toLocaleString()}원
+                  </span>
+                </div>
+                {selectedInvoiceForHistory.discountAmount > 0 && (
+                  <div className="flex justify-between text-purple-600 dark:text-purple-400">
+                    <span>할인 적용:</span>
+                    <span className="font-semibold">
+                      -{selectedInvoiceForHistory.discountAmount.toLocaleString()}원
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
+                  <span className="font-bold text-slate-900 dark:text-white">최종 청구 금액:</span>
+                  <span className="font-extrabold text-slate-900 dark:text-white text-sm">
+                    {selectedInvoiceForHistory.finalAmount.toLocaleString()}원
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">누적 수납액:</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                    {selectedInvoiceForHistory.paidAmount.toLocaleString()}원
+                  </span>
+                </div>
+                {selectedInvoiceForHistory.status !== 'PAID' && (
+                  <div className="flex justify-between text-rose-600 dark:text-rose-400">
+                    <span className="font-bold">잔여 미납액:</span>
+                    <span className="font-extrabold">
+                      {selectedInvoiceForHistory.remainingAmount.toLocaleString()}원
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Payment Installments Timeline */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2.5 flex items-center justify-between">
+                  <span>회차별 수납 영수증 이력</span>
+                  <span className="text-[11px] text-slate-400 font-normal">
+                    총 {selectedInvoiceForHistory.payments?.length || 0}건
+                  </span>
+                </h4>
+
+                {!selectedInvoiceForHistory.payments || selectedInvoiceForHistory.payments.length === 0 ? (
+                  <div className="py-8 text-center text-slate-400 text-xs bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <p>아직 등록된 수납 내역이 없습니다.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                    {selectedInvoiceForHistory.payments.map((p, idx) => (
+                      <div
+                        key={p.id}
+                        className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs flex items-center justify-between"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-900 dark:text-white">
+                              #{idx + 1}회차
+                            </span>
+                            {getMethodBadge(p.method)}
+                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                              +{p.amount.toLocaleString()}원
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                            <span>{p.paidAt ? p.paidAt.split('T')[0] : ''}</span>
+                            {p.processedBy && <span>• 처리자: {p.processedBy.name}</span>}
+                            {p.receiptNumber && <span>• 승인: {p.receiptNumber}</span>}
+                          </div>
+                          {p.memo && <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.memo}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex justify-end bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold transition-all shadow-xs cursor-pointer hover:opacity-90"
               >
                 닫기
               </button>

@@ -1081,167 +1081,173 @@ export default function CalendarPage() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
         >
-          <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-7 relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 my-auto">
-            <button
-              type="button"
-              onClick={() => setIsEventModalOpen(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-2.5 mb-4 shrink-0">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-2xs">
-                <CalendarIcon className="w-5 h-5" />
+          <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-2xs">
+                  <CalendarIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    {editingEvent ? '학원 일정 수정' : '새 학원 일정 및 계획 등록'}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    시험 대비 기간, 설명회, 학부모 상담, 휴원일 등 주요 학원 일정을 기록하세요.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  {editingEvent ? '학원 일정 수정' : '새 학원 일정 및 계획 등록'}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  시험 대비 기간, 설명회, 학부모 상담, 휴원일 등 주요 학원 일정을 캘린더에 기록하세요.
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsEventModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {eventModalError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2 shrink-0">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{eventModalError}</span>
-              </div>
-            )}
+            {/* Modal Body / Form */}
+            <form onSubmit={handleSaveEventSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 px-5 py-4 text-xs">
+                {eventModalError && (
+                  <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{eventModalError}</span>
+                  </div>
+                )}
 
-            <form onSubmit={handleSaveEventSubmit} className="space-y-4 overflow-y-auto pr-1 flex-1">
-              {/* Event Title */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  일정 제목 <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={eventTitle}
-                  onChange={(e) => setEventTitle(e.target.value)}
-                  placeholder="예: 2학기 중간고사 대비 집중 특강, 학부모 설명회"
-                  required
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                />
-              </div>
-
-              {/* Category & Color */}
-              <div className="grid grid-cols-2 gap-3">
+                {/* Event Title */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    카테고리
+                    일정 제목 <span className="text-rose-500">*</span>
                   </label>
-                  <CustomDropdown
-                    value={eventCategory}
-                    onChange={(val) => {
-                      const cat = val as EventCategory;
-                      setEventCategory(cat);
-                      setEventColor(EVENT_CATEGORY_META[cat]?.defaultColor || 'INDIGO');
-                    }}
-                    placeholder="카테고리 선택"
-                    fullWidth
-                    options={(Object.keys(EVENT_CATEGORY_META) as EventCategory[]).map((cat) => ({
-                      value: cat,
-                      label: EVENT_CATEGORY_META[cat].label,
-                    }))}
+                  <input
+                    type="text"
+                    value={eventTitle}
+                    onChange={(e) => setEventTitle(e.target.value)}
+                    placeholder="예: 2학기 중간고사 대비 집중 특강, 학부모 설명회"
+                    required
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    색상 태그
-                  </label>
-                  <div className="flex items-center gap-1.5 pt-1">
-                    {(['INDIGO', 'PURPLE', 'ROSE', 'AMBER', 'EMERALD', 'BLUE'] as EventColor[]).map(
-                      (c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => setEventColor(c)}
-                          className={`w-6 h-6 rounded-full ${COLOR_CLASSES[c].dot} transition-transform cursor-pointer ${
-                            eventColor === c ? 'scale-125 ring-2 ring-slate-900 dark:ring-white' : 'opacity-70'
-                          }`}
-                        />
-                      ),
-                    )}
+                {/* Category & Color */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      카테고리
+                    </label>
+                    <CustomDropdown
+                      value={eventCategory}
+                      onChange={(val) => {
+                        const cat = val as EventCategory;
+                        setEventCategory(cat);
+                        setEventColor(EVENT_CATEGORY_META[cat]?.defaultColor || 'INDIGO');
+                      }}
+                      placeholder="카테고리 선택"
+                      fullWidth
+                      options={(Object.keys(EVENT_CATEGORY_META) as EventCategory[]).map((cat) => ({
+                        value: cat,
+                        label: EVENT_CATEGORY_META[cat].label,
+                      }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      색상 태그
+                    </label>
+                    <div className="flex items-center gap-1.5 pt-1">
+                      {(['INDIGO', 'PURPLE', 'ROSE', 'AMBER', 'EMERALD', 'BLUE'] as EventColor[]).map(
+                        (c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setEventColor(c)}
+                            className={`w-6 h-6 rounded-full ${COLOR_CLASSES[c].dot} transition-transform cursor-pointer ${
+                              eventColor === c ? 'scale-125 ring-2 ring-slate-900 dark:ring-white' : 'opacity-70'
+                            }`}
+                          />
+                        ),
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Start Date & End Date */}
-              <div className="grid grid-cols-2 gap-3">
+                {/* Start Date & End Date */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      시작 날짜 <span className="text-rose-500">*</span>
+                    </label>
+                    <CustomDatePicker
+                      value={eventStartDate}
+                      onChange={setEventStartDate}
+                      placeholder="시작 날짜 선택"
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      종료 날짜 (선택)
+                    </label>
+                    <CustomDatePicker
+                      value={eventEndDate}
+                      onChange={setEventEndDate}
+                      placeholder="종료 날짜 (당일이면 공란)"
+                      align="right"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                {/* Start Time & End Time */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      시작 시간 (선택)
+                    </label>
+                    <input
+                      type="time"
+                      value={eventStartTime}
+                      onChange={(e) => setEventStartTime(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      종료 시간 (선택)
+                    </label>
+                    <input
+                      type="time"
+                      value={eventEndTime}
+                      onChange={(e) => setEventEndTime(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    시작 날짜 <span className="text-rose-500">*</span>
+                    상세 메모 & 내용
                   </label>
-                  <CustomDatePicker
-                    value={eventStartDate}
-                    onChange={setEventStartDate}
-                    placeholder="시작 날짜 선택"
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    종료 날짜 (선택)
-                  </label>
-                  <CustomDatePicker
-                    value={eventEndDate}
-                    onChange={setEventEndDate}
-                    placeholder="종료 날짜 (당일이면 공란)"
-                    align="right"
-                    className="w-full"
+                  <textarea
+                    rows={3}
+                    value={eventDescription}
+                    onChange={(e) => setEventDescription(e.target.value)}
+                    placeholder="일정 세부 내용, 준비물, 대상 학년 등을 자유롭게 입력하세요."
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
                   />
                 </div>
               </div>
 
-              {/* Start Time & End Time */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    시작 시간 (선택)
-                  </label>
-                  <input
-                    type="time"
-                    value={eventStartTime}
-                    onChange={(e) => setEventStartTime(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    종료 시간 (선택)
-                  </label>
-                  <input
-                    type="time"
-                    value={eventEndTime}
-                    onChange={(e) => setEventEndTime(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  상세 메모 & 내용
-                </label>
-                <textarea
-                  rows={3}
-                  value={eventDescription}
-                  onChange={(e) => setEventDescription(e.target.value)}
-                  placeholder="일정 세부 내용, 준비물, 대상 학년 등을 자유롭게 입력하세요."
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 shrink-0">
+              {/* Modal Footer */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsEventModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   취소
                 </button>
