@@ -11,7 +11,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: classhelper-postgres
+    container_name: classhelper-postgres-prod
     restart: unless-stopped
     environment:
       POSTGRES_USER: classhelper_user
@@ -19,7 +19,7 @@ services:
       POSTGRES_DB: classhelper_db
       TZ: Asia/Seoul
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata_prod:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U classhelper_user -d classhelper_db']
       interval: 10s
@@ -54,4 +54,7 @@ services:
       - '3001:3000'
 
 volumes:
-  pgdata:
+  # 로컬 개발용 docker-compose.yml의 pgdata 볼륨(=기존 개발 DB)과 이름이 겹치면 그걸 그대로
+  # 재사용해버려서(둘 다 같은 폴더라 볼륨명이 <폴더명>_pgdata로 겹침) "프로덕션 테스트"인데
+  # 실제로는 개발 데이터가 섞이는 사고가 남. 반드시 구분되는 이름을 쓸 것.
+  pgdata_prod:
