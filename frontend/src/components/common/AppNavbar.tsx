@@ -24,6 +24,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useSystemAlertStore } from '@/stores/useSystemAlertStore';
 import { authService } from '@/lib/auth-service';
 import { attendanceService } from '@/lib/attendance-service';
 import { PlanTier } from '@/types/auth';
@@ -39,6 +40,7 @@ export function AppNavbar({ currentPath }: AppNavbarProps) {
   const router = useRouter();
   const activePath = currentPath || pathname;
   const { user, academy, isAuthenticated, isHydrated, logout } = useAuthStore();
+  const { hasError: hasSystemError } = useSystemAlertStore();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasUnattendedAlert, setHasUnattendedAlert] = useState(false);
@@ -387,7 +389,13 @@ export function AppNavbar({ currentPath }: AppNavbarProps) {
                   <Bell className="w-4 h-4" />
                   <span>알림 센터</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
+                {hasSystemError ? (
+                  <span className="w-5 h-5 rounded-full bg-rose-600 text-white font-black text-xs flex items-center justify-center animate-bounce shadow-sm">
+                    !
+                  </span>
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                )}
               </Link>
 
               {user.role === 'SUPER_ADMIN' && (

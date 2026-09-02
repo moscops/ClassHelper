@@ -114,31 +114,15 @@ api.interceptors.response.use(
 
     // Handle Network / DB Connection / 5xx Server Errors
     const status = error.response?.status;
-    const url = originalRequest.url || '';
     const isNetworkError = !error.response || error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED';
     const isServerError = status && status >= 500;
 
     if (typeof window !== 'undefined' && (isNetworkError || isServerError)) {
-      // Dynamic import or direct store access
       try {
         const { useSystemAlertStore } = require('@/stores/useSystemAlertStore');
-        const isStudentOrClassUrl = url.includes('/students') || url.includes('/classes');
-        const alertTitle = isNetworkError
-          ? '데이터베이스 / 서버 통신 장애 발생'
-          : '서버 내부 오류 (데이터 조회 실패)';
-        const alertMessage = isStudentOrClassUrl
-          ? '데이터베이스에 연결되지 않아 학생 및 수업 반 데이터를 정상적으로 불러오지 못했습니다. 백엔드 서버 및 DB 상태를 점검해주세요.'
-          : (error.response?.data as any)?.message ||
-            '서버와의 통신 중 오류가 발생하여 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.';
-
-        useSystemAlertStore.getState().addAlert({
-          type: isNetworkError ? 'DB_CONNECTION_ERROR' : 'SERVER_ERROR',
-          title: alertTitle,
-          message: alertMessage,
-          endpoint: url,
-        });
+        useSystemAlertStore.getState().setSystemError();
       } catch {
-        // ignore if store fails to load in SSR
+        // ignore in SSR
       }
     }
 

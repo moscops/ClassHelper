@@ -7,6 +7,7 @@ import {
   Bell,
   CheckCheck,
   AlertTriangle,
+  AlertCircle,
   CheckCircle2,
   DoorOpen,
   Info,
@@ -24,17 +25,16 @@ import {
   UnreadCountResponse,
 } from '@/lib/notifications-service';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useSystemAlertStore, SystemAlert } from '@/stores/useSystemAlertStore';
+import { useSystemAlertStore } from '@/stores/useSystemAlertStore';
 
 export function NotificationBell() {
   const router = useRouter();
   const { isAuthenticated, isHydrated } = useAuthStore();
   const {
-    alerts: systemAlerts,
-    unreadCount: systemUnreadCount,
+    alert: systemAlert,
+    hasError: hasSystemError,
     markAsRead: markSystemAlertAsRead,
-    clearAlert: clearSystemAlert,
-    clearAll: clearAllSystemAlerts,
+    clearError: clearSystemAlert,
   } = useSystemAlertStore();
 
   const [unreadInfo, setUnreadInfo] = useState<UnreadCountResponse>({
@@ -50,10 +50,6 @@ export function NotificationBell() {
   const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Total unread count including system alerts
-  const totalUnreadCount = unreadInfo.unreadCount + systemUnreadCount;
-  const hasCriticalAlert = unreadInfo.hasUnattendedAlert || systemUnreadCount > 0;
 
   // Poll unread count every 30 seconds only when authenticated
   useEffect(() => {
@@ -150,7 +146,7 @@ export function NotificationBell() {
     setIsMarkingAll(true);
     try {
       await notificationsService.markAllAsRead();
-      useSystemAlertStore.getState().markAllAsRead();
+      useSystemAlertStore.getState().markAsRead();
       setUnreadInfo({
         unreadCount: 0,
         unattendedAlertCount: 0,
@@ -212,30 +208,34 @@ export function NotificationBell() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Bell Button with Active Pulse if Critical / System Alert is Active */}
+      {/* Bell Button */}
       <button
         onClick={handleToggleOpen}
         aria-label="알림"
         className={`relative p-2 rounded-xl transition-all cursor-pointer border ${
-          hasCriticalAlert
-            ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 animate-pulse'
+          hasSystemError
+            ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 dark:border-rose-700 text-rose-600 dark:text-rose-400 shadow-rose-500/20'
+            : unreadInfo.hasUnattendedAlert
+            ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800 text-amber-600 dark:text-amber-400 animate-pulse'
             : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
         } shadow-2xs`}
       >
         <Bell className="w-4 h-4" />
 
-        {/* Badge */}
-        {totalUnreadCount > 0 && (
+        {/* 1. Red Exclamation Mark Badge for System / DB Connection Error */}
+        {hasSystemError ? (
           <span
-            className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow-xs ${
-              hasCriticalAlert
-                ? 'bg-rose-600 animate-bounce'
-                : 'bg-indigo-600'
-            }`}
+            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-600 text-white font-black text-xs flex items-center justify-center shadow-md animate-bounce ring-2 ring-white dark:ring-slate-900"
+            title="데이터베이스 / 서버 통신 장애 발생"
           >
-            {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+            !
           </span>
-        )}
+        ) : unreadInfo.unreadCount > 0 ? (
+          /* 2. Normal Unread Count Badge */
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white bg-indigo-600 shadow-xs">
+            {unreadInfo.unreadCount > 99 ? '99+' : unreadInfo.unreadCount}
+          </span>
+        ) : null}
       </button>
 
       {/* Dropdown Popover (Fixed in Top-Right below Header) */}
@@ -247,14 +247,23 @@ export function NotificationBell() {
               <span className="font-bold text-sm text-slate-900 dark:text-white">
                 알림 관리 센터
               </span>
-              {totalUnreadCount > 0 && (
+
+              {/* Red Exclamation Mark on Title if System Error */}
+              {hasSystemError && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 text-[10px] font-black animate-pulse">
+                  <span className="w-3.5 h-3.5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] font-black">!</span>
+                  <span>통신 장애</span>
+                </span>
+              )}
+
+              {!hasSystemError && unreadInfo.unreadCount > 0 && (
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                  {totalUnreadCount}건 미확인
+                  {unreadInfo.unreadCount}건 미확인
                 </span>
               )}
             </div>
 
-            {totalUnreadCount > 0 && (
+            {unreadInfo.unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={isMarkingAll}
@@ -270,62 +279,42 @@ export function NotificationBell() {
             )}
           </div>
 
-          {/* List Section (System Alerts + Recent In-App Notifications) */}
+          {/* List Section (System Error + Recent Notifications) */}
           <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
-            {/* 1. Critical System Alerts Section (DB/Server Errors) */}
-            {systemAlerts.length > 0 && (
-              <div className="bg-rose-50/50 dark:bg-rose-950/20 p-2 space-y-2 border-b border-rose-100 dark:border-rose-900/40">
-                <div className="flex items-center justify-between px-2 pt-1 text-[11px] font-bold text-rose-700 dark:text-rose-300">
-                  <span className="flex items-center gap-1.5">
-                    <ServerCrash className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
-                    <span>시스템 & DB 연결 장애 알림</span>
-                  </span>
+            {/* 1. Critical Single System Alert Section (DB / Server Connection Error) */}
+            {systemAlert && (
+              <div className="bg-rose-50/70 dark:bg-rose-950/30 p-3 space-y-2 border-b border-rose-100 dark:border-rose-900/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-xs text-rose-900 dark:text-rose-200">
+                    <span className="w-4 h-4 rounded-full bg-rose-600 text-white flex items-center justify-center font-black text-[11px] shrink-0">!</span>
+                    <span>{systemAlert.title}</span>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => clearAllSystemAlerts()}
-                    className="text-[10px] text-rose-500 hover:text-rose-700 underline font-normal cursor-pointer"
+                    onClick={() => clearSystemAlert()}
+                    className="text-slate-400 hover:text-rose-600 p-0.5 cursor-pointer"
+                    title="알림 지우기"
                   >
-                    전체 지우기
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                {systemAlerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800/80 shadow-2xs space-y-1 relative"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-1.5 font-bold text-xs text-rose-800 dark:text-rose-200">
-                        <Database className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                        <span>{alert.title}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => clearSystemAlert(alert.id)}
-                        className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
+                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+                  {systemAlert.message}
+                </p>
 
-                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                      {alert.message}
-                    </p>
-
-                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
-                      <span>{formatRelativeTime(alert.createdAt)}</span>
-                      {!alert.isRead && (
-                        <button
-                          type="button"
-                          onClick={() => markSystemAlertAsRead(alert.id)}
-                          className="text-rose-600 dark:text-rose-400 font-semibold hover:underline cursor-pointer"
-                        >
-                          확인 완료
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                  <span>{formatRelativeTime(systemAlert.createdAt)}</span>
+                  {!systemAlert.isRead && (
+                    <button
+                      type="button"
+                      onClick={() => markSystemAlertAsRead()}
+                      className="text-rose-600 dark:text-rose-400 font-bold hover:underline cursor-pointer"
+                    >
+                      확인 완료
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -335,7 +324,7 @@ export function NotificationBell() {
                 <Loader2 className="w-5 h-5 animate-spin text-indigo-600 dark:text-indigo-400" />
                 <span className="text-xs">알림을 불러오는 중...</span>
               </div>
-            ) : recentNotifications.length === 0 && systemAlerts.length === 0 ? (
+            ) : recentNotifications.length === 0 && !systemAlert ? (
               <div className="py-10 text-center text-slate-400 text-xs">
                 <Bell className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600 stroke-1" />
                 <p>새로운 알림이 없습니다.</p>
