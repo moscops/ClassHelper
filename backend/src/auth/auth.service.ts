@@ -163,8 +163,7 @@ export class AuthService {
    */
   async refreshTokens(refreshToken: string): Promise<TokensResponseDto> {
     const refreshSecret =
-      this.configService.get<string>('JWT_REFRESH_SECRET') ||
-      'super-secret-classhelper-jwt-refresh-key';
+      this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
 
     let payload: any;
     try {
@@ -264,15 +263,12 @@ export class AuthService {
     };
 
     const accessSecret =
-      this.configService.get<string>('JWT_ACCESS_SECRET') ||
-      this.configService.get<string>('JWT_SECRET') ||
-      'super-secret-classhelper-jwt-access-key';
+      this.configService.getOrThrow<string>('JWT_ACCESS_SECRET');
     const accessExpiresIn =
       this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m';
 
     const refreshSecret =
-      this.configService.get<string>('JWT_REFRESH_SECRET') ||
-      'super-secret-classhelper-jwt-refresh-key';
+      this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
     const refreshExpiresIn =
       this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
 

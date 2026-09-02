@@ -74,14 +74,16 @@ describe('AuthService', () => {
       }),
     };
 
+    const resolveConfig = (key: string) => {
+      if (key === 'JWT_ACCESS_SECRET') return 'mock-access-secret';
+      if (key === 'JWT_REFRESH_SECRET') return 'mock-refresh-secret';
+      if (key === 'JWT_ACCESS_EXPIRES_IN') return '15m';
+      if (key === 'JWT_REFRESH_EXPIRES_IN') return '7d';
+      return null;
+    };
     configService = {
-      get: jest.fn((key: string) => {
-        if (key === 'JWT_ACCESS_SECRET') return 'mock-access-secret';
-        if (key === 'JWT_REFRESH_SECRET') return 'mock-refresh-secret';
-        if (key === 'JWT_ACCESS_EXPIRES_IN') return '15m';
-        if (key === 'JWT_REFRESH_EXPIRES_IN') return '7d';
-        return null;
-      }),
+      get: jest.fn(resolveConfig),
+      getOrThrow: jest.fn(resolveConfig),
     };
 
     const module: TestingModule = await Test.createTestingModule({

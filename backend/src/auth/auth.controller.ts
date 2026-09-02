@@ -13,6 +13,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { UserRole } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { RegisterOwnerDto } from './dto/register-owner.dto';
@@ -87,6 +88,8 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  // 브루트포스 방지: 동일 IP당 60초에 5회로 제한 (앱 전역 기본값 100회/60초보다 엄격).
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({
     summary: '로그인',
     description:
@@ -107,6 +110,8 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  // Refresh Token 탈취/재사용 시도를 통한 무차별 대입도 동일하게 제한.
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({
     summary: '토큰 재발급 (Refresh Token 활용)',
     description:
