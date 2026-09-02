@@ -24,4 +24,6 @@ COPY --from=build /app/prisma.config.ts ./
 COPY --from=build /app/package.json ./
 
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+# tsconfig.json에 rootDir이 명시되어 있지 않아 tsc가 dist/main.js가 아니라
+# dist/src/main.js로 컴파일합니다 (nest-cli.json의 sourceRoot: "src"와 무관 — 순수 tsc outDir 추론 결과).
+CMD ["node", "dist/src/main.js"]
