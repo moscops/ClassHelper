@@ -9,6 +9,14 @@ on:
     branches: [dev]
   workflow_dispatch:
 
+# Claude(backend)/Gemini(frontend)가 거의 동시에 push하면 두 워크플로 실행이 동시에 돌 수 있는데,
+# 순서 보장이 없으면 더 오래된 커밋의 빌드가 나중에 끝나서 :latest 태그를 덮어써버릴 수 있음
+# (watchtower는 :latest만 보고 pull하므로 잠깐 옛날 버전이 배포되는 문제로 이어짐).
+# cancel-in-progress: false로 취소 대신 줄 세워서, push된 순서대로 순차 실행되도록 보장.
+concurrency:
+  group: docker-publish-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   REGISTRY: ghcr.io
   # 하드코딩하지 않고 실제 저장소 소유자를 그대로 씀 — repo가 JoshyWoshy1212 -> moscops로
