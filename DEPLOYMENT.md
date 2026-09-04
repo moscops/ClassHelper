@@ -20,8 +20,8 @@ cat > .env <<'EOF'
 POSTGRES_PASSWORD=<backend/.env의 DATABASE_URL 비밀번호와 동일한 값>
 EOF
 
-docker build -t ghcr.io/joshywoshy1212/classhelper-backend:latest ./backend
-docker build -t ghcr.io/joshywoshy1212/classhelper-frontend:latest \
+docker build -t ghcr.io/moscops/classhelper-backend:latest ./backend
+docker build -t ghcr.io/moscops/classhelper-frontend:latest \
   --build-arg NEXT_PUBLIC_API_URL=http://localhost:3000 ./frontend
 
 docker compose -f docker-compose.prod.yml up -d   # 로컬에 이미 있는 이미지를 그대로 사용, pull 안 함

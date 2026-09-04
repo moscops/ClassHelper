@@ -11,7 +11,10 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_OWNER: joshywoshy1212
+  # 하드코딩하지 않고 실제 저장소 소유자를 그대로 씀 — repo가 JoshyWoshy1212 -> moscops로
+  # 옮겨진 적이 있어서(리다이렉트만 되고 실제 소유자는 moscops), 하드코딩하면 GITHUB_TOKEN의
+  # 패키지 푸시 권한과 어긋나 "permission_denied: The requested installation does not exist"가 남.
+  IMAGE_OWNER: ${{ github.repository_owner }}
 
 jobs:
   build-backend:

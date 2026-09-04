@@ -32,7 +32,7 @@ services:
       retries: 5
 
   backend:
-    image: ghcr.io/joshywoshy1212/classhelper-backend:latest
+    image: ghcr.io/moscops/classhelper-backend:latest
     container_name: classhelper-backend
     restart: unless-stopped
     env_file:
@@ -46,7 +46,7 @@ services:
   frontend:
     # NEXT_PUBLIC_API_URL은 이제 GitHub Actions 빌드 시점에 build-arg로 박혀서 이미지에 이미 포함됨
     # (repo Settings > Actions > Variables의 NEXT_PUBLIC_API_URL) — 여기서 더 이상 안 넘김.
-    image: ghcr.io/joshywoshy1212/classhelper-frontend:latest
+    image: ghcr.io/moscops/classhelper-frontend:latest
     container_name: classhelper-frontend
     restart: unless-stopped
     depends_on:
