@@ -7,16 +7,11 @@ import {
   Bell,
   CheckCheck,
   AlertTriangle,
-  AlertCircle,
   CheckCircle2,
   DoorOpen,
   Info,
-  Clock,
   ExternalLink,
   Loader2,
-  Sparkles,
-  ServerCrash,
-  Database,
   Trash2,
 } from 'lucide-react';
 import {
@@ -78,7 +73,7 @@ export function NotificationBell() {
     try {
       const data = await notificationsService.getUnreadCount();
       setUnreadInfo(data);
-    } catch (err) {
+    } catch {
       // ignore silently if not logged in
     }
   };

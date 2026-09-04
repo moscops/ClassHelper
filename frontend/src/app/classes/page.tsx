@@ -22,10 +22,8 @@ import {
   PauseCircle,
   FileText,
   Send,
-  Calendar,
   Sparkles,
   AlertTriangle,
-  CheckCircle,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {

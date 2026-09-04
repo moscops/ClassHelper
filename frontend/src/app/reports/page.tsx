@@ -12,20 +12,17 @@ import {
   Sparkles,
   Search,
   CheckCircle2,
-  AlertCircle,
   AlertTriangle,
   Loader2,
   RefreshCw,
   X,
   Smartphone,
   Info,
-  Clock,
   Plus,
   UserCheck,
   Award,
   Edit3,
   RotateCcw,
-  MessageSquare,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {

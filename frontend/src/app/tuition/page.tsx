@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  CreditCard,
   Search,
   TrendingUp,
   AlertCircle,
@@ -147,6 +146,7 @@ export default function TuitionPage() {
     if (isHydrated && isAuthenticated) {
       loadTuitionData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated, isAuthenticated, currentYearMonth, statusFilter, debouncedSearch, currentPage]);
 
   const loadTuitionData = async () => {

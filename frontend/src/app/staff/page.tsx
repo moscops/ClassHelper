@@ -31,7 +31,6 @@ import {
   EyeOff,
   UserCheck,
   AlertTriangle,
-  Building2,
   Copy,
   Check,
 } from 'lucide-react';

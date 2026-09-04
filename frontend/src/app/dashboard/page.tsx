@@ -22,8 +22,6 @@ import {
   Loader2,
   Sparkles,
   ArrowUpRight,
-  UserPlus,
-  PlusCircle,
   ClipboardList,
   CheckCircle2,
   Calendar,
@@ -33,8 +31,6 @@ import {
   X,
   Check,
   FileText,
-  ServerCrash,
-  Database,
   UserCheck,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -144,6 +140,7 @@ export default function DashboardPage() {
     if (isHydrated && isAuthenticated) {
       loadNotifications();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated, isAuthenticated, activeTab, isReadFilter, debouncedSearch, currentPage]);
 
   const loadUnattendedStatus = async () => {

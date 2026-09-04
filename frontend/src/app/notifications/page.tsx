@@ -19,8 +19,6 @@ import {
   Send,
   MessageSquare,
   ArrowLeft,
-  ServerCrash,
-  Database,
   X,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -159,6 +157,7 @@ export default function NotificationsPage() {
     if (isHydrated && isAuthenticated) {
       loadNotifications();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated, isAuthenticated, activeTab, isReadFilter, debouncedSearch, currentPage]);
 
   const loadNotifications = async () => {
@@ -231,7 +230,7 @@ export default function NotificationsPage() {
       await notificationsService.deleteNotification(id);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       setTotalCount((prev) => Math.max(0, prev - 1));
-    } catch (err) {
+    } catch {
       alert('알림 삭제 중 오류가 발생했습니다.');
     } finally {
       setActionLoadingId(null);
@@ -246,7 +245,7 @@ export default function NotificationsPage() {
         prev.map((n) => (n.id === id ? updated : n)),
       );
       alert('카카오 알림톡이 성공적으로 재발송되었습니다.');
-    } catch (err) {
+    } catch {
       alert('알림 재발송 중 오류가 발생했습니다.');
     } finally {
       setActionLoadingId(null);
@@ -800,6 +799,16 @@ export default function NotificationsPage() {
                     className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
                   />
                 </div>
+
+                <label className="flex items-center gap-2 cursor-pointer pt-1">
+                  <input
+                    type="checkbox"
+                    checked={newNoticeIsPinned}
+                    onChange={(e) => setNewNoticeIsPinned(e.target.checked)}
+                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                  />
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">상단에 중요 공지로 고정</span>
+                </label>
               </div>
 
               {/* Modal Footer */}

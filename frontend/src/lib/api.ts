@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useSystemAlertStore } from '@/stores/useSystemAlertStore';
 import { TokensResponse } from '@/types/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -48,7 +49,6 @@ api.interceptors.response.use(
     // If a request succeeds, automatically clear any lingering system communication error
     if (typeof window !== 'undefined') {
       try {
-        const { useSystemAlertStore } = require('@/stores/useSystemAlertStore');
         if (useSystemAlertStore.getState().hasError) {
           useSystemAlertStore.getState().clearError();
         }
@@ -91,6 +91,7 @@ api.interceptors.response.use(
       if (!refreshToken) {
         useAuthStore.getState().logout();
         if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          /* eslint-disable-next-line @next/next/no-location-assign-relative-destination */
           window.location.href = '/login';
         }
         return Promise.reject(error);
@@ -117,6 +118,7 @@ api.interceptors.response.use(
         processQueue(refreshError as Error, null);
         useAuthStore.getState().logout();
         if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          /* eslint-disable-next-line @next/next/no-location-assign-relative-destination */
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);
@@ -132,7 +134,6 @@ api.interceptors.response.use(
 
     if (typeof window !== 'undefined' && (isNetworkError || isServerError)) {
       try {
-        const { useSystemAlertStore } = require('@/stores/useSystemAlertStore');
         useSystemAlertStore.getState().setSystemError();
       } catch {
         // ignore in SSR

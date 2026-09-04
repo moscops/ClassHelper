@@ -19,7 +19,6 @@ import {
   Trash2,
   Edit3,
   X,
-  Loader2,
   List,
   Grid,
   CalendarDays,
@@ -27,7 +26,6 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { classesService, ClassItem, EnrolledStudent } from '@/lib/classes-service';
-import { studentsService, StudentItem } from '@/lib/students-service';
 import {
   calendarService,
   AcademyEvent,
@@ -89,8 +87,6 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<AcademyEvent[]>([]);
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [classRosters, setClassRosters] = useState<Record<number, EnrolledStudent[]>>({});
-  const [students, setStudents] = useState<StudentItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Filters & Search
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | EventCategory>('ALL');
@@ -138,21 +134,19 @@ export default function CalendarPage() {
     if (isHydrated && isAuthenticated && academy) {
       loadCalendarData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated, isAuthenticated, academy]);
 
   const loadCalendarData = async () => {
     if (!academy) return;
-    setIsLoading(true);
     try {
-      const [eventsData, classesRes, studentsRes] = await Promise.all([
+      const [eventsData, classesRes] = await Promise.all([
         calendarService.getEvents(academy.id),
         classesService.getClasses().catch(() => ({ items: [] })),
-        studentsService.getStudents({ limit: 100 }).catch(() => ({ items: [] })),
       ]);
 
       setEvents(eventsData);
       setClasses(classesRes.items || []);
-      setStudents(studentsRes.items || []);
 
       // Load rosters for each class in parallel for instant student scheduling
       const rosterMap: Record<number, EnrolledStudent[]> = {};
@@ -169,8 +163,6 @@ export default function CalendarPage() {
       setClassRosters(rosterMap);
     } catch (err) {
       console.error('Failed to load calendar data:', err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -426,12 +418,12 @@ export default function CalendarPage() {
   };
 
   // Selected date info
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const selectedDateEvents = useMemo(() => getEventsForDate(selectedDate), [selectedDate, events, categoryFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const selectedDateClasses = useMemo(() => getClassesForDate(selectedDate), [selectedDate, classes, classFilter]);
-  const selectedDateStudents = useMemo(
-    () => getStudentsForDate(selectedDate),
-    [selectedDate, classes, classRosters, classFilter, studentSearch],
-  );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const selectedDateStudents = useMemo(() => getStudentsForDate(selectedDate), [selectedDate, classes, classRosters, classFilter, studentSearch]);
 
   return (
     <AppLayout currentPath="/calendar">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BookOpen,
@@ -42,8 +42,6 @@ export default function ClassLogsPage() {
   // State: Classes & Filters
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
-  const [isClassDropdownOpen, setIsClassDropdownOpen] = useState(false);
-  const classDropdownRef = useRef<HTMLDivElement>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState<string>('');
@@ -166,30 +164,20 @@ export default function ClassLogsPage() {
     if (isHydrated && isAuthenticated) {
       loadClasses();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated, isAuthenticated]);
 
   useEffect(() => {
     if (isHydrated && isAuthenticated) {
       loadClassLogs();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated, isAuthenticated, selectedClassId, startDate, endDate]);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (classDropdownRef.current && !classDropdownRef.current.contains(e.target as Node)) {
-        setIsClassDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   // ESC to close modals
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setIsClassDropdownOpen(false);
         setIsLogModalOpen(false);
         setIsReportModalOpen(false);
       }
@@ -451,8 +439,6 @@ export default function ClassLogsPage() {
     (acc, log) => acc + (log.totalStudents || 0),
     0,
   );
-
-  const selectedClass = classes.find((c) => c.id === selectedClassId);
 
   return (
     <AppLayout currentPath="/class-logs">

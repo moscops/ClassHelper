@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   BookOpen,
   Users,
-  CalendarCheck2,
   Clock,
   LogOut,
   Sparkles,
@@ -202,6 +201,7 @@ export default function AttendancePage() {
       loadTimelineData(selectedDate);
       loadUnattendedStatus(selectedDate);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated, isAuthenticated, selectedDate]);
 
   // Load roster when selected class changes in CLASS mode
@@ -209,6 +209,7 @@ export default function AttendancePage() {
     if (selectedClassId) {
       loadRoster(selectedClassId, selectedDate);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClassId, selectedDate]);
 
   const getLocalDateString = () => {

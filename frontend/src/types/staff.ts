@@ -1,5 +1,3 @@
-import { UserRole } from './auth';
-
 export type StaffRole = 'OWNER' | 'ADMIN' | 'TEACHER' | 'STAFF';
 
 export interface StaffTaughtClass {

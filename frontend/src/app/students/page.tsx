@@ -30,9 +30,7 @@ import {
   FileText,
   CheckCircle,
   Send,
-  Calendar,
   Sparkles,
-  Check,
   RotateCcw,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -1986,7 +1984,7 @@ export default function StudentsPage() {
                           <strong className="text-slate-700 dark:text-slate-300">성별 표기:</strong> <span className="font-bold text-indigo-600 dark:text-indigo-400">남</span> 또는 <span className="font-bold text-indigo-600 dark:text-indigo-400">여</span> (MALE / FEMALE 도 가능)
                         </li>
                         <li>
-                          <strong className="text-slate-700 dark:text-slate-300">재원상태 표기:</strong> <span className="font-bold text-emerald-600 dark:text-emerald-400">재원</span>, <span className="font-bold text-amber-600 dark:text-amber-400">휴원</span>, <span className="font-bold text-rose-600 dark:text-rose-400">퇴원</span> (미입력 시 자동으로 '재원'으로 등록)
+                          <strong className="text-slate-700 dark:text-slate-300">재원상태 표기:</strong> <span className="font-bold text-emerald-600 dark:text-emerald-400">재원</span>, <span className="font-bold text-amber-600 dark:text-amber-400">휴원</span>, <span className="font-bold text-rose-600 dark:text-rose-400">퇴원</span> (미입력 시 자동으로 &apos;재원&apos;으로 등록)
                         </li>
                         <li>
                           <strong className="text-slate-700 dark:text-slate-300">날짜 형식:</strong> 생년월일 및 등록일은 <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">YYYY-MM-DD</span> (예: 2013-05-14) 형식 준수
