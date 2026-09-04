@@ -63,6 +63,11 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      # ghcr.io 이미지가 private라서 pull 인증이 필요한데, docker socket을 마운트한다고
+      # host의 `docker login` 정보까지 자동으로 물려받는 게 아님 — watchtower 컨테이너 자체에
+      # 인증 파일(/config.json)을 따로 넣어줘야 함(공식 문서 방식). EC2에서 root로 로그인했으므로
+      # /root/.docker/config.json을 그대로 마운트. 다른 계정으로 로그인했다면 경로를 그에 맞게 수정.
+      - /root/.docker/config.json:/config.json:ro
     environment:
       TZ: Asia/Seoul
       # watchtower 이미지에 내장된 도커 클라이언트가 기본 API 1.25를 써서, EC2의 실제 도커 데몬
