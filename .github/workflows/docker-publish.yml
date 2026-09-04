@@ -12,7 +12,7 @@
 # EC2에서는 이미지를 빌드하지 않고 watchtower가 자동으로 pull만 합니다(docker-compose.prod.yml 참고).
 # 빌드 자체는 GitHub의 클라우드 러너에서 돌기 때문에, EC2(t3.small) 메모리 부족으로 next build가
 # 죽던 문제(OOM)도 함께 해결됩니다.
-name: Build & Publish Docker Images
+name: CD Pipeline
 
 on:
   push:
