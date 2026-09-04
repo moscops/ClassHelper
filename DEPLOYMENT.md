@@ -97,8 +97,10 @@ docker compose -f docker-compose.prod.yml logs -f backend
 
 ## 5. 이후 업데이트 배포 (2026-09-04부터: 자동 배포)
 
-이제 `dev` 브랜치에 push하면 GitHub Actions(`.github/workflows/docker-publish.yml`)가 이미지를
-빌드해 `ghcr.io`에 올리고, EC2에서 도는 watchtower 컨테이너가 60초 간격으로 새 이미지를 감지해
+`dev` 브랜치에 push하면 먼저 `ci.yml`(CI Pipeline, lint/test/build 검증)이 돌고, **그게 성공해야만**
+`docker-publish.yml`이 이어서 트리거되어(workflow_run) 이미지를 빌드해 `ghcr.io`에 올립니다. CI가
+실패한 커밋은 이미지가 만들어지지 않으므로 배포도 안 됩니다 — CI가 실제로 배포를 막는 게이트 역할을
+합니다. 이미지가 올라가면 EC2에서 도는 watchtower 컨테이너가 60초 간격으로 새 이미지를 감지해
 알아서 `docker pull` + 재시작합니다. **EC2에 SSH로 들어가서 뭘 실행할 필요가 없습니다.**
 
 최초 1회만 EC2에서 아래 설정이 필요합니다 (자세한 내용은 이 문서 끝의 "6. CI/CD 자동배포 최초 설정" 참고):

@@ -1,11 +1,16 @@
-# dev 브랜치에 push될 때마다 backend/frontend Docker 이미지를 빌드해 ghcr.io(GitHub Container
-# Registry)에 올립니다. EC2에서는 이 이미지를 빌드하지 않고 watchtower가 자동으로 pull만 합니다
+# dev 브랜치에서 CI Pipeline(ci.yml, lint/test/build 검증)이 통과한 커밋에 한해서만
+# backend/frontend Docker 이미지를 빌드해 ghcr.io(GitHub Container Registry)에 올립니다.
+# CI가 실패한 커밋은 여기까지 오지 않음 — 예전엔 push에 바로 반응해서 CI 실패와 무관하게
+# 배포가 진행되던 결함이 있었음(CI가 게이트 역할을 못 함), workflow_run으로 전환해 해결.
+# EC2에서는 이 이미지를 빌드하지 않고 watchtower가 자동으로 pull만 합니다
 # (docker-compose.prod.yml 참고). 빌드 자체는 GitHub의 클라우드 러너에서 돌기 때문에, EC2(t3.small)
 # 메모리 부족으로 next build가 죽던 문제(OOM)도 함께 해결됩니다.
 name: Build & Publish Docker Images
 
 on:
-  push:
+  workflow_run:
+    workflows: ['CI Pipeline']
+    types: [completed]
     branches: [dev]
   workflow_dispatch:
 
@@ -14,10 +19,13 @@ on:
 # (watchtower는 :latest만 보고 pull하므로 잠깐 옛날 버전이 배포되는 문제로 이어짐).
 # cancel-in-progress: false로 취소 대신 줄 세워서, push된 순서대로 순차 실행되도록 보장.
 concurrency:
-  group: docker-publish-${{ github.ref }}
+  group: docker-publish-dev
   cancel-in-progress: false
 
 env:
+  # workflow_run 트리거에서는 github.sha가 이 워크플로 파일 자체의 최신 커밋을 가리켜서,
+  # CI를 통과한 실제 커밋과 다를 수 있음 — 반드시 트리거한 워크플로 실행의 head_sha를 써야 함.
+  TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
   REGISTRY: ghcr.io
   # 하드코딩하지 않고 실제 저장소 소유자를 그대로 씀 — repo가 JoshyWoshy1212 -> moscops로
   # 옮겨진 적이 있어서(리다이렉트만 되고 실제 소유자는 moscops), 하드코딩하면 GITHUB_TOKEN의
@@ -28,12 +36,16 @@ jobs:
   build-backend:
     name: Build & Push Backend Image
     runs-on: ubuntu-latest
+    # workflow_dispatch(수동 실행)는 항상 허용, workflow_run은 CI Pipeline이 success로 끝났을 때만
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_SHA }}
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -52,19 +64,22 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-backend:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-backend:${{ env.TARGET_SHA }}
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
 
   build-frontend:
     name: Build & Push Frontend Image
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_SHA }}
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -89,6 +104,6 @@ jobs:
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-frontend:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-frontend:${{ env.TARGET_SHA }}
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
