@@ -29,4 +29,5 @@ COPY --from=build /app/package.json ./
 EXPOSE 3000
 # tsconfig.json에 rootDir이 명시되어 있지 않아 tsc가 dist/main.js가 아니라
 # dist/src/main.js로 컴파일합니다 (nest-cli.json의 sourceRoot: "src"와 무관 — 순수 tsc outDir 추론 결과).
-CMD ["node", "dist/src/main.js"]
+# 컨테이너 시작 시 대기 중인 마이그레이션을 먼저 적용 후 서버 기동 (CI/CD 자동배포에서 수동 exec 없이도 반영되도록).
+CMD ["sh", "-c", "yarn prisma:migrate:deploy && node dist/src/main.js"]

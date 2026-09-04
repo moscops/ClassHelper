@@ -1,0 +1,83 @@
+# dev 브랜치에 push될 때마다 backend/frontend Docker 이미지를 빌드해 ghcr.io(GitHub Container
+# Registry)에 올립니다. EC2에서는 이 이미지를 빌드하지 않고 watchtower가 자동으로 pull만 합니다
+# (docker-compose.prod.yml 참고). 빌드 자체는 GitHub의 클라우드 러너에서 돌기 때문에, EC2(t3.small)
+# 메모리 부족으로 next build가 죽던 문제(OOM)도 함께 해결됩니다.
+name: Build & Publish Docker Images
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: joshywoshy1212
+
+jobs:
+  build-backend:
+    name: Build & Push Backend Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-backend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-backend:${{ github.sha }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+  build-frontend:
+    name: Build & Push Frontend Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # NEXT_PUBLIC_*는 브라우저 번들에 빌드 시점에 박히는 값이라 build-arg로 넘겨야 함
+      # (frontend/Dockerfile 참고). repo Settings > Secrets and variables > Actions > Variables 탭에서
+      # NEXT_PUBLIC_API_URL을 설정해야 함 — 아직 안 만들었으면 우선 http://3.38.4.169:3000으로 두고
+      # 나중에 도메인(https://api.classhelper.co.kr)이 살아나면 값만 바꿔서 재배포하면 됨.
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-frontend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-frontend:${{ github.sha }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend

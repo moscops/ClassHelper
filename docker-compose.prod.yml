@@ -1,12 +1,17 @@
 # ClassHelper 프로덕션 배포용 스택 (EC2 등 단일 서버에서 docker compose로 실행).
 # 로컬 개발용 docker-compose.yml(Postgres만 띄움)과는 별개 파일입니다.
 #
-# 사용법: repo 루트에서
+# backend/frontend는 더 이상 EC2에서 직접 빌드하지 않습니다 — GitHub Actions가
+# dev 브랜치 push마다 이미지를 빌드해 ghcr.io에 올리고, watchtower가 새 이미지를
+# 감지해 자동으로 pull + 재시작합니다. (.github/workflows/docker-publish.yml 참고)
+#
+# 사용법 (최초 1회, repo 루트에서):
 #   1) 이 파일과 같은 위치에 .env 파일을 만들고 POSTGRES_PASSWORD를 채운다
 #   2) backend/.env.production.example -> backend/.env 로 복사 후 값 채움
 #      (DATABASE_URL의 비밀번호는 위 POSTGRES_PASSWORD와 반드시 동일해야 함)
-#   3) docker compose -f docker-compose.prod.yml up --build -d
-#   4) docker compose -f docker-compose.prod.yml exec backend yarn prisma:migrate:deploy
+#   3) ghcr.io 이미지가 private라면: docker login ghcr.io -u <github계정> -p <PAT>
+#   4) docker compose -f docker-compose.prod.yml up -d
+# 마이그레이션은 backend 컨테이너 시작 시 자동 적용됨 (Dockerfile CMD 참고) — 수동 exec 불필요.
 
 services:
   postgres:
@@ -27,9 +32,7 @@ services:
       retries: 5
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/joshywoshy1212/classhelper-backend:latest
     container_name: classhelper-backend
     restart: unless-stopped
     env_file:
@@ -41,17 +44,28 @@ services:
       - '3000:3000'
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL이 루트 .env에 설정되어야 합니다}'
+    # NEXT_PUBLIC_API_URL은 이제 GitHub Actions 빌드 시점에 build-arg로 박혀서 이미지에 이미 포함됨
+    # (repo Settings > Actions > Variables의 NEXT_PUBLIC_API_URL) — 여기서 더 이상 안 넘김.
+    image: ghcr.io/joshywoshy1212/classhelper-frontend:latest
     container_name: classhelper-frontend
     restart: unless-stopped
     depends_on:
       - backend
     ports:
       - '3001:3000'
+
+  # dev 브랜치 push -> GitHub Actions가 새 이미지를 ghcr.io에 푸시하면,
+  # 60초 간격으로 확인해서 backend/frontend 컨테이너를 자동 pull + 재생성.
+  # postgres/watchtower 자신은 감시 대상에서 제외(뒤에 컨테이너명을 명시했으므로).
+  watchtower:
+    image: containrrr/watchtower
+    container_name: classhelper-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: Asia/Seoul
+    command: --interval 60 --cleanup classhelper-backend classhelper-frontend
 
 volumes:
   # 로컬 개발용 docker-compose.yml의 pgdata 볼륨(=기존 개발 DB)과 이름이 겹치면 그걸 그대로
