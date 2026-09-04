@@ -66,13 +66,64 @@ a57cff7 feat(attendance/notifications): 미등원 자동 카톡 발송, 1초 출
 ## Landed 2026-09-01 (was: in-flight work as of 2026-08-31)
 The frontend nav refactor flagged as in-flight last session is now committed. See the "Frontend nav refactor" correction above for what actually shipped (`AppLayout.tsx`, not `AppNavbar.tsx`) and the `AppNavbar.tsx`/background-pattern caveats. No backend changes were involved.
 
-## In-flight / Next backend tasks (2026-09-04 Post-Deployment Feedback)
-See [`../AI_HANDOFF.md`](../AI_HANDOFF.md) for full specs and details:
-- **P1 (Seed Data)**: `prisma/seed.ts` update to ensure `SUPER_ADMIN` (`admin@classhelper.kr`) and demo `OWNER` accounts can login immediately on deployed/local DB.
-- **P2 (Staff API & Approval)**: Real DB endpoints for staff (`GET/PATCH/DELETE /auth/staff`, password reset) and academy-code-based staff registration + owner approval workflow (`PENDING_APPROVAL` -> `ACTIVE`).
-- **P3 (Notice & Memo)**: Internal academy announcement board (`Notice`) & daily staff memo/notes (`StaffMemo`) models + CRUD APIs.
-- **P3 (Bulk Enrollment)**: `POST /classes/:id/enrollments/bulk` (`studentIds: number[]`).
-- **P4 (Auth Recovery)**: Email/SMS based find ID & reset password endpoints (`/auth/find-email`, `/auth/forgot-password`, `/auth/reset-password`).
+## Landed 2026-09-04: CI/CD 자동배포 파이프라인 + S3 DB 백업 + AI_HANDOFF 아카이빙
+
+**배경**: 9/3 첫 배포 이후, EC2에서 매번 SSH로 수동 빌드/배포하던 걸 완전 자동화하고, DB 백업과
+handoff 문서 관리 체계를 갖춘 세션. 코드 기능 추가 없이 전부 인프라/운영 작업.
+
+**1. S3 DB 백업 자동화**: EC2 IAM 인스턴스 프로파일(`ClassHelperEC2BackupRole`, 버킷 하나로
+스코프 제한, `.env`에 액세스키 없음) → `~/scripts/backup-db.sh`(EC2에만 존재, repo 미포함) →
+`docker exec` pg_dump → gzip → `aws s3 cp` → `classhelper-db-backups-054221782451-ap-northeast-2-an`
+버킷, `db-backups/` 프리픽스, 30일 수명주기 만료. cron `0 18 * * *`(UTC) = 매일 03:00 KST
+(EC2 호스트 시계는 UTC라 주의 — Postgres 컨테이너 자체는 `TZ: Asia/Seoul`).
+
+**2. P1(시드 데이터) 완료**: `prisma/seed.ts`는 이미 `admin@classhelper.kr`(SUPER_ADMIN)/
+`owner@classhelper.kr`(OWNER, 둘 다 비번 `password123!`)를 만들도록 되어있었음 — 진짜 문제는
+배포된 EC2 DB에 seed가 한 번도 실행된 적이 없었던 것. `backend/Dockerfile`의 컨테이너 시작
+CMD에 `yarn prisma:seed`를 migrate 다음/서버 기동 전에 추가(전부 upsert라 반복 실행 안전)해서
+매 배포마다 자동 보장되도록 함. P2~P4(교직원 API, 학원코드 승인, 공지/메모, 벌크 배정, 아이디/비번
+찾기)는 결제 게이트웨이/카카오 실 API 연동 이후로 순서 조정, 아직 미착수 — 상세 스펙은
+[`../AI_HANDOFF.md`](../AI_HANDOFF.md) 참고.
+
+**3. GitHub Actions CI/CD 자동배포 구축** — `dev` push → 자동으로 EC2까지 반영:
+- `.github/workflows/docker-publish.yml`(워크플로 이름은 `CD Pipeline`) 신규: backend-ci/frontend-ci
+  (lint/test/build) 게이트를 통과해야만(`needs:`) backend/frontend 이미지를 빌드해
+  `ghcr.io/moscops/classhelper-{backend,frontend}:latest` + `:<sha>`로 푸시.
+- `docker-compose.prod.yml`: `build:` → `image: ghcr.io/...`로 전환, `watchtower` 서비스 추가
+  (60초 간격 폴링, backend/frontend만 감시 대상). EC2는 더 이상 이미지를 직접 빌드하지 않음 —
+  `next build` OOM용 스왑파일 워크어라운드가 배포 경로에서 완전히 사라짐.
+- `backend/Dockerfile`: CMD가 `prisma migrate deploy && prisma seed && node dist/src/main.js` 순서로
+  실행되도록 변경(마이그레이션/시드 자동 반영, 수동 `exec` 불필요).
+- 미사용 `.github/workflows/cd.yml`(예전 "CD Pipeline (Release & Deploy)", main push 전용이라
+  브랜치 전략 변경 후 실행 0건이던 죽은 워크플로, 실제 배포 기능도 없었음) 삭제.
+
+**겪은 트러블슈팅 5건** (인스턴스/저장소 재구성 시 다시 겪을 수 있어 기록):
+1. `ghcr.io` push 시 `permission_denied: installation does not exist` — 저장소가 실제로는
+   `moscops`로 이전됐는데(`JoshyWoshy1212`는 리다이렉트만) 워크플로에 옛 소유자를 하드코딩했던 게
+   원인. `${{ github.repository_owner }}`로 교체.
+2. `moscops` 조직이 ghcr.io 패키지 Public 전환을 정책으로 차단 — private 유지, EC2에서
+   `docker login ghcr.io`(PAT, `read:packages` scope, `root`로 로그인) 1회 필요.
+3. watchtower가 `client version 1.25 too old` 크래시 반복 — 이미지 내장 도커 클라이언트 버전이
+   EC2 실제 도커 데몬(API 1.55)보다 낮아서. `DOCKER_API_VERSION` env로 강제 지정해 해결.
+4. watchtower가 private 이미지 pull 시 `403 Forbidden`/`unauthorized` — docker socket을 마운트해도
+   host의 `docker login` 인증정보를 자동으로 물려받지 않음(별개 프로세스). watchtower 컨테이너에
+   `/root/.docker/config.json:/config.json:ro`를 직접 마운트해야 함.
+5. **CI가 배포를 막지 못하던 결함 2단계로 발견/수정**: 처음엔 `docker-publish.yml`이 `push`에
+   독립적으로 반응해서 CI 실패와 무관하게 배포가 진행됨 → `workflow_run`(ci.yml 완료 시 트리거)으로
+   1차 수정했으나, `workflow_run`은 트리거하는 워크플로 파일이 저장소 **기본 브랜치**에도 있어야
+   실제로 발동하는데 이 저장소 기본 브랜치는 아직 `main`(`dev`보다 53커밋 뒤처짐)이라 전혀 발동 안 함
+   (실행 0건으로 확인). 최종적으로 backend-ci/frontend-ci를 `docker-publish.yml` 안에 자체적으로
+   넣고 `needs:`로 이미지 빌드 job을 의존시키는 방식으로 재구성 — 기본 브랜치 문제와 무관하게 항상
+   정상 동작. `push`가 거의 동시에 여러 번 오면 오래된 커밋의 빌드가 `:latest`를 나중에 덮어쓸 수
+   있어 `concurrency`(`cancel-in-progress: false`)로 순차 실행도 함께 보장.
+
+**4. `AI_HANDOFF.md` 아카이빙 구조 도입**: 394줄까지 쌓여서 매 세션 읽는 비용이 커지던 문제 예방—
+`AI_HANDOFF_ARCHIVE.md` 신규 생성, 9/1~9/2 지난 항목 17개를 내용 변경 없이 이동. `AI_HANDOFF.md`는
+이제 당일 항목만 유지, 헤더에 "날짜 지나면 archive로 이동" 규칙 명시(Gemini도 동일 규칙).
+
+**의도적으로 미룬 것**: AWS Secrets Manager(결제 게이트웨이 + 카카오 실 API 연동 이후로 재차 연기 —
+두 기능 다 새 시크릿을 추가하므로 시크릿 목록이 확정된 뒤 한 번에 전환하는 게 효율적이라는 판단),
+도메인/HTTPS(classhelper.co.kr이 Gabia에서 아직 lame delegation 상태로 DNS 미해결).
 
 ## Maintenance note
 Keep this file's "What's actually implemented" and roadmap sections in sync with reality whenever a backend module lands or a phase completes — check it against `src/` and `prisma/schema.prisma` rather than trusting the last write.
