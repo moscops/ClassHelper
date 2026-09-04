@@ -65,6 +65,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       TZ: Asia/Seoul
+      # watchtower 이미지에 내장된 도커 클라이언트가 기본 API 1.25를 써서, EC2의 실제 도커 데몬
+      # (API 1.55, 최소 1.40 요구)과 버전이 안 맞아 "client version too old"로 계속 재시작하던 문제.
+      # 실제 서버 API 버전(`docker version --format '{{.Server.APIVersion}}'`)에 맞춰 강제 지정.
+      DOCKER_API_VERSION: '1.55'
     command: --interval 60 --cleanup classhelper-backend classhelper-frontend
 
 volumes:
