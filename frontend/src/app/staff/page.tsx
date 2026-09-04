@@ -138,10 +138,17 @@ export default function StaffPage() {
   };
 
   useEffect(() => {
-    if (isHydrated && isAuthenticated) {
-      loadStaffData();
+    if (isHydrated) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      } else if (user && user.role !== 'OWNER' && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+        alert('교직원 관리는 원장님 및 관리자 전용 메뉴입니다.');
+        router.replace('/dashboard');
+      } else {
+        loadStaffData();
+      }
     }
-  }, [isHydrated, isAuthenticated]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   // ESC key modal closing
   useEffect(() => {

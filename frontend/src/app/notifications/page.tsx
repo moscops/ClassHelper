@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   ServerCrash,
   Database,
+  X,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useSystemAlertStore } from '@/stores/useSystemAlertStore';
@@ -58,6 +59,84 @@ export default function NotificationsPage() {
   // Action Loading states
   const [isMarkingAll, setIsMarkingAll] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
+
+  // Staff Notices State (학원 내부 공지사항)
+  const [notices, setNotices] = useState<Array<{
+    id: string;
+    title: string;
+    content: string;
+    author: string;
+    targetRole: string;
+    isPinned: boolean;
+    createdAt: string;
+  }>>(() => {
+    const defaultList = [
+      {
+        id: 'notice-1',
+        title: '📢 9월 학원 휴무 및 당직 근무 일정 안내',
+        content: '9월 공휴일 및 학원 휴무일 일정입니다. 해당 기간 동안 당직 조교 및 강사진은 비상 연락망을 확인해 주시기 바랍니다.',
+        author: '원장실',
+        targetRole: '전체 교직원',
+        isPinned: true,
+        createdAt: '2026-09-02',
+      },
+      {
+        id: 'notice-2',
+        title: '📋 학생 등하원 1초 출결 체크 철저 협조 요청',
+        content: '학부모 안심 카카오 알림톡이 정시에 발송될 수 있도록, 수업 시작 10분 전후로 원생 출결 체크를 누락 없이 완료해 주시기 바랍니다.',
+        author: '교무실',
+        targetRole: '강사진 • 조교',
+        isPinned: false,
+        createdAt: '2026-09-01',
+      },
+    ];
+    if (typeof window === 'undefined') return defaultList;
+    try {
+      const saved = localStorage.getItem('classhelper_staff_notices');
+      return saved ? JSON.parse(saved) : defaultList;
+    } catch {
+      return defaultList;
+    }
+  });
+
+  const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
+  const [newNoticeTitle, setNewNoticeTitle] = useState('');
+  const [newNoticeContent, setNewNoticeContent] = useState('');
+  const [newNoticeTarget, setNewNoticeTarget] = useState('전체 교직원');
+  const [newNoticeIsPinned, setNewNoticeIsPinned] = useState(false);
+
+  const handleSaveNotice = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNoticeTitle.trim() || !newNoticeContent.trim()) return;
+
+    const notice = {
+      id: `notice-${Date.now()}`,
+      title: newNoticeTitle.trim(),
+      content: newNoticeContent.trim(),
+      author: '원장실',
+      targetRole: newNoticeTarget,
+      isPinned: newNoticeIsPinned,
+      createdAt: new Date().toISOString().slice(0, 10),
+    };
+
+    const updated = [notice, ...notices];
+    setNotices(updated);
+    try {
+      localStorage.setItem('classhelper_staff_notices', JSON.stringify(updated));
+    } catch {}
+    setIsNoticeModalOpen(false);
+    setNewNoticeTitle('');
+    setNewNoticeContent('');
+  };
+
+  const handleDeleteNotice = (id: string) => {
+    if (!confirm('이 공지사항을 삭제하시겠습니까?')) return;
+    const updated = notices.filter((n) => n.id !== id);
+    setNotices(updated);
+    try {
+      localStorage.setItem('classhelper_staff_notices', JSON.stringify(updated));
+    } catch {}
+  };
 
   // Auth Guard
   useEffect(() => {
@@ -269,6 +348,65 @@ export default function NotificationsPage() {
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
+          </div>
+        </div>
+
+        {/* Staff Notice Section (학원 내부 교직원 공지사항) */}
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-base">📢</span>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                학원 내부 교직원 공지사항
+              </h3>
+              <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold border border-indigo-100 dark:border-indigo-800">
+                {notices.length}건
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsNoticeModalOpen(true)}
+              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+            >
+              + 새 공지 등록
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {notices.map((n) => (
+              <div
+                key={n.id}
+                className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-xs text-slate-900 dark:text-white">
+                      {n.title}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
+                        {n.targetRole}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteNotice(n.id)}
+                        className="text-slate-400 hover:text-rose-500 cursor-pointer p-0.5"
+                        title="공지 삭제"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                    {n.content}
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400">
+                  <span>작성: {n.author}</span>
+                  <span>{n.createdAt}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -590,6 +728,100 @@ export default function NotificationsPage() {
             </div>
           </div>
         )}
+
+      {/* Modal: Create Staff Notice */}
+      {isNoticeModalOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsNoticeModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
+        >
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col my-auto">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📢</span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  새 교직원 공지사항 등록
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsNoticeModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSaveNotice} className="flex flex-col flex-1">
+              <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
+                    공지 대상
+                  </label>
+                  <select
+                    value={newNoticeTarget}
+                    onChange={(e) => setNewNoticeTarget(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  >
+                    <option value="전체 교직원">전체 교직원 (원장, 강사, 조교)</option>
+                    <option value="강사진">강사진 전용</option>
+                    <option value="조교">조교 전용</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
+                    공지 제목
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="예: 9월 학원 휴무일 및 당직 안내"
+                    value={newNoticeTitle}
+                    onChange={(e) => setNewNoticeTitle(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
+                    공지 내용
+                  </label>
+                  <textarea
+                    required
+                    rows={4}
+                    placeholder="직원들에게 전달할 공지 내용을 작성해주세요..."
+                    value={newNoticeContent}
+                    onChange={(e) => setNewNoticeContent(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex justify-end gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsNoticeModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer"
+                >
+                  공지 등록
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       </main>
     </AppLayout>
   );

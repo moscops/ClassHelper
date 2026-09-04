@@ -315,20 +315,28 @@ export default function StudentsPage() {
     setBulkImportError(null);
   };
 
-  const handleDownloadTemplate = async () => {
+  const handleDownloadTemplate = () => {
     setIsDownloadingTemplate(true);
     try {
-      const blob = await studentsService.downloadBulkImportTemplate();
+      // UTF-8 BOM (\uFEFF) ensures Korean characters open correctly in MS Excel without broken encoding
+      const bom = '\uFEFF';
+      const csvContent =
+        bom +
+        '이름,성별,생년월일,학교명,학년,학생연락처,학부모연락처,학부모이름,학부모관계,재원상태,등록일,메모\n' +
+        '김민준,남,2013-05-14,대치중학교,중2,010-1111-2222,010-1234-5678,김영희,모,재원,2026-03-02,형제 할인 대상\n' +
+        '이서아,여,2012-08-21,역삼중학교,중3,010-3333-4444,010-8765-4321,이철수,부,재원,2026-03-02,수학 심화반 희망\n';
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'student_bulk_import_template.csv';
+      a.download = '원생_대량등록_표준양식_ClassHelper.csv';
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || '템플릿 다운로드에 실패했습니다.');
+      alert(err.message || '템플릿 다운로드에 실패했습니다.');
     } finally {
       setIsDownloadingTemplate(false);
     }
@@ -1965,20 +1973,26 @@ export default function StudentsPage() {
                     </div>
 
                     {/* Column Guide Help */}
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5">
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-600 dark:text-slate-300 space-y-2">
                       <p className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                         <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                        <span>CSV 작성 필수 안내</span>
+                        <span>CSV 작성 필수 규격 안내</span>
                       </p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-500 dark:text-slate-400">
+                      <ul className="list-disc list-inside space-y-1.5 text-slate-500 dark:text-slate-400">
                         <li>
                           <strong className="text-slate-700 dark:text-slate-300">필수 항목:</strong> 이름, 학부모연락처 (예: 010-1234-5678)
                         </li>
                         <li>
-                          <strong className="text-slate-700 dark:text-slate-300">선택 항목:</strong> 성별(남/여), 생년월일(YYYY-MM-DD), 학교명, 학년, 학생연락처, 학부모이름, 학부모관계, 재원상태(재원/휴원/퇴원), 등록일, 메모
+                          <strong className="text-slate-700 dark:text-slate-300">성별 표기:</strong> <span className="font-bold text-indigo-600 dark:text-indigo-400">남</span> 또는 <span className="font-bold text-indigo-600 dark:text-indigo-400">여</span> (MALE / FEMALE 도 가능)
                         </li>
                         <li>
-                          <strong className="text-slate-700 dark:text-slate-300">중복 방지:</strong> 이미 등록된 원생(동일 이름 & 학부모연락처)은 중복 생성되지 않고 자동으로 건너뜁니다.
+                          <strong className="text-slate-700 dark:text-slate-300">재원상태 표기:</strong> <span className="font-bold text-emerald-600 dark:text-emerald-400">재원</span>, <span className="font-bold text-amber-600 dark:text-amber-400">휴원</span>, <span className="font-bold text-rose-600 dark:text-rose-400">퇴원</span> (미입력 시 자동으로 '재원'으로 등록)
+                        </li>
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">날짜 형식:</strong> 생년월일 및 등록일은 <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">YYYY-MM-DD</span> (예: 2013-05-14) 형식 준수
+                        </li>
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">중복 방지:</strong> 이미 등록된 원생(동일 이름 & 학부모연락처)은 중복 생성되지 않고 안전하게 건너뜁니다.
                         </li>
                       </ul>
                     </div>

@@ -97,12 +97,17 @@ export default function TuitionPage() {
   const [selectedInvoiceForHistory, setSelectedInvoiceForHistory] = useState<InvoiceItem | null>(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  // Auth Guard
+  // Auth & RBAC Guard: Only OWNER, ADMIN, and SUPER_ADMIN can access tuition/billing
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
-      router.replace('/login');
+    if (isHydrated) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      } else if (user && user.role !== 'OWNER' && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+        alert('수강료 및 수납 관리는 원장님 및 관리자 전용 메뉴입니다.');
+        router.replace('/dashboard');
+      }
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   // ESC to close modals
   useEffect(() => {

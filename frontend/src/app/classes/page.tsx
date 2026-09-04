@@ -76,6 +76,7 @@ export default function ClassesPage() {
   const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
   const [isLoadingEnrollments, setIsLoadingEnrollments] = useState(false);
   const [selectedStudentIdToEnroll, setSelectedStudentIdToEnroll] = useState<string>('');
+  const [selectedStudentIdsToEnroll, setSelectedStudentIdsToEnroll] = useState<number[]>([]);
   const [studentSearchTerm, setStudentSearchTerm] = useState<string>('');
   const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState<boolean>(false);
   const [activeEnrollmentStatusRowId, setActiveEnrollmentStatusRowId] = useState<number | null>(null);
@@ -285,6 +286,7 @@ export default function ClassesPage() {
     setIsLoadingEnrollments(true);
     setEnrollError(null);
     setSelectedStudentIdToEnroll('');
+    setSelectedStudentIdsToEnroll([]);
     setStudentSearchTerm('');
     setIsStudentDropdownOpen(false);
 
@@ -298,11 +300,53 @@ export default function ClassesPage() {
     }
   };
 
-  // Add student enrollment
+  // Toggle single student selection in multi-select mode
+  const toggleStudentEnrollSelection = (studentId: number) => {
+    setSelectedStudentIdsToEnroll((prev) => {
+      const isSelected = prev.includes(studentId);
+      const next = isSelected ? prev.filter((id) => id !== studentId) : [...prev, studentId];
+      if (next.length === 1) {
+        setSelectedStudentIdToEnroll(String(next[0]));
+      } else {
+        setSelectedStudentIdToEnroll('');
+      }
+      return next;
+    });
+    setEnrollError(null);
+  };
+
+  // Select or Deselect all currently filtered eligible students
+  const handleToggleSelectAllEligible = (eligibleIds: number[]) => {
+    const isAllSelected = eligibleIds.length > 0 && eligibleIds.every((id) => selectedStudentIdsToEnroll.includes(id));
+    if (isAllSelected) {
+      setSelectedStudentIdsToEnroll((prev) => prev.filter((id) => !eligibleIds.includes(id)));
+      setSelectedStudentIdToEnroll('');
+    } else {
+      const merged = Array.from(new Set([...selectedStudentIdsToEnroll, ...eligibleIds]));
+      setSelectedStudentIdsToEnroll(merged);
+      if (merged.length === 1) {
+        setSelectedStudentIdToEnroll(String(merged[0]));
+      } else {
+        setSelectedStudentIdToEnroll('');
+      }
+    }
+    setEnrollError(null);
+  };
+
+  // Add student enrollment (supports both single and multi-select batch)
   const handleEnrollStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedClassForEnrollment || !selectedStudentIdToEnroll) {
-      setEnrollError('배정할 원생을 검색하여 선택해주세요.');
+    if (!selectedClassForEnrollment) return;
+
+    const targetIds =
+      selectedStudentIdsToEnroll.length > 0
+        ? selectedStudentIdsToEnroll
+        : selectedStudentIdToEnroll
+        ? [Number(selectedStudentIdToEnroll)]
+        : [];
+
+    if (targetIds.length === 0) {
+      setEnrollError('배정할 원생을 검색하여 최소 1명 이상 선택(체크)해주세요.');
       setIsStudentDropdownOpen(true);
       return;
     }
@@ -310,19 +354,36 @@ export default function ClassesPage() {
     setIsEnrollingStudent(true);
     setEnrollError(null);
 
+    const sDate = enrollStartDate.trim() || new Date().toISOString().split('T')[0];
+    let successCount = 0;
+    const errors: string[] = [];
+
     try {
-      await classesService.enrollStudent(selectedClassForEnrollment.id, {
-        studentId: Number(selectedStudentIdToEnroll),
-        startDate: enrollStartDate.trim() || new Date().toISOString().split('T')[0],
-      });
+      for (const sId of targetIds) {
+        try {
+          await classesService.enrollStudent(selectedClassForEnrollment.id, {
+            studentId: sId,
+            startDate: sDate,
+          });
+          successCount++;
+        } catch (subErr: any) {
+          const sObj = allStudents.find((st) => st.id === sId);
+          errors.push(`${sObj ? sObj.name : sId}: ${subErr.response?.data?.message || '실패'}`);
+        }
+      }
 
       // Refresh enrollments & class count
       const updated = await classesService.getEnrolledStudents(selectedClassForEnrollment.id);
       setEnrollments(updated || []);
       setSelectedStudentIdToEnroll('');
+      setSelectedStudentIdsToEnroll([]);
       setStudentSearchTerm('');
       setIsStudentDropdownOpen(false);
       await loadClasses();
+
+      if (errors.length > 0) {
+        setEnrollError(`${successCount}명 배정 완료 (일부 오류: ${errors.join(', ')})`);
+      }
     } catch (err: any) {
       setEnrollError(err.response?.data?.message || '수강 등록 중 오류가 발생했습니다.');
     } finally {
@@ -1309,7 +1370,7 @@ export default function ClassesPage() {
                 )}
 
                 <form onSubmit={handleEnrollStudent} noValidate className="flex flex-col sm:flex-row gap-2.5">
-                  {/* Searchable Student Autocomplete Combobox */}
+                  {/* Searchable Student Multi-select Autocomplete Combobox */}
                   <div
                     ref={studentSearchRef}
                     className={`relative flex-1 ${isStudentDropdownOpen ? 'z-50' : 'z-20'}`}
@@ -1318,134 +1379,180 @@ export default function ClassesPage() {
                       <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type="text"
-                        placeholder="원생 이름, 학년, 학교, 연락처 검색..."
+                        placeholder={
+                          selectedStudentIdsToEnroll.length > 0
+                            ? `${selectedStudentIdsToEnroll.length}명 선택됨 (추가 검색하여 선택 가능)...`
+                            : "원생 이름, 학년, 학교, 연락처 검색 (다중 선택 지원)..."
+                        }
                         value={studentSearchTerm}
                         onChange={(e) => {
                           setStudentSearchTerm(e.target.value);
                           setIsStudentDropdownOpen(true);
                           if (enrollError) setEnrollError(null);
-                          if (selectedStudentIdToEnroll) {
-                            setSelectedStudentIdToEnroll('');
-                          }
                         }}
                         onFocus={() => setIsStudentDropdownOpen(true)}
-                        className={`w-full pl-9 pr-8 py-2.5 bg-white dark:bg-slate-900 border rounded-2xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none transition-all ${
-                          enrollError && !selectedStudentIdToEnroll
+                        className={`w-full pl-9 pr-16 py-2.5 bg-white dark:bg-slate-900 border rounded-2xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none transition-all ${
+                          enrollError && selectedStudentIdsToEnroll.length === 0
                             ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 dark:bg-rose-950/20'
-                            : selectedStudentIdToEnroll
-                            ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/20 dark:bg-indigo-950/20 font-semibold'
+                            : selectedStudentIdsToEnroll.length > 0
+                            ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/10 dark:bg-indigo-950/20 font-semibold'
                             : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'
                         }`}
                       />
-                      {studentSearchTerm && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setStudentSearchTerm('');
-                            setSelectedStudentIdToEnroll('');
-                            setIsStudentDropdownOpen(true);
-                          }}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
 
-                    {/* Autocomplete Dropdown List */}
-                    {isStudentDropdownOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-1.5 z-[60] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-1.5 max-h-56 overflow-y-auto space-y-1 animate-in fade-in zoom-in-95 duration-100">
-                        {allStudents
-                          .filter((s) => s.status === 'ACTIVE')
-                          .filter((s) => {
-                            if (!studentSearchTerm.trim()) return true;
-                            const term = studentSearchTerm.toLowerCase();
-                            return (
-                              s.name.toLowerCase().includes(term) ||
-                              (s.parentPhone && s.parentPhone.includes(term)) ||
-                              (s.studentPhone && s.studentPhone.includes(term)) ||
-                              (s.schoolName && s.schoolName.toLowerCase().includes(term)) ||
-                              (s.grade && s.grade.toLowerCase().includes(term))
-                            );
-                          }).length === 0 ? (
-                          <div className="py-4 text-center text-slate-400 text-xs">
-                            일치하는 원생이 없습니다.
-                          </div>
-                        ) : (
-                          allStudents
-                            .filter((s) => s.status === 'ACTIVE')
-                            .filter((s) => {
-                              if (!studentSearchTerm.trim()) return true;
-                              const term = studentSearchTerm.toLowerCase();
-                              return (
-                                s.name.toLowerCase().includes(term) ||
-                                (s.parentPhone && s.parentPhone.includes(term)) ||
-                                (s.studentPhone && s.studentPhone.includes(term)) ||
-                                (s.schoolName && s.schoolName.toLowerCase().includes(term)) ||
-                                (s.grade && s.grade.toLowerCase().includes(term))
-                              );
-                            })
-                            .map((s) => {
-                              const isAlreadyEnrolled = enrollments.some(
-                                (e) => e.studentId === s.id && e.status === 'ENROLLED',
-                              );
-                              const isSelected = selectedStudentIdToEnroll === String(s.id);
-
-                              return (
-                                <button
-                                  key={s.id}
-                                  type="button"
-                                  disabled={isAlreadyEnrolled}
-                                  onClick={() => {
-                                    setSelectedStudentIdToEnroll(String(s.id));
-                                    setStudentSearchTerm(`${s.name} (${s.grade || '학년미기재'}, ${s.schoolName || '학교미기재'})`);
-                                    setIsStudentDropdownOpen(false);
-                                    setEnrollError(null);
-                                  }}
-                                  className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all cursor-pointer ${
-                                    isAlreadyEnrolled
-                                      ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40 text-slate-400'
-                                      : isSelected
-                                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold border border-indigo-200 dark:border-indigo-800/80'
-                                      : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[11px] font-bold text-indigo-600 dark:text-indigo-400 shrink-0">
-                                      {s.name.slice(0, 1)}
-                                    </div>
-                                    <div className="min-w-0 truncate">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="font-semibold text-slate-900 dark:text-white truncate">
-                                          {s.name}
-                                        </span>
-                                        {(s.grade || s.schoolName) && (
-                                          <span className="text-[10px] text-slate-400 truncate">
-                                            ({s.grade || ''}{s.grade && s.schoolName ? ' • ' : ''}{s.schoolName || ''})
-                                          </span>
-                                        )}
-                                      </div>
-                                      <span className="text-[10px] text-slate-400">
-                                        {s.parentPhone || s.studentPhone || '연락처 없음'}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    {isAlreadyEnrolled ? (
-                                      <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal">
-                                        수강중
-                                      </span>
-                                    ) : isSelected ? (
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                                    ) : null}
-                                  </div>
-                                </button>
-                              );
-                            })
+                      {/* Right indicator: count badge & clear */}
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                        {selectedStudentIdsToEnroll.length > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold shadow-2xs">
+                            {selectedStudentIdsToEnroll.length}명
+                          </span>
+                        )}
+                        {(studentSearchTerm || selectedStudentIdsToEnroll.length > 0) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setStudentSearchTerm('');
+                              setSelectedStudentIdsToEnroll([]);
+                              setSelectedStudentIdToEnroll('');
+                              setIsStudentDropdownOpen(true);
+                            }}
+                            className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            title="선택 초기화"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
                         )}
                       </div>
-                    )}
+                    </div>
+
+                    {/* Autocomplete Dropdown List with Checkboxes */}
+                    {isStudentDropdownOpen && (() => {
+                      const filtered = allStudents
+                        .filter((s) => s.status === 'ACTIVE')
+                        .filter((s) => {
+                          if (!studentSearchTerm.trim()) return true;
+                          const term = studentSearchTerm.toLowerCase();
+                          return (
+                            s.name.toLowerCase().includes(term) ||
+                            (s.parentPhone && s.parentPhone.includes(term)) ||
+                            (s.studentPhone && s.studentPhone.includes(term)) ||
+                            (s.schoolName && s.schoolName.toLowerCase().includes(term)) ||
+                            (s.grade && s.grade.toLowerCase().includes(term))
+                          );
+                        });
+
+                      const eligibleStudents = filtered.filter(
+                        (s) => !enrollments.some((e) => e.studentId === s.id && e.status === 'ENROLLED')
+                      );
+                      const eligibleIds = eligibleStudents.map((s) => s.id);
+                      const isAllEligibleSelected =
+                        eligibleIds.length > 0 &&
+                        eligibleIds.every((id) => selectedStudentIdsToEnroll.includes(id));
+
+                      return (
+                        <div className="absolute top-full left-0 right-0 mt-1.5 z-[60] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2 max-h-72 flex flex-col animate-in fade-in zoom-in-95 duration-100">
+                          {/* Dropdown Header: Batch Selection Controls */}
+                          <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-100 dark:border-slate-800 shrink-0 px-1">
+                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                              배정 대상 원생 ({eligibleStudents.length}명)
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {eligibleIds.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleSelectAllEligible(eligibleIds)}
+                                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 cursor-pointer transition-colors"
+                                >
+                                  {isAllEligibleSelected ? '선택 해제' : '검색 목록 전체 선택'}
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setIsStudentDropdownOpen(false)}
+                                className="px-2 py-0.5 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                              >
+                                닫기
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Student Items List */}
+                          <div className="overflow-y-auto space-y-1 flex-1 pr-0.5">
+                            {filtered.length === 0 ? (
+                              <div className="py-6 text-center text-slate-400 text-xs">
+                                일치하는 원생이 없습니다.
+                              </div>
+                            ) : (
+                              filtered.map((s) => {
+                                const isAlreadyEnrolled = enrollments.some(
+                                  (e) => e.studentId === s.id && e.status === 'ENROLLED',
+                                );
+                                const isChecked = selectedStudentIdsToEnroll.includes(s.id);
+
+                                return (
+                                  <div
+                                    key={s.id}
+                                    onClick={() => {
+                                      if (!isAlreadyEnrolled) {
+                                        toggleStudentEnrollSelection(s.id);
+                                      }
+                                    }}
+                                    className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all select-none ${
+                                      isAlreadyEnrolled
+                                        ? 'opacity-40 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40 text-slate-400'
+                                        : isChecked
+                                        ? 'bg-indigo-50/90 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-200 font-bold border border-indigo-200 dark:border-indigo-800/80 cursor-pointer'
+                                        : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                      {/* Checkbox */}
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        disabled={isAlreadyEnrolled}
+                                        onChange={() => {}} // handled by parent onClick
+                                        className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 pointer-events-none shrink-0"
+                                      />
+
+                                      <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[11px] font-bold text-indigo-600 dark:text-indigo-400 shrink-0">
+                                        {s.name.slice(0, 1)}
+                                      </div>
+
+                                      <div className="min-w-0 truncate">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="font-semibold text-slate-900 dark:text-white truncate">
+                                            {s.name}
+                                          </span>
+                                          {(s.grade || s.schoolName) && (
+                                            <span className="text-[10px] text-slate-400 truncate">
+                                              ({s.grade || ''}{s.grade && s.schoolName ? ' • ' : ''}{s.schoolName || ''})
+                                            </span>
+                                          )}
+                                        </div>
+                                        <span className="text-[10px] text-slate-400">
+                                          {s.parentPhone || s.studentPhone || '연락처 없음'}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      {isAlreadyEnrolled ? (
+                                        <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal">
+                                          수강중
+                                        </span>
+                                      ) : isChecked ? (
+                                        <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Custom Floating Date Picker with Direct Keyboard Editing */}
@@ -1457,15 +1564,19 @@ export default function ClassesPage() {
 
                   <button
                     type="submit"
-                    disabled={isEnrollingStudent || !selectedStudentIdToEnroll}
-                    className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-xs"
+                    disabled={isEnrollingStudent || (selectedStudentIdsToEnroll.length === 0 && !selectedStudentIdToEnroll)}
+                    className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-xs transition-all"
                   >
                     {isEnrollingStudent ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
                       <Plus className="w-3.5 h-3.5" />
                     )}
-                    <span>배정 등록</span>
+                    <span>
+                      {selectedStudentIdsToEnroll.length > 1
+                        ? `${selectedStudentIdsToEnroll.length}명 일괄 배정`
+                        : '수강 배정'}
+                    </span>
                   </button>
                 </form>
               </div>

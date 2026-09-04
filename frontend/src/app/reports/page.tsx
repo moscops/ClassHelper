@@ -91,6 +91,64 @@ export default function ReportsPage() {
   const [studentSendResult, setStudentSendResult] = useState<SendReportResult | null>(null);
   const [studentReportError, setStudentReportError] = useState<string | null>(null);
 
+  // Report Templates & Drafts State
+  const [reportTemplates, setReportTemplates] = useState<Array<{
+    id: string;
+    name: string;
+    content: string;
+  }>>(() => {
+    const defaults = [
+      {
+        id: 'tpl-1',
+        name: '성실 학습 격려형 템플릿',
+        content: '[ClassHelper 학습 리포트]\n{학생이름} 학생의 이번 기간 학습 현황을 전달드립니다.\n성실하게 출석하며 과제 수행률이 매우 우수합니다. 앞으로도 꾸준한 격려 부탁드립니다!',
+      },
+      {
+        id: 'tpl-2',
+        name: '과제/보강 집중 관리형 템플릿',
+        content: '[ClassHelper 학습 리포트]\n{학생이름} 학생의 학습 현황 안내드립니다.\n출석은 양호하나 미제출 과제에 대한 추가 보강이 진행될 예정입니다. 가정에서도 확인 부탁드립니다.',
+      },
+    ];
+    if (typeof window === 'undefined') return defaults;
+    try {
+      const saved = localStorage.getItem('classhelper_report_templates');
+      return saved ? JSON.parse(saved) : defaults;
+    } catch {
+      return defaults;
+    }
+  });
+
+  const handleApplyTemplate = (templateContent: string) => {
+    const studentName = selectedStudentForReport?.name || '학생';
+    const filled = templateContent.replace(/\{학생이름\}/g, studentName);
+    setEditableMessage(filled);
+  };
+
+  const handleSaveCurrentAsTemplate = () => {
+    if (!editableMessage.trim()) return;
+    const name = prompt('이 템플릿의 이름을 입력하세요 (예: 9월 중간고사 대비 템플릿):');
+    if (!name || !name.trim()) return;
+
+    const studentName = selectedStudentForReport?.name || '';
+    let genericContent = editableMessage;
+    if (studentName) {
+      genericContent = genericContent.split(studentName).join('{학생이름}');
+    }
+
+    const newTpl = {
+      id: `tpl-${Date.now()}`,
+      name: name.trim(),
+      content: genericContent,
+    };
+
+    const next = [newTpl, ...reportTemplates];
+    setReportTemplates(next);
+    try {
+      localStorage.setItem('classhelper_report_templates', JSON.stringify(next));
+    } catch {}
+    alert(`[${name.trim()}] 템플릿이 저장되었습니다! 다른 학생 발송 시에도 불러와 이름만 자동 변경되어 사용할 수 있습니다.`);
+  };
+
   // Student Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState<string>('ALL');
@@ -1449,20 +1507,51 @@ export default function ReportsPage() {
 
                     {/* Live Message Edit + Kakao Bubble Preview */}
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                           <Edit3 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                           <span>발송 메시지 직접 수정 (편집 가능)</span>
                         </label>
-                        <button
-                          type="button"
-                          onClick={() => setEditableMessage(reportPreview.message)}
-                          className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold cursor-pointer"
-                          title="자동 계산된 기본 텍스트로 복원"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          <span>기본 문구로 초기화</span>
-                        </button>
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Template Dropdown */}
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const selectedTpl = reportTemplates.find((t) => t.id === e.target.value);
+                                if (selectedTpl) handleApplyTemplate(selectedTpl.content);
+                                e.target.value = ''; // reset select
+                              }
+                            }}
+                            className="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] text-slate-600 dark:text-slate-300 focus:outline-none cursor-pointer"
+                          >
+                            <option value="">📂 저장된 템플릿 불러오기...</option>
+                            {reportTemplates.map((t) => (
+                              <option key={t.id} value={t.id}>
+                                {t.name}
+                              </option>
+                            ))}
+                          </select>
+
+                          <button
+                            type="button"
+                            onClick={handleSaveCurrentAsTemplate}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80 text-[11px] font-bold hover:bg-indigo-100 cursor-pointer transition-colors"
+                            title="현재 문구를 템플릿으로 저장하여 다른 학생 발송 시 재사용"
+                          >
+                            <span>💾 템플릿 저장</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setEditableMessage(reportPreview.message)}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold cursor-pointer"
+                            title="자동 계산된 기본 텍스트로 복원"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            <span>초기화</span>
+                          </button>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

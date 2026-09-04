@@ -23,6 +23,7 @@ import {
   Crown,
   FileText,
   UserCheck,
+  Calendar,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useSystemAlertStore } from '@/stores/useSystemAlertStore';
@@ -143,6 +144,12 @@ export function AppNavbar({ currentPath }: AppNavbarProps) {
       active: activePath === '/dashboard',
     },
     {
+      label: '스마트 캘린더',
+      href: '/calendar',
+      icon: Calendar,
+      active: activePath === '/calendar',
+    },
+    {
       label: '원생 관리',
       href: '/students',
       icon: Users,
@@ -168,12 +175,16 @@ export function AppNavbar({ currentPath }: AppNavbarProps) {
       icon: ClipboardList,
       active: activePath === '/class-logs',
     },
-    {
-      label: '수강료 & 수납',
-      href: '/tuition',
-      icon: CreditCard,
-      active: activePath === '/tuition',
-    },
+    ...(user?.role === 'OWNER' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
+      ? [
+          {
+            label: '수강료 & 수납',
+            href: '/tuition',
+            icon: CreditCard,
+            active: activePath === '/tuition',
+          },
+        ]
+      : []),
     {
       label: '리포트 관리',
       href: '/reports',

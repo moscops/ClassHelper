@@ -40,7 +40,28 @@ import { AppLayout } from '@/components/common/AppLayout';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
 import { CustomDropdown } from '@/components/CustomDropdown';
 
-type CalendarViewMode = 'MONTH' | 'WEEK_TIMETABLE' | 'AGENDA';
+type CalendarViewMode = 'TODAY' | 'MONTH' | 'WEEK_TIMETABLE' | 'AGENDA';
+
+const DAILY_MEMO_STORAGE_KEY = 'classhelper_daily_briefing_memos';
+
+function getStoredDailyMemos(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(DAILY_MEMO_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveStoredDailyMemos(memos: Record<string, string>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(DAILY_MEMO_STORAGE_KEY, JSON.stringify(memos));
+  } catch {
+    // ignore
+  }
+}
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -53,8 +74,16 @@ export default function CalendarPage() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   });
 
-  // View Mode
-  const [viewMode, setViewMode] = useState<CalendarViewMode>('MONTH');
+  // Briefing Date (Default: today)
+  const [briefingDate, setBriefingDate] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
+  const [dailyMemos, setDailyMemos] = useState<Record<string, string>>(() => getStoredDailyMemos());
+  const [isMemoSavedBadge, setIsMemoSavedBadge] = useState(false);
+
+  // View Mode (Default: TODAY)
+  const [viewMode, setViewMode] = useState<CalendarViewMode>('TODAY');
 
   // Data States
   const [events, setEvents] = useState<AcademyEvent[]>([]);
@@ -470,6 +499,19 @@ export default function CalendarPage() {
               <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold">
                 <button
                   type="button"
+                  onClick={() => setViewMode('TODAY')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                    viewMode === 'TODAY'
+                      ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>오늘의 브리핑</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setViewMode('MONTH')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     viewMode === 'MONTH'
@@ -584,6 +626,298 @@ export default function CalendarPage() {
             })}
           </div>
         </div>
+
+        {/* Main View Area: Today's Briefing OR Month Grid OR Weekly Timetable OR Agenda List */}
+        {viewMode === 'TODAY' && (() => {
+          const now = new Date();
+          const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          const tomorrow = new Date(now.getTime() + 24 * 3600 * 1000);
+          const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+          const briefingDateObj = new Date(briefingDate + 'T00:00:00');
+          const dayOfWeekNames = ['일', '월', '화', '수', '목', '금', '토'];
+          const briefingDayName = dayOfWeekNames[briefingDateObj.getDay()];
+
+          // Classes occurring on this day
+          const todayClasses = classes.filter((cls) => {
+            if (!cls.schedule) return true;
+            return cls.schedule.includes(briefingDayName) || cls.schedule.includes('매일');
+          });
+
+          // Events on this day
+          const todayEvents = events.filter((evt) => {
+            const start = evt.startDate;
+            const end = evt.endDate || evt.startDate;
+            return briefingDate >= start && briefingDate <= end;
+          });
+
+          const currentMemo = dailyMemos[briefingDate] || '';
+
+          const handleSaveMemo = (newText: string) => {
+            const updated = { ...dailyMemos, [briefingDate]: newText };
+            setDailyMemos(updated);
+            saveStoredDailyMemos(updated);
+            setIsMemoSavedBadge(true);
+            setTimeout(() => setIsMemoSavedBadge(false), 2500);
+          };
+
+          return (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              {/* Daily Navigation Bar */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center font-extrabold text-lg shrink-0 shadow-2xs">
+                    ☀️
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                        {briefingDate} ({briefingDayName}요일) 브리핑
+                      </h3>
+                      {briefingDate === todayStr ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
+                          오늘 (Today)
+                        </span>
+                      ) : briefingDate === tomorrowStr ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700">
+                          내일 (Tomorrow)
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      수업 {todayClasses.length}개 개설 • 학원 일정 {todayEvents.length}건 예정
+                    </p>
+                  </div>
+                </div>
+
+                {/* Date Shortcut Controls */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setBriefingDate(todayStr)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      briefingDate === todayStr
+                        ? 'bg-amber-500 text-white shadow-2xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    }`}
+                  >
+                    오늘 일정
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBriefingDate(tomorrowStr)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      briefingDate === tomorrowStr
+                        ? 'bg-indigo-600 text-white shadow-2xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    }`}
+                  >
+                    내일 할 일
+                  </button>
+                  <CustomDatePicker
+                    value={briefingDate}
+                    onChange={(newVal) => setBriefingDate(newVal)}
+                    showTodayShortcut={true}
+                  />
+                </div>
+              </div>
+
+              {/* Grid: 7 cols (Classes & Students) + 5 cols (Events & Memos) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Left 7 cols: Today Classes & Rosters */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                      <span>{briefingDayName}요일 진행 수업 & 등원 수강생 ({todayClasses.length}개 반)</span>
+                    </h4>
+                    <Link
+                      href="/attendance"
+                      className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                    >
+                      <span>1초 출결 체크보드</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+
+                  {todayClasses.length === 0 ? (
+                    <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center text-slate-400 text-xs">
+                      해당 요일에 예정된 정규 수업 반이 없습니다.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {todayClasses.map((cls) => {
+                        const rosterList = classRosters[cls.id] || [];
+
+                        return (
+                          <div
+                            key={cls.id}
+                            className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-sm text-slate-900 dark:text-white">
+                                    {cls.name}
+                                  </span>
+                                  {cls.subject && (
+                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
+                                      {cls.subject}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+                                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                  <span>{cls.schedule || '시간 미지정'}</span>
+                                  <span>•</span>
+                                  <span>담당: {cls.teacher?.name || '강사 미배정'}</span>
+                                </p>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleOpenClassRosterModal(cls)}
+                                className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-xs font-bold transition-colors cursor-pointer shrink-0"
+                              >
+                                명단 {cls.enrolledCount || rosterList.length}명 조회
+                              </button>
+                            </div>
+
+                            {/* Enrolled Students Quick Chips */}
+                            <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center gap-1.5">
+                              <span className="text-[11px] font-semibold text-slate-400">
+                                수강 원생:
+                              </span>
+                              {rosterList.length === 0 ? (
+                                <span className="text-[11px] text-slate-400">수강생 없음</span>
+                              ) : (
+                                rosterList.slice(0, 8).map((st) => (
+                                  <span
+                                    key={st.id}
+                                    className="px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200/60 dark:border-slate-700/60"
+                                  >
+                                    {st.name}
+                                  </span>
+                                ))
+                              )}
+                              {rosterList.length > 8 && (
+                                <span className="text-[10px] text-slate-400 font-bold">
+                                  +{rosterList.length - 8}명 더보기
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right 5 cols: Events & Memo Note */}
+                <div className="lg:col-span-5 space-y-6">
+                  {/* Today's Events Card */}
+                  <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <CalendarCheck2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>학원 공식 일정 & 시험 ({todayEvents.length}건)</span>
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAddEventModal(briefingDate)}
+                        className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                      >
+                        + 일정 추가
+                      </button>
+                    </div>
+
+                    {todayEvents.length === 0 ? (
+                      <div className="py-6 text-center text-slate-400 text-xs">
+                        해당 날짜에 등록된 학원 이벤트가 없습니다.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {todayEvents.map((evt) => {
+                          const color = COLOR_CLASSES[evt.color] || COLOR_CLASSES.INDIGO;
+                          return (
+                            <div
+                              key={evt.id}
+                              className={`p-3 rounded-2xl ${color.bg} border ${color.border} flex items-start justify-between gap-2`}
+                            >
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`text-xs font-bold ${color.text}`}>
+                                    {evt.title}
+                                  </span>
+                                  <span
+                                    className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${
+                                      EVENT_CATEGORY_META[evt.category]?.badgeClass
+                                    }`}
+                                  >
+                                    {EVENT_CATEGORY_META[evt.category]?.label}
+                                  </span>
+                                </div>
+                                {evt.description && (
+                                  <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
+                                    {evt.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Daily Memo / 특이사항 & 인수인계 Card */}
+                  <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse" />
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                          {briefingDate === todayStr
+                            ? '오늘의 특이사항 & 인수인계 메모'
+                            : `${briefingDate} 특이사항 / 내일 할 일`}
+                        </h4>
+                      </div>
+                      {isMemoSavedBadge && (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 animate-in fade-in">
+                          ✓ 저장 완료
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      원장님과 강사, 조교가 서로 확인할 특이사항이나 내일 해야 할 일을 기록해두면 해당 날짜에 바로 조회됩니다.
+                    </p>
+
+                    <textarea
+                      rows={4}
+                      placeholder="예) 오늘 2교시 김민준 학생 보강 완료. 내일 학부모 상담 전화 필요. 교재 3권 주문 건 확인 등..."
+                      value={currentMemo}
+                      onChange={(e) => handleSaveMemo(e.target.value)}
+                      className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                    />
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[10px] text-slate-400">
+                        * 내용 입력 시 브라우저에 자동 실시간 저장됩니다.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveMemo(currentMemo)}
+                        className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+                      >
+                        메모 저장
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Main View Area: Month Grid OR Weekly Timetable OR Agenda List */}
         {viewMode === 'MONTH' && (

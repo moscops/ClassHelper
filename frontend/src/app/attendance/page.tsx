@@ -211,7 +211,26 @@ export default function AttendancePage() {
     }
   }, [selectedClassId, selectedDate]);
 
+  const getLocalDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const isSelectedToday = selectedDate === getLocalDateString();
+
   const loadUnattendedStatus = async (date: string) => {
+    const today = getLocalDateString();
+    if (date !== today) {
+      setUnattendedStatus({
+        isUnattendedAlertActive: false,
+        unattendedCount: 0,
+        unattendedStudents: [],
+      });
+      return;
+    }
     try {
       const data = await attendanceService.getUnattendedStatus(date);
       setUnattendedStatus(data);
@@ -1283,8 +1302,8 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          {/* Urgent Unattended Alert Banner (수업 시간 미등원 학생 감지 배너) */}
-          {unattendedStatus.isUnattendedAlertActive && (
+          {/* Urgent Unattended Alert Banner (오늘 수업 시간 미등원 학생 감지 배너) */}
+          {isSelectedToday && unattendedStatus.isUnattendedAlertActive && (
             <div className="p-4 sm:p-5 rounded-3xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 shadow-md animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
                 <div className="flex items-start sm:items-center gap-3">

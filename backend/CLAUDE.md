@@ -66,5 +66,14 @@ a57cff7 feat(attendance/notifications): 미등원 자동 카톡 발송, 1초 출
 ## Landed 2026-09-01 (was: in-flight work as of 2026-08-31)
 The frontend nav refactor flagged as in-flight last session is now committed. See the "Frontend nav refactor" correction above for what actually shipped (`AppLayout.tsx`, not `AppNavbar.tsx`) and the `AppNavbar.tsx`/background-pattern caveats. No backend changes were involved.
 
+## In-flight / Next backend tasks (2026-09-04 Post-Deployment Feedback)
+See [`../AI_HANDOFF.md`](../AI_HANDOFF.md) for full specs and details:
+- **P1 (Seed Data)**: `prisma/seed.ts` update to ensure `SUPER_ADMIN` (`admin@classhelper.kr`) and demo `OWNER` accounts can login immediately on deployed/local DB.
+- **P2 (Staff API & Approval)**: Real DB endpoints for staff (`GET/PATCH/DELETE /auth/staff`, password reset) and academy-code-based staff registration + owner approval workflow (`PENDING_APPROVAL` -> `ACTIVE`).
+- **P3 (Notice & Memo)**: Internal academy announcement board (`Notice`) & daily staff memo/notes (`StaffMemo`) models + CRUD APIs.
+- **P3 (Bulk Enrollment)**: `POST /classes/:id/enrollments/bulk` (`studentIds: number[]`).
+- **P4 (Auth Recovery)**: Email/SMS based find ID & reset password endpoints (`/auth/find-email`, `/auth/forgot-password`, `/auth/reset-password`).
+
 ## Maintenance note
 Keep this file's "What's actually implemented" and roadmap sections in sync with reality whenever a backend module lands or a phase completes — check it against `src/` and `prisma/schema.prisma` rather than trusting the last write.
+

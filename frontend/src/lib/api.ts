@@ -44,7 +44,20 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // If a request succeeds, automatically clear any lingering system communication error
+    if (typeof window !== 'undefined') {
+      try {
+        const { useSystemAlertStore } = require('@/stores/useSystemAlertStore');
+        if (useSystemAlertStore.getState().hasError) {
+          useSystemAlertStore.getState().clearError();
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 

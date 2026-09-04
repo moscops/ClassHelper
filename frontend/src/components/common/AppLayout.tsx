@@ -164,12 +164,16 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
           icon: ClipboardList,
           active: activePath === '/class-logs',
         },
-        {
-          label: '수강료 & 수납',
-          href: '/tuition',
-          icon: CreditCard,
-          active: activePath === '/tuition',
-        },
+        ...(user?.role === 'OWNER' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
+          ? [
+              {
+                label: '수강료 & 수납',
+                href: '/tuition',
+                icon: CreditCard,
+                active: activePath === '/tuition',
+              },
+            ]
+          : []),
       ],
     },
     {

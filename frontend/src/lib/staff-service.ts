@@ -117,80 +117,11 @@ export const staffService = {
       }
     });
 
-    // 기본 샘플 데이터 (초기 로드 시 풍부한 UI 경험 제공)
-    if (staffMap.size <= 1 && localStaff.length === 0) {
-      const sampleStaff: StaffMember[] = [
-        {
-          id: 101,
-          academyId: currentMe?.academyId || 1,
-          email: 'admin.lee@classhelper.kr',
-          name: '이서연',
-          phone: '010-2345-6789',
-          role: 'ADMIN',
-          createdAt: new Date(Date.now() - 60 * 24 * 3600 * 1000).toISOString(),
-          taughtClasses: [],
-          taughtClassesCount: 0,
-          processedPaymentsCount: 42,
-        },
-        {
-          id: 102,
-          academyId: currentMe?.academyId || 1,
-          email: 'math.kim@classhelper.kr',
-          name: '김도현',
-          phone: '010-3456-7890',
-          role: 'TEACHER',
-          createdAt: new Date(Date.now() - 45 * 24 * 3600 * 1000).toISOString(),
-          taughtClasses: classItems.slice(0, 2).map((c) => ({
-            id: c.id,
-            name: c.name,
-            subject: c.subject || '수학',
-            targetGrade: c.targetGrade || '중등부',
-            schedule: c.schedule || '월/수/금 17:00',
-            capacity: c.capacity || 15,
-            enrolledCount: c.enrolledCount || 8,
-            status: c.status || 'ACTIVE',
-          })),
-          taughtClassesCount: Math.min(2, classItems.length),
-          classLogsCount: 28,
-        },
-        {
-          id: 103,
-          academyId: currentMe?.academyId || 1,
-          email: 'eng.park@classhelper.kr',
-          name: '박지민',
-          phone: '010-4567-8901',
-          role: 'TEACHER',
-          createdAt: new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString(),
-          taughtClasses: classItems.slice(2, 4).map((c) => ({
-            id: c.id,
-            name: c.name,
-            subject: c.subject || '영어',
-            targetGrade: c.targetGrade || '고등부',
-            schedule: c.schedule || '화/목 19:00',
-            capacity: c.capacity || 12,
-            enrolledCount: c.enrolledCount || 6,
-            status: c.status || 'ACTIVE',
-          })),
-          taughtClassesCount: Math.max(0, classItems.length - 2),
-          classLogsCount: 19,
-        },
-        {
-          id: 104,
-          academyId: currentMe?.academyId || 1,
-          email: 'staff.choi@classhelper.kr',
-          name: '최민준',
-          phone: '010-5678-9012',
-          role: 'STAFF',
-          createdAt: new Date(Date.now() - 15 * 24 * 3600 * 1000).toISOString(),
-          taughtClasses: [],
-          taughtClassesCount: 0,
-        },
-      ];
-      sampleStaff.forEach((s) => staffMap.set(s.id, s));
-    }
-
-    // 로컬 스토리지에 등록/수정된 직원 병합
+    // 로컬 스토리지에 등록/수정된 실제 직원 병합 (레거시 더미 데이터 id 101~104 제외)
     localStaff.forEach((s) => {
+      if (typeof s.id === 'number' && s.id >= 101 && s.id <= 104 && s.email.includes('@classhelper.kr')) {
+        return; // 레거시 더미 데이터 제외
+      }
       staffMap.set(s.id, s);
     });
 
