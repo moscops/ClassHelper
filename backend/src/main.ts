@@ -25,7 +25,7 @@ async function bootstrap() {
   app.enableCors({
     origin: corsOrigin
       ? corsOrigin.split(',').map((origin) => origin.trim())
-      : ['http://localhost:3000', 'http://localhost:3001'],
+      : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5000'],
   });
 
   app.useGlobalPipes(
