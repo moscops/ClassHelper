@@ -29,6 +29,10 @@ import {
   LayoutGrid,
   Rows3,
   Home,
+  Tablet,
+  ExternalLink,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { classesService, ClassItem } from '@/lib/classes-service';
@@ -163,6 +167,59 @@ export default function AttendancePage() {
   });
   const [isTriggeringKakao, setIsTriggeringKakao] = useState(false);
 
+  // State: Kiosk Modal & Token
+  const [isKioskModalOpen, setIsKioskModalOpen] = useState(false);
+  const [kioskToken, setKioskToken] = useState<string>('');
+  const [isLoadingKioskToken, setIsLoadingKioskToken] = useState(false);
+  const [isCopiedKioskUrl, setIsCopiedKioskUrl] = useState(false);
+
+  const handleOpenKioskModal = async () => {
+    setIsKioskModalOpen(true);
+    const cached = typeof window !== 'undefined' ? localStorage.getItem('classhelper_kiosk_token') : null;
+    if (cached) {
+      setKioskToken(cached);
+    } else {
+      await handleGenerateKioskToken(false);
+    }
+  };
+
+  const handleGenerateKioskToken = async (showConfirm = true) => {
+    if (showConfirm) {
+      if (
+        !confirm(
+          '키오스크 접속 토큰을 새로 발급하시겠습니까?\n기존 토큰으로 열려 있는 모든 키오스크 기기는 즉시 접속이 해제됩니다.',
+        )
+      ) {
+        return;
+      }
+    }
+    setIsLoadingKioskToken(true);
+    try {
+      const res = await attendanceService.generateKioskToken();
+      setKioskToken(res.kioskToken);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('classhelper_kiosk_token', res.kioskToken);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || '키오스크 토큰 발급에 실패했습니다.');
+    } finally {
+      setIsLoadingKioskToken(false);
+    }
+  };
+
+  const handleCopyKioskUrl = () => {
+    if (!kioskToken || typeof window === 'undefined') return;
+    const url = `${window.location.origin}/kiosk/${kioskToken}`;
+    navigator.clipboard.writeText(url);
+    setIsCopiedKioskUrl(true);
+    setTimeout(() => setIsCopiedKioskUrl(false), 2000);
+  };
+
+  const handleLaunchKiosk = () => {
+    if (!kioskToken || typeof window === 'undefined') return;
+    window.open(`/kiosk/${kioskToken}`, '_blank');
+  };
+
   // Authentication Guard
   useEffect(() => {
     if (isHydrated) {
@@ -192,6 +249,7 @@ export default function AttendancePage() {
         setIsClassDropdownOpen(false);
         setIsDetailModalOpen(false);
         setIsStatsModalOpen(false);
+        setIsKioskModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -1279,6 +1337,16 @@ export default function AttendancePage() {
             </div>
 
             <div className="flex items-center flex-wrap gap-2.5">
+              {/* Kiosk Tablet Modal Launcher */}
+              <button
+                type="button"
+                onClick={handleOpenKioskModal}
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-xs shadow-indigo-600/30 transition-all cursor-pointer"
+              >
+                <Tablet className="w-4 h-4" />
+                <span>출석 키오스크</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleOpenStatsModal}
@@ -2400,6 +2468,137 @@ export default function AttendancePage() {
                 className="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
               >
                 닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Kiosk Setup & Launcher Modal */}
+      {isKioskModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl p-6 sm:p-7 space-y-6 animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-800">
+                  <Tablet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    출석 키오스크 (태블릿 모드)
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                      신규 기능
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    학원 로비 태블릿에 띄워두고 원생들이 직접 전화번호 뒷자리로 1초 등·하원 체크를 합니다.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsKioskModalOpen(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="space-y-5 overflow-y-auto flex-1 pr-1">
+              {/* How it works info card */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-indigo-500" />
+                  키오스크 활용 가이드
+                </h4>
+                <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 list-disc list-inside leading-relaxed">
+                  <li>태블릿이나 공용 모니터의 웹 브라우저에서 아래 전용 키오스크 주소로 접속합니다.</li>
+                  <li>원생 본인 또는 학부모님의 <strong>휴대폰 번호 뒷자리 4자리</strong>를 터치하면 본인 확인 후 등·하원이 기록됩니다.</li>
+                  <li>등·하원 체크 즉시 학부모님 안심 알림톡이 자동 발송됩니다.</li>
+                </ul>
+              </div>
+
+              {/* Kiosk URL Field */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  우리 학원 전용 키오스크 접속 주소
+                </label>
+                {isLoadingKioskToken ? (
+                  <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">
+                    <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+                    <span>키오스크 접속 토큰을 생성하고 있습니다...</span>
+                  </div>
+                ) : kioskToken ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={typeof window !== 'undefined' ? `${window.location.origin}/kiosk/${kioskToken}` : ''}
+                        className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-800 dark:text-slate-200 select-all focus:outline-hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCopyKioskUrl}
+                        className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer shrink-0"
+                      >
+                        {isCopiedKioskUrl ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-emerald-600 dark:text-emerald-400">복사됨!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4 text-slate-500" />
+                            <span>URL 복사</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 px-1">
+                      <span>접속 토큰: <code className="font-mono text-indigo-600 dark:text-indigo-400 font-bold">{kioskToken.slice(0, 16)}...</code></span>
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateKioskToken(true)}
+                        className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 font-semibold underline cursor-pointer"
+                      >
+                        토큰 재발급
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateKioskToken(false)}
+                    className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all"
+                  >
+                    키오스크 토큰 생성하기
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsKioskModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
+              >
+                닫기
+              </button>
+
+              <button
+                type="button"
+                disabled={!kioskToken || isLoadingKioskToken}
+                onClick={handleLaunchKiosk}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>키오스크 새 창으로 열기</span>
               </button>
             </div>
           </div>

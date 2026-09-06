@@ -266,7 +266,58 @@ export const attendanceService = {
     );
     return response.data;
   },
+
+  /**
+   * [스태프] 출석 키오스크 접속 토큰 신규 발급 / 재발급 (SUPER_ADMIN, OWNER, ADMIN)
+   */
+  async generateKioskToken(): Promise<KioskTokenResponse> {
+    const response = await api.post<KioskTokenResponse>('/attendance/kiosk-token');
+    return response.data;
+  },
+
+  /**
+   * [키오스크/비인증] 전화번호 뒷자리 4자리로 원생 및 오늘 수업 목록 조회
+   */
+  async kioskLookup(dto: { kioskToken: string; phoneLast4: string }): Promise<KioskLookupResponse> {
+    const response = await api.post<KioskLookupResponse>('/attendance/kiosk/lookup', dto);
+    return response.data;
+  },
+
+  /**
+   * [키오스크/비인증] 원생 등원(CHECK_IN) / 하원(CHECK_OUT) 1초 체크
+   */
+  async kioskCheckIn(dto: KioskCheckInRequest): Promise<AttendanceItem> {
+    const response = await api.post<AttendanceItem>('/attendance/kiosk/check-in', dto);
+    return response.data;
+  },
 };
+
+export interface KioskClassOption {
+  id: number;
+  name: string;
+}
+
+export interface KioskStudentMatch {
+  studentId: number;
+  studentName: string;
+  classes: KioskClassOption[];
+}
+
+export interface KioskLookupResponse {
+  matches: KioskStudentMatch[];
+}
+
+export interface KioskCheckInRequest {
+  kioskToken: string;
+  phoneLast4: string;
+  studentId: number;
+  classId: number;
+  type: QuickCheckType;
+}
+
+export interface KioskTokenResponse {
+  kioskToken: string;
+}
 
 export interface UnattendedStudent {
   studentId: number;

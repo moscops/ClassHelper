@@ -21,11 +21,25 @@
   1. `POST /attendance/kiosk-token` (JWT, OWNER/ADMIN) — 키오스크 접속 토큰 발급/재발급. 응답 `{ kioskToken }`.
   2. `POST /attendance/kiosk/lookup` (비인증) — `{ kioskToken, phoneLast4 }` → `{ matches: [{ studentId, studentName, classes: [{id,name}] }] }`. 형제/자매처럼 여러 명 매칭될 수 있음.
   3. `POST /attendance/kiosk/check-in` (비인증) — `{ kioskToken, phoneLast4, studentId, classId, type: "CHECK_IN"|"CHECK_OUT" }` → 기존 `AttendanceResponseDto`. **`phoneLast4`는 lookup 때 입력했던 값을 그대로 다시 보내야 함** (studentId만으로는 서버가 거부함 — 순차 ID 추측을 통한 출석 조작 방지).
-- **프론트엔드에 필요한 작업 (Gemini)**:
-  1. **스태프용**: 학원 설정 화면(또는 출결 페이지) 어딘가에 "키오스크 토큰 발급/재발급" 버튼 → `POST /attendance/kiosk-token` 호출 후 발급된 토큰으로 키오스크 URL(예: `https://classhelper.co.kr/kiosk/<token>`) 생성, QR코드나 복사 버튼으로 제공.
-  2. **키오스크 화면 신규 라우트**: `/kiosk/[token]` — 로그인 레이아웃(`AppLayout`) 밖의 완전히 독립된 풀스크린 페이지. 큰 숫자 키패드로 전화번호 뒷자리 4자리 입력 → `POST /attendance/kiosk/lookup`(URL의 token 사용) → 매칭된 학생/수업 버튼 표시 → 선택 시 등원/하원 버튼 → `POST /attendance/kiosk/check-in` → 성공 메시지 후 수 초 뒤 자동으로 초기 화면 복귀(다음 학생 대기).
-  3. 태블릿 터치 사용을 전제로 큰 버튼/큰 글씨 UI 권장. 에러(번호 불일치 등)는 크게 표시 후 자동 초기화.
-- **아직 안 한 것 (의도적 보류)**: 실물 QR코드 생성 라이브러리 연동, 키오스크 기기 자체의 오프라인 대응 — 필요 시 별도 요청.
+- **프론트엔드 반영 완료 (Gemini)**:
+  1. **API 클라이언트 확장 (`src/lib/attendance-service.ts`)**:
+     - `generateKioskToken()`: `POST /attendance/kiosk-token` 연동 (JWT 인증)
+     - `kioskLookup()`: `POST /attendance/kiosk/lookup` 비인증 조회
+     - `kioskCheckIn()`: `POST /attendance/kiosk/check-in` 비인증 체크인
+  2. **독립형 키오스크 풀스크린 라우트 (`src/app/kiosk/[token]/page.tsx`)**:
+     - `AppLayout` 비의존 단독 풀스크린 반응형 UI (태블릿 터치 친화적 대형 버튼 & 고대비 디자인)
+     - 4자리 전화번호 뒷자리 입력용 3x4 대형 터치 키패드 & 물리 키보드 지원 (4자리 입력 시 자동 1초 조회)
+     - 형제/자매 다중 매칭 시 원생 선택 카드, 오늘 시간표 기반 수업 선택 기능 지원
+     - 등원(`CHECK_IN`, 🎒) / 하원(`CHECK_OUT`, 🏠) 1초 체크인 및 성공 축하 애니메이션
+     - Web Audio API 기반 소프트 차임/효과음 (키패드 탭, 체크인 성공음, 오류 경고음) 탑재
+     - 3초 카운트다운 후 다음 학생 대기 자동 복귀 및 비정상 조작 방지 타임아웃
+     - 태블릿 로비 거치용 브라우저 전체화면(F11) 및 볼륨 On/Off 제어
+  3. **출결 관리 대시보드 키오스크 관리 모달 (`src/app/attendance/page.tsx`)**:
+     - 상단 헤더에 **[출석 키오스크]** 버튼 추가
+     - 학원 전용 키오스크 URL(`https://domain/kiosk/[kioskToken]`) 확인 및 원클릭 복사 기능
+     - 키오스크 새 창/탭 즉시 실행 바로가기 및 토큰 신규/재발급 관리 인터페이스 탑재
+- **빌드 검증**: `yarn frontend:build` 19개 전 라우트(정적 18 + 동적 `/kiosk/[token]`) 정상 통과 (exit code 0)
+- **상태**: ✅ 백엔드/프론트엔드 출석 키오스크 시스템 연동 완료 및 정상 배포 준비 완료
 
 ### 📅 2026-09-06: 최고 관리자(SUPER_ADMIN) 관제 허브 세분화, 학원 분석 모달, 포트 충돌 방지 및 안전 리다이렉트 가드 구현
 - **작성자**: Gemini (Frontend)
