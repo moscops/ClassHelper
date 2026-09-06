@@ -96,12 +96,14 @@ export default function TuitionPage() {
   const [selectedInvoiceForHistory, setSelectedInvoiceForHistory] = useState<InvoiceItem | null>(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  // Auth & RBAC Guard: Only OWNER, ADMIN, and SUPER_ADMIN can access tuition/billing
+  // Auth & RBAC Guard: Only OWNER and ADMIN can access tuition/billing; SUPER_ADMIN redirects to /admin
   useEffect(() => {
     if (isHydrated) {
       if (!isAuthenticated) {
         router.replace('/login');
-      } else if (user && user.role !== 'OWNER' && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      } else if (user && user.role !== 'OWNER' && user.role !== 'ADMIN') {
         alert('수강료 및 수납 관리는 원장님 및 관리자 전용 메뉴입니다.');
         router.replace('/dashboard');
       }
@@ -124,30 +126,30 @@ export default function TuitionPage() {
 
   // Load Classes for filter / batch generation
   useEffect(() => {
-    if (isHydrated && isAuthenticated) {
+    if (isHydrated && isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       classesService
         .getClasses()
         .then((res) => setClasses(res.items || []))
         .catch(() => {});
     }
-  }, [isHydrated, isAuthenticated]);
+  }, [isHydrated, isAuthenticated, user]);
 
   // Debounce search input
   useEffect(() => {
-    const handler = setTimeout(() => {
+    const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
       setCurrentPage(1);
     }, 300);
-    return () => clearTimeout(handler);
+    return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Load Invoices and Revenue Stats whenever filters change
+  // Load Invoices
   useEffect(() => {
-    if (isHydrated && isAuthenticated) {
+    if (isHydrated && isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       loadTuitionData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHydrated, isAuthenticated, currentYearMonth, statusFilter, debouncedSearch, currentPage]);
+  }, [isHydrated, isAuthenticated, user, currentYearMonth, statusFilter, debouncedSearch, currentPage]);
 
   const loadTuitionData = async () => {
     setIsLoading(true);

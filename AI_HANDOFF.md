@@ -9,97 +9,36 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
-### 📅 2026-09-04: P1(seed) 완료 + 프론트엔드(Gemini) 요청 사항 (개발 전용 자동 로그인)
-- **작성자**: Claude (Backend)
-- **P1 완료**: `prisma/seed.ts`는 이미 `admin@classhelper.kr`(SUPER_ADMIN)/`owner@classhelper.kr`(OWNER) 데모 계정을 생성하도록 작성돼 있었음 — 실제 문제는 배포된 EC2 DB에 seed가 한 번도 실행된 적이 없었던 것. `backend/Dockerfile`의 컨테이너 시작 CMD에 `yarn prisma:seed`를 추가해(마이그레이션 다음, 서버 기동 전, 전부 upsert라 반복 실행 안전) 매 배포마다 자동 보장되도록 함. 비밀번호는 둘 다 `password123!` (데모용 — 실제 운영 전 교체 필요).
-- **P2~P4는 아직 미착수** (교직원 API, 학원코드 승인, 공지/메모, 벌크 배정, 아이디/비번 찾기) — 결제 게이트웨이/카카오 실 API 연동 이후로 순서 조정 예정 ([[classhelper-deployment-status]] 메모리 참고).
-
-#### 📌 프론트엔드(Gemini) 요청 사항 (신규)
-1. **[DX 개선] 개발 전용 자동 로그인 / 역할 전환 버튼**:
-   - **배경**: 로컬 테스트 시 화면 하나 보려면 프론트+백엔드 둘 다 띄우고 매번 로그인 폼을 입력해야 해서 번거로움. 이전에 로그인 페이지에 있던 테스트 계정 자동입력 기능은 배포된 실제 로그인 화면에 그대로 노출돼 보안 문제로 제거된 바 있음(`dfed361`) — 그 방식 재도입은 금지.
-   - **요구사항**: `NODE_ENV=development`(또는 로컬 전용 플래그)일 때만 렌더링되는 "SUPER_ADMIN/OWNER/TEACHER로 보기" 등 원클릭 버튼 추가. **프로덕션 빌드에는 절대 포함되지 않아야 함.** 백엔드는 여전히 로컬에서 실행 중이어야 함(실제 API/DB 사용) — 로그인 폼 입력 절차만 스킵.
-
----
-
-### 📅 2026-09-04: 9/3 첫 배포 피드백 기반 요구사항 정리 & 백엔드(Claude) 개발 요청 사항 공유
+### 📅 2026-09-06: 최고 관리자(SUPER_ADMIN) 관제 허브 세분화, 학원 분석 모달, 포트 충돌 방지 및 안전 리다이렉트 가드 구현
 - **작성자**: Gemini (Frontend)
-- **배경**: 9/3 첫 배포 이후 사용자 실사용 테스트에서 도출된 21개 피드백 및 요구사항을 분석하여 프론트엔드/백엔드 역할 분담 및 협업 스펙을 공유합니다.
-
-#### 📌 프론트엔드(Gemini) 단독 진행 작업 (즉시 착수)
-1. **[버그 수정] 시스템 통신 장애 알림 지속 노출 해결 (`useSystemAlertStore`)**:
-   - `localStorage` 영속화 해제 및 세션 단위 상태로 전환, 정상 200 OK 응답 시 자동 클리어 로직 탑재
-2. **[버그 수정] 출결 체크 날짜 변경 시 "미등원 감지 경고" 오작동 가드 (`attendance/page.tsx`)**:
-   - `selectedDate === today` 조건일 때만 오늘 미등원 경고 배너 및 카카오 발송 활성화 (과거/미래 날짜 조회 시 배너 숨김)
-3. **[데이터 정리] 교직원 관리(`/staff`) 내 하드코딩 더미 데이터 완전 삭제 (`staff-service.ts`)**:
-   - 기존 UI 목업용 `sampleStaff` 배열(이서연, 김도현 등) 완전 제거, 실제 로그인 유저 및 DB 데이터만 표시
-4. **[UI/UX 개선] 신규 반 개설 시 수강생 다중 선택(체크박스 Combobox) 지원 (`classes/page.tsx`)**:
-   - 학생을 1명씩 추가하던 번거로움을 해결하기 위해 다중 체크박스 + 검색 + 일괄 추가 인터랙션 구현
-5. **[기능 개선] 원생 CSV 템플릿 다운로드 시 올바른 작성 예시 행 탑재 (`students/page.tsx`)**:
-   - 헤더 밑에 올바른 포맷(남/여, 재원/휴원/퇴원 등)의 예시 행을 포함하여 다운로드되도록 개선
-6. **[기능 개선] 스마트 캘린더 기본 뷰: '오늘의 브리핑(Today)' 탭 신설 (`calendar/page.tsx`)**:
-   - 오늘 진행 수업, 등원 예정 학생, 학원 일정/특이사항을 요약 제공하는 일일 집중 뷰 추가
-7. **[기능 개선] 대시보드 위젯 커스터마이징 (`dashboard/page.tsx`)**:
-   - 위젯 On/Off 및 배치 개인화 설정 기능 (브라우저 저장)
-8. **[기능 개선] 리포트 관리 개인별 리포트 임시 저장 및 템플릿 복사 발송 (`reports/page.tsx`)**:
-   - 자주 쓰는 문구를 템플릿으로 저장하고 원생 이름만 바꿔 발송할 수 있는 로컬 프리셋 기능 탑재
-9. **[보안/인가] 역할(Role: OWNER, ADMIN, TEACHER, STAFF)별 메뉴 가시성 및 접근 차단 강화**:
-   - 조교(STAFF) 및 일반 강사(TEACHER)에게 수강료/매출, 교직원 관리, 플랫폼 관리 등 민감 메뉴 숨김 및 URL 접근 차단
-
----
-
-#### 📌 백엔드(Claude) 개발 요청 사항 (우선순위별 상세)
-
-1. **[P1] 관리자 및 데모 시드 데이터 보강 (`backend/prisma/seed.ts`)**:
-   - **요구사항**: 배포 환경 및 로컬 테스트에서 슈퍼 관리자(`SUPER_ADMIN`) 및 기본 학원 원장(`OWNER`) 계정으로 즉시 로그인할 수 있도록 seed 스크립트 작성/보강 요청
-   - **예시 계정**: `admin@classhelper.kr` (SUPER_ADMIN), `owner@classhelper.kr` (OWNER)
-
-2. **[P2] 교직원 관리 API 4종 구현 (`auth` 또는 `staff` 도메인)**:
-   - **요구사항**: 프론트 `/staff` 페이지가 현재 mock/로컬 병합으로 동작 중입니다. 실 DB 연동을 위해 다음 API 구현을 요청드립니다:
-     - `GET /auth/staff` (또는 `GET /staff`): 소속 학원(`academyId`) 교직원 목록 조회 (담당 반 `taughtClasses` include) - `OWNER`, `ADMIN`
-     - `PATCH /auth/staff/:id`: 교직원 정보(이름, 연락처, 직책) 수정 - `OWNER`, `ADMIN` (원장 직책 변경 불가)
-     - `PATCH /auth/staff/:id/password`: 교직원 비밀번호 초기화 - `OWNER`, `ADMIN`
-     - `DELETE /auth/staff/:id`: 교직원 삭제/퇴사 처리 (담당 반 `teacherId` SetNull) - `OWNER`
-
-3. **[P2] 학원 코드 기반 직원 회원가입 및 원장 승인 체계**:
-   - **요구사항**: 원장이 직원을 직접 등록하는 것 외에, 직원이 학원 코드로 가입하고 원장이 승인하는 플로우
-   - **필요 스펙**:
-     - `Academy` 모델 또는 유틸: 고유 학원 코드 (`academyCode`, 예: `CH-8821`)
-     - `User.status`: `PENDING_APPROVAL` (승인 대기), `ACTIVE` (정상)
-     - `POST /auth/register-staff-by-code`: `{ email, password, name, phone, academyCode, role }` -> `PENDING_APPROVAL` 상태로 생성
-     - `PATCH /auth/staff/:id/approve`: 원장 승인 -> `ACTIVE` 전환 및 사용 가능 알림
-
-4. **[P3] 학원 내부 공지사항(Notice) 및 교직원 메모(Memo) 도메인**:
-   - **요구사항**: 학원 운영 공지(Notice)와 직원 간 일정/특이사항 정보 교류용 메모(Memo) 분리 구축
-   - **`Notice` (공지사항)**:
-     - 모델: `id, academyId, title, content, authorId, isPinned, targetRole(ALL/TEACHER/STAFF), createdAt`
-     - 권한: `OWNER/ADMIN` 작성/수정/삭제, 전 교직원 조회
-     - API: `GET /notices`, `POST /notices`, `PATCH /notices/:id`, `DELETE /notices/:id`
-   - **`StaffMemo` (교직원 메모 / 특이사항)**:
-     - 모델: `id, academyId, authorId, targetDate, content, isShared(개인/공유), createdAt`
-     - 용도: 캘린더 및 대시보드에 일일 특이사항(학생 컨디션, 보강 메모, 업무 인수인계) 기록
-     - API: `GET /memos?date=`, `POST /memos`, `PATCH /memos/:id`, `DELETE /memos/:id`
-
-5. **[P3] 반 수강생 일괄 배정 벌크 API (`classes` 도메인)**:
-   - **요구사항**: 신규 반 개설 및 기존 반에서 다수의 수강생을 한 번에 배정할 수 있는 벌크 엔드포인트
-   - **API**: `POST /classes/:id/enrollments/bulk`
-   - **Body**: `{ studentIds: number[] }` (트랜잭션으로 일괄 생성, 중복 자동 스킵)
-
-6. **[P4] 아이디 / 비밀번호 찾기 (`auth` 도메인)**:
-   - **요구사항**: 이메일 SMTP 또는 SMS 인증 기반 계정 찾기
-   - **API**:
-     - `POST /auth/find-email`: `{ name, phone }` -> 마스킹된 이메일 반환
-     - `POST /auth/forgot-password`: `{ email }` -> 비밀번호 재설정 토큰/링크 발송
-     - `POST /auth/reset-password`: `{ resetToken, newPassword }` -> 비밀번호 변경
+- **작업 배경**:
+  - 로컬 개발 환경에서 백엔드(3000)와 프론트엔드 기본 포트 충돌 문제 해결 요청 (프론트 포트 5000으로 분리)
+  - 최고 관리자(`admin@classhelper.kr`, `SUPER_ADMIN`)는 학원 ID(`academyId`)가 null이므로 일반 학원 전용 페이지(`/classes`, `/students`, `/attendance`, `/tuition`, `/staff`, `/dashboard`, `/notifications`) 방문 시 백엔드 DB 쿼리에서 500 에러 및 통신 장애 팝업 발생하던 현상 원천 차단
+  - 최고 관리자를 위한 왼쪽 사이드바는 유지하면서, 플랫폼 관제 및 입점 학원들을 더욱 세밀하고 전문적으로 관리할 수 있는 세분화 인터페이스 구축
+- **프론트엔드 반영 사항 (Gemini)**:
+  1. **로컬 포트 5000 분리 & CORS 반영**:
+     - `frontend/package.json`: dev/start 스크립트 포트를 5000(`next dev -p 5000`, `next start -p 5000`)으로 명시
+     - `backend/src/main.ts`: CORS 허용 origin에 `http://localhost:5000` 추가
+  2. **SUPER_ADMIN 전용 세분화 사이드바 내비게이션 (`AppLayout.tsx`)**:
+     - 기존 단일 `/admin` 메뉴 대신 3대 관리 영역 및 5대 세부 탭으로 개편:
+       - **플랫폼 관제**: 종합 관제 대시보드 (`/admin?tab=overview`), 시스템 & 인프라 (`/admin?tab=system`)
+       - **학원 세부 관리**: 입점 학원 통합 관리 (`/admin?tab=academies`), 구독 요금제 & 플랜 (`/admin?tab=subscriptions`)
+       - **보안 & 거버넌스**: 관리자 감사 로그 (`/admin?tab=audit-logs`)
+     - 사이드바 상단에 보라색 '플랫폼 통합 관제 센터 (ROOT)' 전용 뱃지 및 프로필 카드 표시
+  3. **입점 학원 세부 관리 및 상세 분석 모달 (`admin/page.tsx`)**:
+     - 학원 목록에서 각 학원의 '상세 분석' 버튼 클릭 시 `adminService.getAcademyDetail(academyId)` 연동
+     - **4대 핵심 지표 요약**: 소속 원생 수, 개설 반 수, 누적 출결 체크 수, 수강료 청구서 수
+     - **학원 기본 정보**: 사업자 등록번호, 대표 전화번호, 주소 및 상세주소, 생성일, 최종 수정일
+     - **교직원 명단 테이블**: 이름, 이메일, 전화번호, 직책(OWNER, ADMIN, TEACHER 등), 가입일
+     - **구독 & 플랜 변경 및 상태 토글**: STARTER, PRO, ENTERPRISE 즉시 플랜 변경 및 학원 정지/활성화 기능
+  4. **일반 학원 페이지 안전 가드 및 자동 리다이렉트**:
+     - `/classes`, `/students`, `/attendance`, `/tuition`, `/staff`, `/dashboard`, `/notifications` 페이지에 `SUPER_ADMIN` 접속 시 불필요한 학원 데이터 페치를 건너뛰고 자동으로 `/admin`으로 안전 리다이렉트하도록 가드 적용
+     - `academyId` 부재로 인한 500 Internal Server Error 및 "데이터베이스 통신 장애" 팝업 완전 방지
+- **빌드 검증**: `yarn frontend:build` 18개 전 라우트 정상 통과 (exit code 0)
 
 ---
 
-#### 📌 기획 및 정책 합의 사항
-- **학부모 웹 로그인 권한**: 웹 로그인은 제공하지 않고, 기존 카카오 알림톡/SMS를 통한 단방향 알림 및 웹 뷰어 링크 수신 정책을 유지합니다.
-- **수강료 청구/수납 도메인**: 현재 안정적으로 구현된 버전을 유지하며, 추가 확장은 후순위로 보류합니다.
-
----
-
-> 📦 **9/2 이전 기록은 [`AI_HANDOFF_ARCHIVE.md`](AI_HANDOFF_ARCHIVE.md)로 옮겨졌습니다** (Docker/EC2 배포 인프라, 교직원 페이지, 수강료/모달 표준화, 리포트 도메인, 구독 모델, CSV 일괄등록, 캘린더 도메인 등). 과거 이력이 필요하면 그 파일을 참고하세요.
+> 📦 **9/4 이전 기록은 [`AI_HANDOFF_ARCHIVE.md`](AI_HANDOFF_ARCHIVE.md)로 옮겨졌습니다** (Docker/EC2 배포 인프라, 교직원 페이지, 수강료/모달 표준화, 리포트 도메인, 구독 모델, CSV 일괄등록, 캘린더 도메인, 자동 로그인 DX 제안 등). 과거 이력이 필요하면 그 파일을 참고하세요.
 
 ## 📝 신규 백엔드 업데이트 기록 템플릿 (Claude 작성용)
 

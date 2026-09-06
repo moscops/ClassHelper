@@ -46,9 +46,10 @@ interface NavGroup {
 interface AppLayoutProps {
   children: React.ReactNode;
   currentPath?: string;
+  currentTab?: string;
 }
 
-export function AppLayout({ children, currentPath }: AppLayoutProps) {
+export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const activePath = currentPath || pathname;
@@ -117,7 +118,59 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
     }
   };
 
-  const navGroups: NavGroup[] = [
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
+  // 1. 최고 관리자(SUPER_ADMIN) 전용 세분화된 플랫폼 관제 & 학원 관리 사이드바 메뉴
+  const superAdminNavGroups: NavGroup[] = [
+    {
+      groupTitle: '플랫폼 관제',
+      items: [
+        {
+          label: '종합 관제 대시보드',
+          href: '/admin?tab=overview',
+          icon: LayoutDashboard,
+          active: activePath === '/admin' && (currentTab === 'overview' || !currentTab),
+        },
+        {
+          label: '시스템 & 인프라',
+          href: '/admin?tab=system',
+          icon: ShieldCheck,
+          active: activePath === '/admin' && currentTab === 'system',
+        },
+      ],
+    },
+    {
+      groupTitle: '학원 세부 관리',
+      items: [
+        {
+          label: '입점 학원 통합 관리',
+          href: '/admin?tab=academies',
+          icon: Building2,
+          active: activePath === '/admin' && currentTab === 'academies',
+        },
+        {
+          label: '구독 요금제 & 플랜',
+          href: '/admin?tab=subscriptions',
+          icon: CreditCard,
+          active: activePath === '/admin' && currentTab === 'subscriptions',
+        },
+      ],
+    },
+    {
+      groupTitle: '보안 & 거버넌스',
+      items: [
+        {
+          label: '관리자 감사 로그',
+          href: '/admin?tab=audit-logs',
+          icon: FileText,
+          active: activePath === '/admin' && currentTab === 'audit-logs',
+        },
+      ],
+    },
+  ];
+
+  // 2. 일반 학원(원장, 부원장, 강사, 스태프) 전용 학사 운영 사이드바 메뉴
+  const academyNavGroups: NavGroup[] = [
     {
       groupTitle: '메인 메뉴',
       items: [
@@ -164,7 +217,7 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
           icon: ClipboardList,
           active: activePath === '/class-logs',
         },
-        ...(user?.role === 'OWNER' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
+        ...(user?.role === 'OWNER' || user?.role === 'ADMIN'
           ? [
               {
                 label: '수강료 & 수납',
@@ -193,7 +246,7 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
           icon: FileText,
           active: activePath === '/reports',
         },
-        ...(user?.role === 'OWNER' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
+        ...(user?.role === 'OWNER' || user?.role === 'ADMIN'
           ? [
               {
                 label: '교직원 관리',
@@ -203,20 +256,11 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
               },
             ]
           : []),
-        ...(user?.role === 'SUPER_ADMIN'
-          ? [
-              {
-                label: '플랫폼 관리자 포털',
-                href: '/admin',
-                icon: ShieldCheck,
-                active: activePath === '/admin',
-                adminOnly: true,
-              },
-            ]
-          : []),
       ],
     },
   ];
+
+  const navGroups: NavGroup[] = isSuperAdmin ? superAdminNavGroups : academyNavGroups;
 
   if (!isHydrated || !isAuthenticated || !user) {
     return null;
@@ -244,7 +288,21 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
         </div>
 
         {/* Academy Info Banner */}
-        {academy && (
+        {isSuperAdmin ? (
+          <div className="p-3 mx-3 my-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/70 dark:border-purple-800/60 flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <ShieldCheck className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-purple-950 dark:text-purple-200 truncate">
+                플랫폼 통합 관제 센터
+              </p>
+              <p className="text-[10px] text-purple-700 dark:text-purple-400 truncate">
+                전체 학원 총괄 거버넌스 (ROOT)
+              </p>
+            </div>
+          </div>
+        ) : academy ? (
           <div className="p-3 mx-3 my-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
               <Building2 className="w-3.5 h-3.5" />
@@ -258,7 +316,7 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
               </p>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Navigation Groups List */}
         <nav className="flex-1 px-3 space-y-5 overflow-y-auto pt-1 pb-4">
@@ -431,7 +489,19 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
             </div>
 
             {/* Academy Info */}
-            {academy && (
+            {isSuperAdmin ? (
+              <div className="p-3 mx-3 my-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-purple-950 dark:text-purple-200 truncate">
+                    플랫폼 통합 관제 센터
+                  </p>
+                  <p className="text-[10px] text-purple-600 dark:text-purple-400">
+                    {user.name} (최고 관리자)
+                  </p>
+                </div>
+              </div>
+            ) : academy ? (
               <div className="p-3 mx-3 my-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <div className="min-w-0 flex-1">
@@ -443,7 +513,7 @@ export function AppLayout({ children, currentPath }: AppLayoutProps) {
                   </p>
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Nav Groups */}
             <nav className="flex-1 px-3 space-y-4 overflow-y-auto py-2">

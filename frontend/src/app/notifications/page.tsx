@@ -33,7 +33,7 @@ import { AppLayout } from '@/components/common/AppLayout';
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const { isAuthenticated, isHydrated } = useAuthStore();
+  const { user, isAuthenticated, isHydrated } = useAuthStore();
   const {
     alert: systemAlert,
     hasError: hasSystemError,
@@ -138,10 +138,14 @@ export default function NotificationsPage() {
 
   // Auth Guard
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
-      router.replace('/login');
+    if (isHydrated) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      }
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   // Debounce search
   useEffect(() => {
@@ -154,11 +158,11 @@ export default function NotificationsPage() {
 
   // Fetch notifications
   useEffect(() => {
-    if (isHydrated && isAuthenticated) {
+    if (isHydrated && isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       loadNotifications();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHydrated, isAuthenticated, activeTab, isReadFilter, debouncedSearch, currentPage]);
+  }, [isHydrated, isAuthenticated, user, activeTab, isReadFilter, debouncedSearch, currentPage]);
 
   const loadNotifications = async () => {
     setIsLoading(true);

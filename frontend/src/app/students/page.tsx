@@ -123,10 +123,14 @@ export default function StudentsPage() {
 
   // Authentication check
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
-      router.replace('/login');
+    if (isHydrated) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      }
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   // Click outside to close dropdowns
   useEffect(() => {
@@ -198,10 +202,10 @@ export default function StudentsPage() {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       loadStudents();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   const handleOpenCreateModal = () => {
     setEditingStudent(null);

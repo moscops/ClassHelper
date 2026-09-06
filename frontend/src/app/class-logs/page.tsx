@@ -37,7 +37,7 @@ import { AppLayout } from '@/components/common/AppLayout';
 
 export default function ClassLogsPage() {
   const router = useRouter();
-  const { isAuthenticated, isHydrated } = useAuthStore();
+  const { user, isAuthenticated, isHydrated } = useAuthStore();
 
   // State: Classes & Filters
   const [classes, setClasses] = useState<ClassItem[]>([]);
@@ -100,10 +100,14 @@ export default function ClassLogsPage() {
 
   // Authentication Guard
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
-      router.push('/login');
+    if (isHydrated) {
+      if (!isAuthenticated) {
+        router.push('/login');
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.push('/admin');
+      }
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   // Load Classes List
   const loadClasses = async () => {
@@ -161,18 +165,18 @@ export default function ClassLogsPage() {
   };
 
   useEffect(() => {
-    if (isHydrated && isAuthenticated) {
+    if (isHydrated && isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       loadClasses();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHydrated, isAuthenticated]);
+  }, [isHydrated, isAuthenticated, user]);
 
   useEffect(() => {
-    if (isHydrated && isAuthenticated) {
+    if (isHydrated && isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       loadClassLogs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHydrated, isAuthenticated, selectedClassId, startDate, endDate]);
+  }, [isHydrated, isAuthenticated, user, selectedClassId, startDate, endDate]);
 
   // ESC to close modals
   useEffect(() => {

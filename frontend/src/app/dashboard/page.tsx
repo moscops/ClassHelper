@@ -96,10 +96,14 @@ export default function DashboardPage() {
 
   // Authentication guard
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
-      router.replace('/login');
+    if (isHydrated) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      }
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   // ESC to close modal
   useEffect(() => {
@@ -114,7 +118,7 @@ export default function DashboardPage() {
 
   // Load Unattended Status & Sync Latest Academy Profile
   useEffect(() => {
-    if (isHydrated && isAuthenticated) {
+    if (isHydrated && isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       loadUnattendedStatus();
       authService.getMe().then((me) => {
         if (me.academy) {
@@ -124,7 +128,7 @@ export default function DashboardPage() {
       const interval = setInterval(loadUnattendedStatus, 20000);
       return () => clearInterval(interval);
     }
-  }, [isHydrated, isAuthenticated, setAcademy]);
+  }, [isHydrated, isAuthenticated, user, setAcademy]);
 
   // Debounce search
   useEffect(() => {

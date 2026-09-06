@@ -140,7 +140,9 @@ export default function StaffPage() {
     if (isHydrated) {
       if (!isAuthenticated) {
         router.replace('/login');
-      } else if (user && user.role !== 'OWNER' && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      } else if (user && user.role !== 'OWNER' && user.role !== 'ADMIN') {
         alert('교직원 관리는 원장님 및 관리자 전용 메뉴입니다.');
         router.replace('/dashboard');
       } else {

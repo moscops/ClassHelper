@@ -165,10 +165,14 @@ export default function AttendancePage() {
 
   // Authentication Guard
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
-      router.replace('/login');
+    if (isHydrated) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      }
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   // Click outside to close dropdowns
   useEffect(() => {
@@ -196,13 +200,13 @@ export default function AttendancePage() {
 
   // Load classes list & timeline data
   useEffect(() => {
-    if (isHydrated && isAuthenticated) {
+    if (isHydrated && isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       loadClasses();
       loadTimelineData(selectedDate);
       loadUnattendedStatus(selectedDate);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHydrated, isAuthenticated, selectedDate]);
+  }, [isHydrated, isAuthenticated, user, selectedDate]);
 
   // Load roster when selected class changes in CLASS mode
   useEffect(() => {
