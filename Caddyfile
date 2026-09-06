@@ -1,0 +1,12 @@
+# classhelper.co.kr 도메인 연결용 Caddy 설정.
+# docker-compose.prod.yml의 caddy 서비스가 이 파일을 읽는다.
+# Caddy는 각 도메인에 대해 Let's Encrypt 인증서를 자동으로 발급/갱신한다 —
+# 단, DNS(A 레코드)가 이 서버 IP를 먼저 가리키고 있어야 발급이 성공한다.
+
+classhelper.co.kr, www.classhelper.co.kr {
+	reverse_proxy frontend:3000
+}
+
+api.classhelper.co.kr {
+	reverse_proxy backend:3000
+}
