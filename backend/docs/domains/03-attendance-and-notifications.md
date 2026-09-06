@@ -189,6 +189,41 @@
 * `DELETE /notifications/:id` : 알림 삭제
 * `POST /notifications/:id/retry` : 실패한 카카오 알림톡/SMS 재발송
 
+### 4.8. 출석 키오스크 (전화번호 뒷자리 셀프 체크인) — 2026-09-06 신규
+학원 로비에 비치한 태블릿/폰에서 학생이 스스로 전화번호 뒷자리를 입력해 등/하원을 체크하는 기능.
+`/attendance/quick-check`(4.3)와 달리 **로그인 없이** 학원별 `kioskToken`으로만 학원을 식별한다.
+
+* **식별 규칙**: 학생 본인 번호(`studentPhone`)가 있으면 그 번호 뒷자리, 없으면 보호자 번호(`parentPhone`) 뒷자리로 대체.
+* **수업 자동 매칭**: `Class.schedule` 자유 텍스트(예: `"월/수/금 17:00-19:00"`)에서 오늘 요일 글자(월화수목금토일)를 포함하는 수업만 후보로 반환. 하나도 없으면(스케줄 미기재 등) 등록된 전체 수업을 반환해 키오스크가 막히지 않게 함.
+* **브루트포스 방지**: `/auth/login`과 동일하게 IP당 60초 5회(lookup)/10회(check-in)로 제한 (`@Throttle`).
+* **보안 모델**: JWT 대신 추측 불가능한 kioskToken(32바이트 hex, URL에 포함)으로 학원을 식별. 물리적으로 학원 내부에 있는 기기에서만 쓰는 걸 전제로 하며, 인터넷 어디서나 URL 자체는 도달 가능하다는 한계가 있음(토큰 노출 시 재발급으로 즉시 무효화 가능).
+
+#### 토큰 발급 (스태프, 인증 필요)
+* **엔드포인트**: `POST /attendance/kiosk-token` (SUPER_ADMIN/OWNER/ADMIN)
+* **Response (`KioskTokenResponseDto`)**: `{ "kioskToken": "a1b2c3..." }` — 재발급 시 기존 토큰 즉시 무효화.
+
+#### 학생 조회 (비인증)
+* **엔드포인트**: `POST /attendance/kiosk/lookup`
+* **Request (`KioskLookupDto`)**:
+  ```json
+  { "kioskToken": "a1b2c3...", "phoneLast4": "1234" }
+  ```
+* **Response (`KioskLookupResponseDto`)**:
+  ```json
+  {
+    "matches": [
+      { "studentId": 1, "studentName": "김민준", "classes": [{ "id": 1, "name": "중2 수학 A반" }] }
+    ]
+  }
+  ```
+  형제/자매처럼 뒷자리가 겹치면 `matches`에 여러 명이 반환된다 — 프론트는 이름으로 본인 확인 후 선택하게 한다.
+
+#### 체크인 (비인증)
+* **엔드포인트**: `POST /attendance/kiosk/check-in`
+* **Request (`KioskCheckInDto`)**: `{ "kioskToken": "...", "phoneLast4": "1234", "studentId": 1, "classId": 1, "type": "CHECK_IN" }`
+  * `phoneLast4`는 `studentId`를 그대로 신뢰하지 않기 위한 재검증용이다 — `studentId`는 추측 가능한 순차 정수라, 이게 없으면 kioskToken만 알아내면 전화번호 확인 없이 임의 학생의 출석을 조작할 수 있다. 서버는 `studentId`가 가리키는 학생의 실제 번호 뒷자리와 일치하는지 다시 검사한다.
+* **Response**: `AttendanceResponseDto` (4.3과 동일한 upsert 로직 재사용)
+
 ---
 
 ## 🎨 5. UI/UX 구현 명세 (출결 관리 화면)

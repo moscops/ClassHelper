@@ -9,6 +9,24 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-06: 출석 키오스크 (전화번호 뒷자리 셀프 체크인) 백엔드 신규 — 프론트 연동 필요
+- **작성자**: Claude (Backend)
+- **작업 배경**: 학원 로비 태블릿에 전화번호 뒷자리를 입력하면 등/하원 처리되는 셀프 체크인 요청 (실제 매장 출석기 UX). 기존 `attendance/quick-check`는 스태프 로그인 후 학생을 골라 누르는 방식이라 별도 비인증 API로 신규 구현.
+- **핵심 설계**:
+  - 식별: 학생 본인 번호(`studentPhone`) 우선, 없으면 보호자 번호(`parentPhone`) 뒷자리로 대체.
+  - 인증 없음: `Academy.kioskToken`(32바이트 hex, 신규 필드, 마이그레이션 `20260906070000_add_academy_kiosk_token`)으로 학원을 식별. JWT 불필요.
+  - 브루트포스 방지: `/auth/login`과 동일하게 IP당 60초 5회(lookup)/10회(check-in) rate limit.
+  - 수업 자동 매칭: 학생의 활성 수강 수업 중 `Class.schedule`에 오늘 요일 글자가 포함된 것만 후보로 반환, 없으면 전체 반환.
+- **백엔드 신규 API** (상세 스펙: `backend/docs/domains/03-attendance-and-notifications.md` §4.8):
+  1. `POST /attendance/kiosk-token` (JWT, OWNER/ADMIN) — 키오스크 접속 토큰 발급/재발급. 응답 `{ kioskToken }`.
+  2. `POST /attendance/kiosk/lookup` (비인증) — `{ kioskToken, phoneLast4 }` → `{ matches: [{ studentId, studentName, classes: [{id,name}] }] }`. 형제/자매처럼 여러 명 매칭될 수 있음.
+  3. `POST /attendance/kiosk/check-in` (비인증) — `{ kioskToken, phoneLast4, studentId, classId, type: "CHECK_IN"|"CHECK_OUT" }` → 기존 `AttendanceResponseDto`. **`phoneLast4`는 lookup 때 입력했던 값을 그대로 다시 보내야 함** (studentId만으로는 서버가 거부함 — 순차 ID 추측을 통한 출석 조작 방지).
+- **프론트엔드에 필요한 작업 (Gemini)**:
+  1. **스태프용**: 학원 설정 화면(또는 출결 페이지) 어딘가에 "키오스크 토큰 발급/재발급" 버튼 → `POST /attendance/kiosk-token` 호출 후 발급된 토큰으로 키오스크 URL(예: `https://classhelper.co.kr/kiosk/<token>`) 생성, QR코드나 복사 버튼으로 제공.
+  2. **키오스크 화면 신규 라우트**: `/kiosk/[token]` — 로그인 레이아웃(`AppLayout`) 밖의 완전히 독립된 풀스크린 페이지. 큰 숫자 키패드로 전화번호 뒷자리 4자리 입력 → `POST /attendance/kiosk/lookup`(URL의 token 사용) → 매칭된 학생/수업 버튼 표시 → 선택 시 등원/하원 버튼 → `POST /attendance/kiosk/check-in` → 성공 메시지 후 수 초 뒤 자동으로 초기 화면 복귀(다음 학생 대기).
+  3. 태블릿 터치 사용을 전제로 큰 버튼/큰 글씨 UI 권장. 에러(번호 불일치 등)는 크게 표시 후 자동 초기화.
+- **아직 안 한 것 (의도적 보류)**: 실물 QR코드 생성 라이브러리 연동, 키오스크 기기 자체의 오프라인 대응 — 필요 시 별도 요청.
+
 ### 📅 2026-09-06: 최고 관리자(SUPER_ADMIN) 관제 허브 세분화, 학원 분석 모달, 포트 충돌 방지 및 안전 리다이렉트 가드 구현
 - **작성자**: Gemini (Frontend)
 - **작업 배경**:

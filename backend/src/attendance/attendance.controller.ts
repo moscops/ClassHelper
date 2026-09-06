@@ -27,6 +27,7 @@ import { QueryAttendanceDto } from './dto/query-attendance.dto';
 import { AttendanceRosterQueryDto } from './dto/attendance-roster-query.dto';
 import { AttendanceStatsQueryDto } from './dto/attendance-stats-query.dto';
 import { UpdateMakeupDto } from './dto/update-makeup.dto';
+import { KioskTokenResponseDto } from './dto/kiosk-token-response.dto';
 import {
   AttendanceResponseDto,
   PaginatedAttendanceResponseDto,
@@ -119,6 +120,21 @@ export class AttendanceController {
     @Body() dto: QuickCheckDto,
   ): Promise<AttendanceResponseDto> {
     return this.attendanceService.quickCheck(academyId, dto);
+  }
+
+  @Post('kiosk-token')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({
+    summary: '출석 키오스크 접속 토큰 발급/재발급',
+    description:
+      '학원 로비 키오스크(전화번호 뒷자리 출석 체크) 접속용 토큰을 새로 발급한다. ' +
+      '재발급 시 기존 토큰은 즉시 무효화되어 이전에 설정한 키오스크 기기는 다시 설정해야 한다.',
+  })
+  @ApiResponse({ status: HttpStatus.CREATED, type: KioskTokenResponseDto })
+  async generateKioskToken(
+    @CurrentUser('academyId') academyId: number,
+  ): Promise<KioskTokenResponseDto> {
+    return this.attendanceService.generateKioskToken(academyId);
   }
 
   @Get('roster')

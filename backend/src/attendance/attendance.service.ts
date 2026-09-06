@@ -4,10 +4,18 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
+import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { RecordAttendanceDto } from './dto/record-attendance.dto';
 import { BatchAttendanceDto } from './dto/batch-attendance.dto';
 import { QuickCheckDto, QuickCheckType } from './dto/quick-check.dto';
+import { KioskLookupDto } from './dto/kiosk-lookup.dto';
+import { KioskCheckInDto } from './dto/kiosk-check-in.dto';
+import {
+  KioskLookupResponseDto,
+  KioskStudentMatchDto,
+} from './dto/kiosk-response.dto';
+import { KioskTokenResponseDto } from './dto/kiosk-token-response.dto';
 import { QueryAttendanceDto } from './dto/query-attendance.dto';
 import { AttendanceRosterQueryDto } from './dto/attendance-roster-query.dto';
 import { AttendanceStatsQueryDto } from './dto/attendance-stats-query.dto';
@@ -1017,6 +1025,133 @@ export class AttendanceService {
           : '이미 모든 미등원 학생에게 알림이 발송되었거나 미등원 학생이 없습니다.',
       results: sentResults,
     };
+  }
+
+  // ==========================================
+  // 키오스크 (비인증) 출석 체크
+  // ==========================================
+
+  /**
+   * 학원 로비 키오스크에서 학생이 전화번호 뒷자리를 입력하면 일치하는 학생과
+   * 오늘 체크인 가능한 수업 목록을 반환한다. JWT 없이 kioskToken으로만 학원을 식별한다.
+   */
+  async kioskLookup(dto: KioskLookupDto): Promise<KioskLookupResponseDto> {
+    const academyId = await this.resolveAcademyByKioskToken(dto.kioskToken);
+
+    const students = await this.prisma.student.findMany({
+      where: { academyId, status: 'ACTIVE' },
+      select: { id: true, name: true, studentPhone: true, parentPhone: true },
+    });
+
+    const matchedStudents = students.filter((s) => {
+      const primaryPhone = s.studentPhone || s.parentPhone;
+      return this.normalizePhoneLast4(primaryPhone) === dto.phoneLast4;
+    });
+
+    if (matchedStudents.length === 0) {
+      throw new NotFoundException(
+        '일치하는 학생을 찾을 수 없습니다. 번호를 다시 확인해주세요.',
+      );
+    }
+
+    const now = new Date();
+    const matches: KioskStudentMatchDto[] = [];
+    for (const student of matchedStudents) {
+      const enrollments = await this.prisma.enrollment.findMany({
+        where: {
+          academyId,
+          studentId: student.id,
+          status: EnrollmentStatus.ENROLLED,
+          class: { status: ClassStatus.ACTIVE },
+        },
+        include: {
+          class: { select: { id: true, name: true, schedule: true } },
+        },
+      });
+
+      const enrolledClasses = enrollments.map((e) => e.class);
+      const todayClasses = enrolledClasses.filter((c) =>
+        this.isScheduledToday(c.schedule, now),
+      );
+      const classOptions = (
+        todayClasses.length > 0 ? todayClasses : enrolledClasses
+      ).map((c) => ({ id: c.id, name: c.name }));
+
+      matches.push({
+        studentId: student.id,
+        studentName: student.name,
+        classes: classOptions,
+      });
+    }
+
+    return { matches };
+  }
+
+  /**
+   * kioskLookup에서 확인한 학생/수업으로 실제 출결을 기록한다.
+   * studentId는 추측 가능한 순차 ID이므로, kioskToken만으로 studentId를 그대로
+   * 신뢰하지 않고 phoneLast4가 그 학생의 번호와 실제로 일치하는지 다시 검증한다
+   * (그렇지 않으면 kioskToken만 알아내면 전화번호 확인 없이 임의 학생의 출석을
+   * 조작할 수 있게 된다).
+   * 내부적으로 기존 quickCheck(교사용 원터치 체크)와 동일한 upsert 로직을 재사용한다.
+   */
+  async kioskCheckIn(dto: KioskCheckInDto): Promise<AttendanceResponseDto> {
+    const academyId = await this.resolveAcademyByKioskToken(dto.kioskToken);
+
+    const student = await this.prisma.student.findFirst({
+      where: { id: dto.studentId, academyId, status: 'ACTIVE' },
+      select: { studentPhone: true, parentPhone: true },
+    });
+    const primaryPhone = student?.studentPhone || student?.parentPhone;
+    if (!student || this.normalizePhoneLast4(primaryPhone) !== dto.phoneLast4) {
+      throw new NotFoundException('전화번호와 학생 정보가 일치하지 않습니다.');
+    }
+
+    return this.quickCheck(academyId, {
+      studentId: dto.studentId,
+      classId: dto.classId,
+      type: dto.type,
+    });
+  }
+
+  /**
+   * 키오스크 접속 토큰을 새로 발급(또는 재발급)한다. 재발급 시 기존 토큰은 즉시 무효화된다.
+   */
+  async generateKioskToken(academyId: number): Promise<KioskTokenResponseDto> {
+    const kioskToken = randomBytes(24).toString('hex');
+    await this.prisma.academy.update({
+      where: { id: academyId },
+      data: { kioskToken },
+    });
+    return { kioskToken };
+  }
+
+  private async resolveAcademyByKioskToken(
+    kioskToken: string,
+  ): Promise<number> {
+    const academy = await this.prisma.academy.findUnique({
+      where: { kioskToken },
+      select: { id: true, status: true },
+    });
+    if (!academy || academy.status !== 'ACTIVE') {
+      throw new NotFoundException('유효하지 않은 키오스크 접속 정보입니다.');
+    }
+    return academy.id;
+  }
+
+  private normalizePhoneLast4(phone: string | null | undefined): string | null {
+    if (!phone) return null;
+    const digits = phone.replace(/\D/g, '');
+    return digits.length >= 4 ? digits.slice(-4) : null;
+  }
+
+  private isScheduledToday(
+    schedule: string | null | undefined,
+    now: Date,
+  ): boolean {
+    if (!schedule) return false;
+    const DAY_CHARS = ['일', '월', '화', '수', '목', '금', '토'];
+    return schedule.includes(DAY_CHARS[now.getDay()]);
   }
 
   // ==========================================

@@ -56,6 +56,7 @@ describe('AttendanceService', () => {
       },
       student: {
         findFirst: jest.fn(),
+        findMany: jest.fn(),
       },
       class: {
         findFirst: jest.fn(),
@@ -67,6 +68,10 @@ describe('AttendanceService', () => {
       notification: {
         findMany: jest.fn(),
         updateMany: jest.fn(),
+      },
+      academy: {
+        findUnique: jest.fn(),
+        update: jest.fn(),
       },
       $transaction: jest.fn(),
     };
@@ -333,6 +338,276 @@ describe('AttendanceService', () => {
 
       expect(result.sentCount).toBe(1);
       expect(notificationsService.createNotification).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('키오스크 (비인증) 출석 체크', () => {
+    const DAY_CHARS = ['일', '월', '화', '수', '목', '금', '토'];
+    const todayIdx = new Date().getDay();
+    const todayChar = DAY_CHARS[todayIdx];
+    const otherDayChar = DAY_CHARS[(todayIdx + 1) % 7];
+
+    describe('kioskLookup', () => {
+      it('유효하지 않은 kioskToken이면 NotFoundException을 던진다', async () => {
+        prisma.academy.findUnique.mockResolvedValue(null);
+
+        await expect(
+          service.kioskLookup({ kioskToken: 'invalid', phoneLast4: '1234' }),
+        ).rejects.toThrow(NotFoundException);
+        expect(prisma.student.findMany).not.toHaveBeenCalled();
+      });
+
+      it('전화번호 뒷자리와 일치하는 학생이 없으면 NotFoundException을 던진다', async () => {
+        prisma.academy.findUnique.mockResolvedValue({
+          id: 10,
+          status: 'ACTIVE',
+        });
+        prisma.student.findMany.mockResolvedValue([
+          {
+            id: 1,
+            name: '김민준',
+            studentPhone: '010-1111-2222',
+            parentPhone: '010-9999-8888',
+          },
+        ]);
+
+        await expect(
+          service.kioskLookup({ kioskToken: 'valid', phoneLast4: '0000' }),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it('학생 본인 번호가 있으면 본인 번호로 매칭한다 (보호자 번호는 무시)', async () => {
+        prisma.academy.findUnique.mockResolvedValue({
+          id: 10,
+          status: 'ACTIVE',
+        });
+        prisma.student.findMany.mockResolvedValue([
+          {
+            id: 1,
+            name: '김민준',
+            studentPhone: '010-1111-2222',
+            parentPhone: '010-9999-2222',
+          },
+        ]);
+        prisma.enrollment.findMany.mockResolvedValue([]);
+
+        const result = await service.kioskLookup({
+          kioskToken: 'valid',
+          phoneLast4: '2222',
+        });
+
+        expect(result.matches).toHaveLength(1);
+        expect(result.matches[0].studentId).toBe(1);
+      });
+
+      it('학생 본인 번호가 없으면 보호자 번호 뒷자리로 대체 매칭한다', async () => {
+        prisma.academy.findUnique.mockResolvedValue({
+          id: 10,
+          status: 'ACTIVE',
+        });
+        prisma.student.findMany.mockResolvedValue([
+          {
+            id: 2,
+            name: '이서연',
+            studentPhone: null,
+            parentPhone: '010-3333-4444',
+          },
+        ]);
+        prisma.enrollment.findMany.mockResolvedValue([]);
+
+        const result = await service.kioskLookup({
+          kioskToken: 'valid',
+          phoneLast4: '4444',
+        });
+
+        expect(result.matches).toHaveLength(1);
+        expect(result.matches[0].studentId).toBe(2);
+      });
+
+      it('형제/자매처럼 같은 뒷자리로 여러 학생이 매칭되면 전부 반환한다', async () => {
+        prisma.academy.findUnique.mockResolvedValue({
+          id: 10,
+          status: 'ACTIVE',
+        });
+        prisma.student.findMany.mockResolvedValue([
+          {
+            id: 1,
+            name: '김민준',
+            studentPhone: null,
+            parentPhone: '010-1111-5678',
+          },
+          {
+            id: 2,
+            name: '김서연',
+            studentPhone: null,
+            parentPhone: '010-1111-5678',
+          },
+        ]);
+        prisma.enrollment.findMany.mockResolvedValue([]);
+
+        const result = await service.kioskLookup({
+          kioskToken: 'valid',
+          phoneLast4: '5678',
+        });
+
+        expect(result.matches).toHaveLength(2);
+      });
+
+      it('오늘 요일에 해당하는 수업이 있으면 그 수업만 반환한다', async () => {
+        prisma.academy.findUnique.mockResolvedValue({
+          id: 10,
+          status: 'ACTIVE',
+        });
+        prisma.student.findMany.mockResolvedValue([
+          {
+            id: 1,
+            name: '김민준',
+            studentPhone: '010-0000-1234',
+            parentPhone: '010-0000-0000',
+          },
+        ]);
+        prisma.enrollment.findMany.mockResolvedValue([
+          {
+            class: {
+              id: 1,
+              name: '오늘 수업',
+              schedule: `${todayChar} 17:00-19:00`,
+            },
+          },
+          {
+            class: {
+              id: 2,
+              name: '다른 요일 수업',
+              schedule: `${otherDayChar} 10:00-12:00`,
+            },
+          },
+        ]);
+
+        const result = await service.kioskLookup({
+          kioskToken: 'valid',
+          phoneLast4: '1234',
+        });
+
+        expect(result.matches[0].classes).toEqual([
+          { id: 1, name: '오늘 수업' },
+        ]);
+      });
+
+      it('오늘 요일에 매칭되는 수업이 없으면 등록된 전체 수업을 반환한다', async () => {
+        prisma.academy.findUnique.mockResolvedValue({
+          id: 10,
+          status: 'ACTIVE',
+        });
+        prisma.student.findMany.mockResolvedValue([
+          {
+            id: 1,
+            name: '김민준',
+            studentPhone: '010-0000-1234',
+            parentPhone: '010-0000-0000',
+          },
+        ]);
+        prisma.enrollment.findMany.mockResolvedValue([
+          { class: { id: 1, name: '수업A', schedule: null } },
+          { class: { id: 2, name: '수업B', schedule: '새벽반 06:00-07:00' } },
+        ]);
+
+        const result = await service.kioskLookup({
+          kioskToken: 'valid',
+          phoneLast4: '1234',
+        });
+
+        expect(result.matches[0].classes).toEqual([
+          { id: 1, name: '수업A' },
+          { id: 2, name: '수업B' },
+        ]);
+      });
+    });
+
+    describe('kioskCheckIn', () => {
+      it('kioskToken과 phoneLast4가 studentId와 일치하면 quickCheck에 위임한다', async () => {
+        prisma.academy.findUnique.mockResolvedValue({
+          id: 10,
+          status: 'ACTIVE',
+        });
+        prisma.student.findFirst.mockResolvedValue({
+          studentPhone: '010-1111-2222',
+          parentPhone: '010-9999-9999',
+        });
+        const quickCheckSpy = jest
+          .spyOn(service, 'quickCheck')
+          .mockResolvedValue(mockAttendance as any);
+
+        const result = await service.kioskCheckIn({
+          kioskToken: 'valid',
+          phoneLast4: '2222',
+          studentId: 100,
+          classId: 1,
+          type: QuickCheckType.CHECK_IN,
+        });
+
+        expect(quickCheckSpy).toHaveBeenCalledWith(10, {
+          studentId: 100,
+          classId: 1,
+          type: QuickCheckType.CHECK_IN,
+        });
+        expect(result).toBe(mockAttendance);
+      });
+
+      it('유효하지 않은 kioskToken이면 quickCheck를 호출하지 않고 예외를 던진다', async () => {
+        prisma.academy.findUnique.mockResolvedValue(null);
+        const quickCheckSpy = jest.spyOn(service, 'quickCheck');
+
+        await expect(
+          service.kioskCheckIn({
+            kioskToken: 'invalid',
+            phoneLast4: '2222',
+            studentId: 100,
+            classId: 1,
+            type: QuickCheckType.CHECK_IN,
+          }),
+        ).rejects.toThrow(NotFoundException);
+        expect(quickCheckSpy).not.toHaveBeenCalled();
+      });
+
+      it('studentId는 유효해도 phoneLast4가 그 학생 번호와 다르면 조작을 막는다', async () => {
+        prisma.academy.findUnique.mockResolvedValue({
+          id: 10,
+          status: 'ACTIVE',
+        });
+        prisma.student.findFirst.mockResolvedValue({
+          studentPhone: '010-1111-2222',
+          parentPhone: '010-9999-9999',
+        });
+        const quickCheckSpy = jest.spyOn(service, 'quickCheck');
+
+        await expect(
+          service.kioskCheckIn({
+            kioskToken: 'valid',
+            phoneLast4: '0000', // 실제 번호(2222)와 불일치 -> 임의 studentId 조작 시도
+            studentId: 100,
+            classId: 1,
+            type: QuickCheckType.CHECK_IN,
+          }),
+        ).rejects.toThrow(NotFoundException);
+        expect(quickCheckSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('generateKioskToken', () => {
+      it('64자 이하의 새 토큰을 생성해 academy에 저장하고 반환한다', async () => {
+        prisma.academy.update.mockResolvedValue({
+          id: 10,
+          kioskToken: 'new-token',
+        });
+
+        const result = await service.generateKioskToken(10);
+
+        expect(prisma.academy.update).toHaveBeenCalledWith({
+          where: { id: 10 },
+          data: { kioskToken: expect.any(String) },
+        });
+        expect(result.kioskToken).toHaveLength(48);
+      });
     });
   });
 });

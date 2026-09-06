@@ -35,6 +35,7 @@ model Academy {
   phoneNumber    String?       @db.VarChar(20)
   address        String?       @db.VarChar(255)
   settings       Json?         @db.JsonB // 학원별 알림 설정, 커스텀 옵션 등
+  kioskToken     String?       @unique @db.VarChar(64) // 출석 키오스크 접속용 비밀 토큰 (URL에 포함, 미발급 시 null)
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
