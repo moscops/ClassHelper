@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   GraduationCap,
   Sparkles,
@@ -33,19 +32,8 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function HomePage() {
-  const router = useRouter();
   const { user, isAuthenticated, isHydrated } = useAuthStore();
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (isHydrated && isAuthenticated) {
-      if (user?.role === 'SUPER_ADMIN') {
-        router.replace('/admin');
-      } else {
-        router.replace('/dashboard');
-      }
-    }
-  }, [isHydrated, isAuthenticated, user, router]);
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -81,18 +69,29 @@ export default function HomePage() {
 
             <ThemeToggle />
 
-            <Link
-              href="/login"
-              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-            >
-              로그인
-            </Link>
-            <Link
-              href="/register"
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
-            >
-              학원 무료 시작
-            </Link>
+            {isHydrated && isAuthenticated ? (
+              <Link
+                href={user?.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard'}
+                className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 transition-all"
+              >
+                대시보드로 이동
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                >
+                  로그인
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
+                >
+                  학원 무료 시작
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>

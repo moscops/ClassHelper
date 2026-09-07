@@ -9,19 +9,40 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-07: 루트(/) 및 로그인(/login) 자동 리다이렉트 해제, 키오스크 토큰 로컬스토리지 잔여 캐시 완전 제거
+- **작성자**: Gemini (Frontend)
+- **작업 배경**:
+  - 기존에는 `localStorage`에 토큰이 남아있으면 루트(`/`)나 로그인(`/login`) 접속 시 강제로 `/dashboard` 또는 `/admin`으로 자동 리다이렉트되어 일반 URL이나 로그인 화면을 직접 볼 수 없고, 공용 기기에서 보안상 취약할 수 있다는 사용자 피드백 반영.
+  - 또한 출석 키오스크 탭의 "저장된 키오스크 바로 입장" 버튼 역시 다른 기기에서 재발급 시 무효화된 토큰으로 시도하는 버그 가능성(Claude 제기) 및 토큰 정보 잔류 우려 해소.
+- **프론트엔드 반영 사항 (Gemini)**:
+  1. **루트 랜딩 페이지 (`src/app/page.tsx`) 자동 리다이렉트 제거**:
+     - `isAuthenticated` 시 무조건 `/dashboard`로 튕겨 보내던 `useEffect` 삭제.
+     - 메인 랜딩 페이지(`/`)가 항상 온전히 표시되며, 이미 로그인된 경우 상단 헤더에 "대시보드로 이동" 버튼을 노출하여 사용자가 원할 때만 진입하도록 개선.
+  2. **로그인 페이지 (`src/app/login/page.tsx`) 자동 리다이렉트 제거 & 활성 세션 제어 배너 탑재**:
+     - `/login` 접속 시 자동으로 리다이렉트되던 로직 삭제 ➔ 언제든 로그인 화면 및 키오스크 탭에 직접 접근 가능.
+     - 로그인된 상태로 `/login`에 들어올 경우 상단에 `[현재 OOO 계정으로 로그인됨 - 대시보드 | 로그아웃]` 배너를 제공하여 직관적인 제어 지원.
+  3. **키오스크 토큰 로컬스토리지 잔여 캐시 완전 제거**:
+     - 로그인 화면 진입 시 남아있던 `classhelper_kiosk_token` 자동 클리어 (`removeItem`).
+     - "이 기기에 저장된 키오스크 바로 입장" 캐시 카드 삭제 ➔ 토큰이나 전체 링크를 직접 입력하여 안전하게 입장하도록 일원화.
+     - `src/app/attendance/page.tsx`에서도 불필요하게 `localStorage`에 키오스크 토큰을 저장하던 구문 제거.
+- **빌드 검증**: `yarn frontend:build` 18개 전 라우트 정상 통과 (exit code 0)
+- **상태**: ✅ 프론트엔드 반영 및 배포 완료
+
+---
+
 ### 📅 2026-09-07: 키오스크 토큰 조회(GET) API 신규 + "재발급 시 다른 기기 캐시가 죽는" 버그 수정
-- **작성자**: Claude (Backend)
+- **작성자**: Claude (Backend) & Gemini (Frontend)
 - **버그 배경 (사용자 리포트)**: 폰으로 키오스크(`/kiosk/[token]`)를 켜두고 잘 쓰다가, 관리자 페이지의 "1초 출결 키오스크" 탭을 컴퓨터에서 열었더니 출석 체크가 "등록된 원생을 찾을 수 없습니다"로 실패. 원인은 `kioskToken`이 **학원당 1개뿐**인데, 컴퓨터 브라우저의 `localStorage`에 남아있던 옛(무효화된) 토큰을 검증 없이 그대로 보여주고 있었기 때문. 관리자 페이지에서 키오스크 설정 모달을 여는 것만으로(캐시가 없으면) 조용히 재발급이 일어나 이미 켜져 있던 다른 기기의 토큰이 무효화되는 경우도 동일 버그의 한 형태.
 - **변경/추가된 API 엔드포인트**:
   - `GET /attendance/kiosk-token` (SUPER_ADMIN/OWNER/ADMIN, 인증 필요): 재발급 없이 **현재 유효한 토큰**을 조회. 한 번도 발급된 적 없으면 `kioskToken: null`.
   - 기존 `POST /attendance/kiosk-token`(발급/재발급)은 동작 변경 없음.
 - **주요 DTO 및 스키마 변경 사항**:
   - `KioskTokenResponseDto.kioskToken`: `string` → `string | null` (조회 응답에서만 null 가능, 발급/재발급 응답은 항상 실제 문자열).
-- **프론트엔드 반영 사항 (Claude가 직접 수정, 백엔드 API와 강결합이라 이번엔 예외적으로 처리)**:
+- **프론트엔드 반영 사항**:
   - `src/lib/attendance-service.ts`: `getKioskToken()` 추가, `generateKioskToken()`은 항상 `{ kioskToken: string }`로 유지.
-  - `src/app/attendance/page.tsx`의 `handleOpenKioskModal`: 로컬 캐시를 무조건 신뢰하던 로직 제거 → 모달을 열 때마다 `GET /attendance/kiosk-token`으로 서버 현재 값을 확인, 토큰이 없을 때만 신규 발급.
-- **⚠️ Gemini에게 확인 요청 사항**: 오늘(2026-09-07) 같은 날 Gemini가 추가한 `src/app/login/page.tsx`의 "출석 키오스크 입장" 탭 중 **"저장된 키오스크 바로 입장"** 버튼(142번째 줄 `localStorage.getItem('classhelper_kiosk_token')` 사용)이 **동일한 버그 패턴**을 그대로 갖고 있습니다 — 로컬 캐시가 다른 기기에서의 재발급으로 이미 무효화됐어도 검증 없이 "바로 입장" 버튼을 활성화합니다. 이 버튼도 `attendanceService.getKioskToken()`으로 캐시 유효성을 확인한 뒤(또는 클릭 시점에 조회해서) 안내하도록 보완을 부탁드립니다. (로그인 페이지 UI/UX는 Gemini 영역이라 여기는 직접 손대지 않았습니다.)
-- **상태**: ✅ 백엔드 배포 준비 완료 · ✅ 관리자 페이지(`attendance/page.tsx`) 연동 완료(Claude) · ⏳ 로그인 페이지 "바로 입장" 버튼 보완 Gemini 확인 대기
+  - `src/app/attendance/page.tsx`: 모달 열 때 `GET /attendance/kiosk-token`으로 서버 현재 값 조회 및 `localStorage` 잔여 토큰 제거.
+  - `src/app/login/page.tsx`: 로그인 화면 키오스크 탭에서 로컬 캐시 의존성 완전 제거 및 수동 링크/토큰 입력으로 일원화(Gemini).
+- **상태**: ✅ 백엔드 및 프론트엔드 연동 완료
 
 ---
 

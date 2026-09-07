@@ -90,16 +90,6 @@ export default function LoginPage() {
     },
   });
 
-  useEffect(() => {
-    if (isHydrated && isAuthenticated) {
-      if (user?.role === 'SUPER_ADMIN') {
-        router.replace('/admin');
-      } else {
-        router.replace('/dashboard');
-      }
-    }
-  }, [isHydrated, isAuthenticated, user, router]);
-
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     setErrorMessage(null);
@@ -132,17 +122,14 @@ export default function LoginPage() {
 
   const [activeTab, setActiveTab] = useState<'admin' | 'kiosk'>('admin');
   const [inputKioskToken, setInputKioskToken] = useState('');
-  const [cachedKioskToken, setCachedKioskToken] = useState<string | null>(null);
   const [kioskError, setKioskError] = useState<string | null>(null);
   const [isKioskLoading, setIsKioskLoading] = useState(false);
   const [isDevKioskLoading, setIsDevKioskLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('classhelper_kiosk_token');
-      if (token) {
-        setCachedKioskToken(token);
-      }
+      // 로컬 스토리지에 남아있는 키오스크 토큰을 완전 제거하여 보안 유지
+      localStorage.removeItem('classhelper_kiosk_token');
       const params = new URLSearchParams(window.location.search);
       if (params.get('tab') === 'kiosk' || params.get('mode') === 'kiosk') {
         setActiveTab('kiosk');
@@ -167,9 +154,6 @@ export default function LoginPage() {
       return;
     }
     setIsKioskLoading(true);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('classhelper_kiosk_token', finalToken);
-    }
     router.push(`/kiosk/${finalToken}`);
   };
 
@@ -183,9 +167,6 @@ export default function LoginPage() {
       });
       setAuth(authRes);
       const kioskRes = await attendanceService.generateKioskToken();
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('classhelper_kiosk_token', kioskRes.kioskToken);
-      }
       router.push(`/kiosk/${kioskRes.kioskToken}`);
     } catch {
       setKioskError('데모 키오스크 토큰을 발급받지 못했습니다.');
@@ -235,6 +216,36 @@ export default function LoginPage() {
 
         {/* Login Box */}
         <div className="bg-white dark:bg-slate-900 shadow-xl border border-slate-200/90 dark:border-slate-800 rounded-3xl p-7 sm:p-9">
+          {/* Active Session Notice (No auto-redirect) */}
+          {isHydrated && isAuthenticated && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 flex items-center justify-between gap-3">
+              <div className="text-xs text-indigo-950 dark:text-indigo-200 truncate">
+                현재 <span className="font-bold">{user?.name || user?.email}</span> 계정으로 로그인되어 있습니다.
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => router.push(user?.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard')}
+                  className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                >
+                  대시보드
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await authService.logout();
+                    } catch {}
+                    useAuthStore.getState().logout();
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-medium transition-colors cursor-pointer"
+                >
+                  로그아웃
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Mode Switcher Tabs */}
           <div className="flex p-1 mb-6 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
             <button
@@ -429,44 +440,6 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {/* Saved Device Kiosk (if available) */}
-              {cachedKioskToken && (
-                <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/80">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                      <span className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
-                        이 기기에 저장된 키오스크
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (typeof window !== 'undefined') {
-                          localStorage.removeItem('classhelper_kiosk_token');
-                          setCachedKioskToken(null);
-                        }
-                      }}
-                      className="text-[11px] text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 underline transition-colors cursor-pointer"
-                    >
-                      기록 삭제
-                    </button>
-                  </div>
-                  <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate mb-3 bg-white/80 dark:bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-900/60">
-                    접속 토큰: {cachedKioskToken.slice(0, 16)}...
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleEnterKiosk(cachedKioskToken)}
-                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm hover:shadow transition-all cursor-pointer"
-                  >
-                    <Tablet className="w-4 h-4" />
-                    <span>저장된 키오스크 바로 입장</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
               {/* Token Manual Input Form */}
               <form
                 onSubmit={(e) => {
@@ -477,7 +450,7 @@ export default function LoginPage() {
               >
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    {cachedKioskToken ? '다른 키오스크 링크 또는 토큰 입력' : '학원 키오스크 링크 또는 토큰 입력'}
+                    학원 키오스크 링크 또는 토큰 입력
                   </label>
                   <div className="relative rounded-2xl shadow-xs">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
