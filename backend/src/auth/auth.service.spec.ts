@@ -29,6 +29,7 @@ describe('AuthService', () => {
     phone: '010-1234-5678',
     role: UserRole.OWNER,
     hashedRefreshToken: 'hashed_refresh_token_value',
+    mustChangePassword: false,
     createdAt: new Date(),
     updatedAt: new Date(),
     academy: {
@@ -158,6 +159,7 @@ describe('AuthService', () => {
         id: 2,
         email: 'teacher@classhelper.kr',
         role: UserRole.TEACHER,
+        mustChangePassword: true,
       };
       prisma.user.create.mockResolvedValue(staffUser);
 
@@ -179,6 +181,72 @@ describe('AuthService', () => {
 
       expect(result.email).toBe('teacher@classhelper.kr');
       expect(result.role).toBe(UserRole.TEACHER);
+      expect(result.mustChangePassword).toBe(true);
+    });
+
+    it('원장이 비밀번호를 직접 지정하면 응답에 tempPassword가 포함되지 않는다', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+      prisma.user.create.mockResolvedValue({
+        ...mockUser,
+        id: 2,
+        email: 'teacher@classhelper.kr',
+        role: UserRole.TEACHER,
+        mustChangePassword: true,
+      });
+
+      const result = await service.registerStaff(
+        {
+          userId: 1,
+          academyId: 10,
+          email: 'owner@classhelper.kr',
+          name: '김원장',
+          role: UserRole.OWNER,
+        },
+        {
+          email: 'teacher@classhelper.kr',
+          password: 'password123!',
+          name: '이강사',
+          role: UserRole.TEACHER,
+        },
+      );
+
+      expect(result.tempPassword).toBeUndefined();
+      expect(bcrypt.hash).toHaveBeenCalledWith('password123!', 10);
+    });
+
+    it('비밀번호를 생략하면 서버가 임시 비밀번호를 생성해 tempPassword로 1회 반환한다', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+      prisma.user.create.mockResolvedValue({
+        ...mockUser,
+        id: 2,
+        email: 'teacher@classhelper.kr',
+        role: UserRole.TEACHER,
+        mustChangePassword: true,
+      });
+
+      const result = await service.registerStaff(
+        {
+          userId: 1,
+          academyId: 10,
+          email: 'owner@classhelper.kr',
+          name: '김원장',
+          role: UserRole.OWNER,
+        },
+        {
+          email: 'teacher@classhelper.kr',
+          name: '이강사',
+          role: UserRole.TEACHER,
+        } as any,
+      );
+
+      expect(result.tempPassword).toBeDefined();
+      // 비밀번호 정책 정규식(영문+숫자+특수문자, 8자 이상)을 항상 만족해야 한다.
+      expect(result.tempPassword).toMatch(
+        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/,
+      );
+      expect(bcrypt.hash).toHaveBeenCalledWith(result.tempPassword, 10);
     });
   });
 
@@ -274,6 +342,57 @@ describe('AuthService', () => {
         where: { id: 1 },
         data: { hashedRefreshToken: null },
       });
+    });
+  });
+
+  describe('changePassword', () => {
+    it('현재 비밀번호가 일치하면 비밀번호를 변경하고 mustChangePassword를 해제한다', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        mustChangePassword: true,
+      });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('newHashedPassword');
+      prisma.user.update.mockResolvedValue(mockUser);
+
+      const result = await service.changePassword(1, {
+        currentPassword: 'oldPassword123!',
+        newPassword: 'NewPassword456!',
+      });
+
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        'oldPassword123!',
+        mockUser.password,
+      );
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { password: 'newHashedPassword', mustChangePassword: false },
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('현재 비밀번호가 틀리면 UnauthorizedException 발생', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(
+        service.changePassword(1, {
+          currentPassword: 'wrongPassword!',
+          newPassword: 'NewPassword456!',
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('존재하지 않는 사용자일 때 NotFoundException 발생', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.changePassword(999, {
+          currentPassword: 'oldPassword123!',
+          newPassword: 'NewPassword456!',
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

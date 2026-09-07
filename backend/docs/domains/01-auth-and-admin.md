@@ -29,6 +29,7 @@
   * `name`: 사용자 성함 (예: "김원장", "이선생")
   * `role`: `UserRole` (`SUPER_ADMIN`, `OWNER`, `ADMIN`, `TEACHER`, `STAFF`)
   * `hashedRefreshToken`: RTR 보안 토큰 해시
+  * `mustChangePassword`: 원장/관리자가 대신 계정을 만들며 비밀번호를 발급한 경우 `true` — `PATCH /auth/change-password` 성공 시 `false`로 해제 (2026-09-07 추가)
 
 ### 3) `AuditLog` (관리자 감사 로그)
 * **역할**: 슈퍼 관리자 또는 원장님의 고위험 작업(학원 정지, 권한 변경, 강제 데이터 수정 등)을 영구 기록.
@@ -122,7 +123,7 @@
 
 ### 4.2. 강사/직원 등록
 * **엔드포인트**: `POST /auth/register-staff` (`OWNER`, `ADMIN`)
-* **Request Body (`RegisterStaffDto`)**:
+* **Request Body (`RegisterStaffDto`)**: `password`는 선택 — 생략하면 서버가 임시 비밀번호를 자동 생성한다.
   ```json
   {
     "email": "teacher1@classhelper.kr",
@@ -132,8 +133,16 @@
     "role": "TEACHER"
   }
   ```
-* **Response Body (`UserProfileDto`)**: 생성된 계정 정보(비밀번호 제외).
+* **Response Body (`StaffRegisteredResponseDto`)**: `UserProfileDto` + 선택적 `tempPassword`.
+  * `password`를 생략했다면 서버가 생성한 평문 임시 비밀번호가 `tempPassword`에 **이 응답에서만 1회** 담겨 온다(재조회 불가 — 원장이 이 화면에서 바로 복사/전달해야 함). 원장이 직접 지정했다면 `tempPassword`는 포함되지 않는다.
+  * 어느 경우든 생성된 계정의 `mustChangePassword`는 `true`로 설정된다.
 * **동작 특성**: 요청자의 `academyId`에 신규 계정을 종속시킵니다. `role`은 `TEACHER`/`ADMIN`/`STAFF`만 지정 가능.
+
+### 4.2.1. 비밀번호 변경 — 2026-09-07 신규
+* **엔드포인트**: `PATCH /auth/change-password` (인증 필요, 모든 역할 공통 — 본인 계정만)
+* **Request Body (`ChangePasswordDto`)**: `{ "currentPassword": "Teacher123!", "newPassword": "NewTeacher456!" }`
+* **Response Body (`ChangePasswordResponseDto`)**: `{ "success": true, "message": "비밀번호가 성공적으로 변경되었습니다." }`
+* **동작 특성**: 현재 비밀번호 불일치 시 `401 Unauthorized`. `/auth/login`과 동일한 수준의 Throttle(60초 5회) 적용. 성공 시 `mustChangePassword`를 `false`로 해제 — 원장이 발급한 임시 비밀번호로 로그인한 계정이 이 API를 통해 정상 계정으로 전환된다.
 
 ### 4.3. 로그인
 * **엔드포인트**: `POST /auth/login` (인증 불필요)

@@ -31,8 +31,26 @@ export class UserProfileDto {
   @ApiProperty({ enum: UserRole, example: UserRole.OWNER })
   role: UserRole;
 
+  @ApiProperty({
+    description:
+      '원장/관리자가 대신 발급한 임시 비밀번호를 아직 변경하지 않은 계정이면 true. ' +
+      'true인 동안 프론트는 비밀번호 변경 화면으로 유도해야 한다.',
+    example: false,
+  })
+  mustChangePassword: boolean;
+
   @ApiProperty({ example: '2026-08-18T00:00:00.000Z' })
   createdAt: Date;
+}
+
+export class StaffRegisteredResponseDto extends UserProfileDto {
+  @ApiPropertyOptional({
+    description:
+      '서버가 자동 생성한 임시 비밀번호. 이 응답에서만 평문으로 1회 반환되며 다시 조회할 수 없다 — ' +
+      '원장이 직접 비밀번호를 지정한 경우에는 포함되지 않는다.',
+    example: 'Xk7#mQ2p9!',
+  })
+  tempPassword?: string;
 }
 
 export class AcademySummaryDto {
@@ -87,5 +105,13 @@ export class LogoutResponseDto {
   success: boolean;
 
   @ApiProperty({ example: '성공적으로 로그아웃되었습니다.' })
+  message: string;
+}
+
+export class ChangePasswordResponseDto {
+  @ApiProperty({ example: true })
+  success: boolean;
+
+  @ApiProperty({ example: '비밀번호가 성공적으로 변경되었습니다.' })
   message: string;
 }

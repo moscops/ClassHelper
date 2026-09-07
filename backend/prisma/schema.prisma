@@ -65,6 +65,9 @@ model User {
   phone              String?  @db.VarChar(20)
   role               UserRole @default(TEACHER)
   hashedRefreshToken String?  @map("hashed_refresh_token") @db.VarChar(255)
+  // 원장/관리자가 대신 계정을 만들며 임시 비밀번호를 발급한 경우 true.
+  // 최초 로그인 후 반드시 비밀번호를 변경해야 하며, PATCH /auth/change-password 성공 시 false로 해제된다.
+  mustChangePassword Boolean  @default(false) @map("must_change_password")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

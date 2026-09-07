@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   UseGuards,
   HttpCode,
@@ -20,12 +21,14 @@ import { RegisterOwnerDto } from './dto/register-owner.dto';
 import { RegisterStaffDto } from './dto/register-staff.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import {
   AuthResponseDto,
-  UserProfileDto,
+  StaffRegisteredResponseDto,
   UserDetailResponseDto,
   TokensResponseDto,
   LogoutResponseDto,
+  ChangePasswordResponseDto,
 } from './dto/auth-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -68,8 +71,9 @@ export class AuthController {
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: '강사/직원 계정 생성 성공',
-    type: UserProfileDto,
+    description:
+      '강사/직원 계정 생성 성공. 비밀번호를 입력하지 않았다면 tempPassword에 평문 임시 비밀번호가 1회만 담겨 온다.',
+    type: StaffRegisteredResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.FORBIDDEN,
@@ -82,7 +86,7 @@ export class AuthController {
   async registerStaff(
     @CurrentUser() currentUser: CurrentUserPayload,
     @Body() dto: RegisterStaffDto,
-  ): Promise<UserProfileDto> {
+  ): Promise<StaffRegisteredResponseDto> {
     return this.authService.registerStaff(currentUser, dto);
   }
 
@@ -150,6 +154,34 @@ export class AuthController {
     @CurrentUser('userId') userId: number,
   ): Promise<LogoutResponseDto> {
     return this.authService.logout(userId);
+  }
+
+  @Patch('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  // 현재 비밀번호 대입 시도 방지: 로그인과 동일한 수준으로 제한.
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiOperation({
+    summary: '내 비밀번호 변경',
+    description:
+      '현재 비밀번호를 확인한 뒤 새 비밀번호로 변경한다. 원장이 발급한 임시 비밀번호로 로그인한 ' +
+      '계정(mustChangePassword=true)도 이 API로 변경하면 플래그가 해제된다.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '비밀번호 변경 성공',
+    type: ChangePasswordResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: '현재 비밀번호 불일치',
+  })
+  async changePassword(
+    @CurrentUser('userId') userId: number,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<ChangePasswordResponseDto> {
+    return this.authService.changePassword(userId, dto);
   }
 
   @Get('me')

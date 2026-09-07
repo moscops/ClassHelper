@@ -9,18 +9,22 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { randomInt } from 'crypto';
 import { UserRole, PlanTier, SubscriptionStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterOwnerDto } from './dto/register-owner.dto';
 import { RegisterStaffDto } from './dto/register-staff.dto';
 import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import {
   AuthResponseDto,
   UserProfileDto,
+  StaffRegisteredResponseDto,
   AcademySummaryDto,
   UserDetailResponseDto,
   TokensResponseDto,
   LogoutResponseDto,
+  ChangePasswordResponseDto,
 } from './dto/auth-response.dto';
 import type { CurrentUserPayload } from '../common/decorators/current-user.decorator';
 
@@ -97,7 +101,7 @@ export class AuthService {
   async registerStaff(
     currentUser: CurrentUserPayload,
     dto: RegisterStaffDto,
-  ): Promise<UserProfileDto> {
+  ): Promise<StaffRegisteredResponseDto> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -106,7 +110,11 @@ export class AuthService {
       throw new ConflictException('이미 사용 중인 이메일 주소입니다.');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    // 비밀번호를 원장이 직접 입력하지 않았으면 서버가 임시 비밀번호를 생성한다.
+    // 원장이 입력했든 서버가 생성했든, 본인이 고른 비밀번호가 아니므로 최초
+    // 로그인 시 반드시 변경하도록 mustChangePassword를 true로 표시한다.
+    const tempPassword = dto.password ?? this.generateTempPassword();
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     const user = await this.prisma.user.create({
       data: {
@@ -116,6 +124,7 @@ export class AuthService {
         name: dto.name,
         phone: dto.phone,
         role: dto.role,
+        mustChangePassword: true,
       },
     });
 
@@ -123,7 +132,11 @@ export class AuthService {
       `학원(${currentUser.academyId}) 내 강사/직원 추가: [${user.name}(${user.role})]`,
     );
 
-    return this.mapToUserProfile(user);
+    return {
+      ...this.mapToUserProfile(user),
+      // 원장이 비밀번호를 직접 지정한 경우 이미 알고 있으므로 다시 돌려줄 필요 없음.
+      ...(dto.password ? {} : { tempPassword }),
+    };
   }
 
   /**
@@ -226,6 +239,40 @@ export class AuthService {
   }
 
   /**
+   * 본인 비밀번호 변경 (원장이 발급한 임시 비밀번호 포함, 모든 역할 공통).
+   * 성공 시 mustChangePassword를 해제한다.
+   */
+  async changePassword(
+    userId: number,
+    dto: ChangePasswordDto,
+  ): Promise<ChangePasswordResponseDto> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      dto.currentPassword,
+      user.password,
+    );
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('현재 비밀번호가 올바르지 않습니다.');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword, mustChangePassword: false },
+    });
+
+    this.logger.log(`비밀번호 변경 완료: 사용자 ID [${userId}]`);
+    return {
+      success: true,
+      message: '비밀번호가 성공적으로 변경되었습니다.',
+    };
+  }
+
+  /**
    * 현재 로그인 사용자 및 학원 정보 조회
    */
   async getMe(userId: number): Promise<UserDetailResponseDto> {
@@ -310,6 +357,7 @@ export class AuthService {
     name: string;
     phone: string | null;
     role: UserRole;
+    mustChangePassword: boolean;
     createdAt: Date;
   }): UserProfileDto {
     return {
@@ -319,8 +367,26 @@ export class AuthService {
       name: user.name,
       phone: user.phone,
       role: user.role,
+      mustChangePassword: user.mustChangePassword,
       createdAt: user.createdAt,
     };
+  }
+
+  /**
+   * 강사/직원 등록 시 원장이 비밀번호를 직접 입력하지 않은 경우 사용할 임시 비밀번호 생성.
+   * 각 문자 종류(영문/숫자/특수문자)를 최소 1개씩 보장해 비밀번호 정책 정규식을 항상 만족시킨다.
+   */
+  private generateTempPassword(): string {
+    // 혼동되기 쉬운 문자(0/O, 1/l/I 등) 제외.
+    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const special = '!@#$%^&*';
+    const pick = (pool: string) => pool[randomInt(pool.length)];
+
+    const body = Array.from({ length: 8 }, () => pick(letters + digits)).join(
+      '',
+    );
+    return `${pick(letters)}${body}${pick(digits)}${pick(special)}`;
   }
 
   private mapToAcademySummary(

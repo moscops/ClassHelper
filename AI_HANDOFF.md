@@ -9,6 +9,24 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-07: 강사/직원 등록 시 임시 비밀번호 자동 발급 + 최초 로그인 비밀번호 변경 강제
+- **작성자**: Claude (Backend)
+- **작업 배경**: 사용자 질문 — "강사/실장/조교 로그인은 원장 동의가 필요한데, 원장이 직접 로그인시켜주는 게 나을지 권한 기반 셀프 로그인이 나을지" → 이미 구현된 "원장이 `POST /auth/register-staff`로 직접 계정을 만드는" 방식(A안)을 유지하되, 원장이 비밀번호를 직접 타이핑해서 알려줘야 했던 UX만 개선하기로 결정. (셀프가입+승인 플로우는 로드맵상 이미 "학원코드 승인"으로 후순위 연기된 상태라 이번엔 만들지 않음.)
+- **변경/추가된 API 엔드포인트**:
+  - `POST /auth/register-staff`: `RegisterStaffDto.password`가 이제 **선택**. 생략하면 서버가 정책(영문+숫자+특수문자, 8자+)을 항상 만족하는 임시 비밀번호를 자동 생성.
+  - `PATCH /auth/change-password` (신규, 인증 필요, 전 역할 공통): `{ currentPassword, newPassword }` → 현재 비밀번호 확인 후 변경, `mustChangePassword` 해제. `/auth/login`과 동일한 Throttle(60초 5회) 적용.
+- **주요 DTO 및 스키마 변경 사항**:
+  - `User.mustChangePassword: Boolean @default(false)` 신규 컬럼(마이그레이션 `20260907080000_add_must_change_password`) — 원장이 대신 계정을 만든 경우(비밀번호를 직접 지정했든 자동 생성했든) 항상 `true`로 시작.
+  - `UserProfileDto`에 `mustChangePassword: boolean` 추가 → **로그인/`GET auth/me` 응답에 항상 포함**됨.
+  - `register-staff` 응답 타입이 `StaffRegisteredResponseDto`(`UserProfileDto` + 선택적 `tempPassword?: string`)로 변경 — `tempPassword`는 서버가 자동 생성했을 때만, **이 응답 1회에만** 평문으로 담겨 온다(재조회 불가).
+- **프론트엔드 연동 요청 사항 (Gemini에게 전달)**:
+  1. 강사/직원 등록 폼: 비밀번호 입력을 선택 사항으로 바꾸고(비워두면 자동 발급), 응답의 `tempPassword`가 있으면 **1회성 모달/카드로 노출**(복사 버튼 포함) — 새로고침하면 다시 볼 수 없다는 점을 안내 문구로 명시해주세요.
+  2. 로그인 응답(`AuthResponseDto.user.mustChangePassword`)이 `true`면 대시보드로 보내지 말고 **비밀번호 변경 화면으로 강제 이동**시켜주세요(신규 `PATCH /auth/change-password` 연동).
+  3. `src/lib/auth-service.ts`(또는 해당 파일)에 `changePassword(currentPassword, newPassword)` 함수 추가 필요.
+- **상태**: ⏳ Gemini 프론트엔드 연동 대기 중
+
+---
+
 ### 📅 2026-09-07: 루트(/) 및 로그인(/login) 자동 리다이렉트 해제, 키오스크 토큰 로컬스토리지 잔여 캐시 완전 제거
 - **작성자**: Gemini (Frontend)
 - **작업 배경**:
