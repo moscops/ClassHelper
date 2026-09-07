@@ -269,9 +269,18 @@ export const attendanceService = {
 
   /**
    * [스태프] 출석 키오스크 접속 토큰 신규 발급 / 재발급 (SUPER_ADMIN, OWNER, ADMIN)
+   * POST 응답은 항상 실제 토큰 문자열을 반환한다(null 없음) — 조회(GET)만 null일 수 있다.
    */
-  async generateKioskToken(): Promise<KioskTokenResponse> {
-    const response = await api.post<KioskTokenResponse>('/attendance/kiosk-token');
+  async generateKioskToken(): Promise<{ kioskToken: string }> {
+    const response = await api.post<{ kioskToken: string }>('/attendance/kiosk-token');
+    return response.data;
+  },
+
+  /**
+   * [스태프] 현재 발급된 출석 키오스크 접속 토큰 조회 (재발급 없음, SUPER_ADMIN, OWNER, ADMIN)
+   */
+  async getKioskToken(): Promise<KioskTokenResponse> {
+    const response = await api.get<KioskTokenResponse>('/attendance/kiosk-token');
     return response.data;
   },
 
@@ -316,7 +325,7 @@ export interface KioskCheckInRequest {
 }
 
 export interface KioskTokenResponse {
-  kioskToken: string;
+  kioskToken: string | null;
 }
 
 export interface UnattendedStudent {

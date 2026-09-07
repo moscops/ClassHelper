@@ -175,11 +175,21 @@ export default function AttendancePage() {
 
   const handleOpenKioskModal = async () => {
     setIsKioskModalOpen(true);
-    const cached = typeof window !== 'undefined' ? localStorage.getItem('classhelper_kiosk_token') : null;
-    if (cached) {
-      setKioskToken(cached);
-    } else {
-      await handleGenerateKioskToken(false);
+    // 로컬 캐시는 신뢰하지 않는다 — 토큰은 학원당 1개뿐이라 다른 기기/브라우저에서
+    // 재발급하면 이 캐시는 이미 무효화된 값이 된다. 항상 서버의 현재 값으로 갱신한다.
+    setIsLoadingKioskToken(true);
+    try {
+      const res = await attendanceService.getKioskToken();
+      if (res.kioskToken) {
+        setKioskToken(res.kioskToken);
+      } else {
+        // 한 번도 발급된 적이 없으면 그때만 새로 발급한다.
+        await handleGenerateKioskToken(false);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || '키오스크 토큰 조회에 실패했습니다.');
+    } finally {
+      setIsLoadingKioskToken(false);
     }
   };
 
@@ -197,9 +207,6 @@ export default function AttendancePage() {
     try {
       const res = await attendanceService.generateKioskToken();
       setKioskToken(res.kioskToken);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('classhelper_kiosk_token', res.kioskToken);
-      }
     } catch (err: any) {
       alert(err.response?.data?.message || '키오스크 토큰 발급에 실패했습니다.');
     } finally {

@@ -1126,6 +1126,22 @@ export class AttendanceService {
     return { kioskToken };
   }
 
+  /**
+   * 현재 발급되어 있는 키오스크 접속 토큰을 조회한다(재발급하지 않음).
+   * 프론트엔드가 로컬에 캐시해둔 토큰을 무조건 신뢰하면, 다른 기기/브라우저에서
+   * 재발급이 일어났을 때 이미 무효화된 옛 토큰을 계속 보여주는 문제가 생긴다
+   * (예: 폰에서 재발급 → 컴퓨터 브라우저는 여전히 예전 토큰을 캐시하고 있어
+   * 그 URL로 접속하면 "학생을 찾을 수 없음"으로 오인되는 404가 발생).
+   * 그래서 모달을 열 때마다 이 엔드포인트로 서버의 현재 값을 다시 확인해야 한다.
+   */
+  async getKioskToken(academyId: number): Promise<KioskTokenResponseDto> {
+    const academy = await this.prisma.academy.findUnique({
+      where: { id: academyId },
+      select: { kioskToken: true },
+    });
+    return { kioskToken: academy?.kioskToken ?? null };
+  }
+
   private async resolveAcademyByKioskToken(
     kioskToken: string,
   ): Promise<number> {

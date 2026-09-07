@@ -9,6 +9,22 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-07: 키오스크 토큰 조회(GET) API 신규 + "재발급 시 다른 기기 캐시가 죽는" 버그 수정
+- **작성자**: Claude (Backend)
+- **버그 배경 (사용자 리포트)**: 폰으로 키오스크(`/kiosk/[token]`)를 켜두고 잘 쓰다가, 관리자 페이지의 "1초 출결 키오스크" 탭을 컴퓨터에서 열었더니 출석 체크가 "등록된 원생을 찾을 수 없습니다"로 실패. 원인은 `kioskToken`이 **학원당 1개뿐**인데, 컴퓨터 브라우저의 `localStorage`에 남아있던 옛(무효화된) 토큰을 검증 없이 그대로 보여주고 있었기 때문. 관리자 페이지에서 키오스크 설정 모달을 여는 것만으로(캐시가 없으면) 조용히 재발급이 일어나 이미 켜져 있던 다른 기기의 토큰이 무효화되는 경우도 동일 버그의 한 형태.
+- **변경/추가된 API 엔드포인트**:
+  - `GET /attendance/kiosk-token` (SUPER_ADMIN/OWNER/ADMIN, 인증 필요): 재발급 없이 **현재 유효한 토큰**을 조회. 한 번도 발급된 적 없으면 `kioskToken: null`.
+  - 기존 `POST /attendance/kiosk-token`(발급/재발급)은 동작 변경 없음.
+- **주요 DTO 및 스키마 변경 사항**:
+  - `KioskTokenResponseDto.kioskToken`: `string` → `string | null` (조회 응답에서만 null 가능, 발급/재발급 응답은 항상 실제 문자열).
+- **프론트엔드 반영 사항 (Claude가 직접 수정, 백엔드 API와 강결합이라 이번엔 예외적으로 처리)**:
+  - `src/lib/attendance-service.ts`: `getKioskToken()` 추가, `generateKioskToken()`은 항상 `{ kioskToken: string }`로 유지.
+  - `src/app/attendance/page.tsx`의 `handleOpenKioskModal`: 로컬 캐시를 무조건 신뢰하던 로직 제거 → 모달을 열 때마다 `GET /attendance/kiosk-token`으로 서버 현재 값을 확인, 토큰이 없을 때만 신규 발급.
+- **⚠️ Gemini에게 확인 요청 사항**: 오늘(2026-09-07) 같은 날 Gemini가 추가한 `src/app/login/page.tsx`의 "출석 키오스크 입장" 탭 중 **"저장된 키오스크 바로 입장"** 버튼(142번째 줄 `localStorage.getItem('classhelper_kiosk_token')` 사용)이 **동일한 버그 패턴**을 그대로 갖고 있습니다 — 로컬 캐시가 다른 기기에서의 재발급으로 이미 무효화됐어도 검증 없이 "바로 입장" 버튼을 활성화합니다. 이 버튼도 `attendanceService.getKioskToken()`으로 캐시 유효성을 확인한 뒤(또는 클릭 시점에 조회해서) 안내하도록 보완을 부탁드립니다. (로그인 페이지 UI/UX는 Gemini 영역이라 여기는 직접 손대지 않았습니다.)
+- **상태**: ✅ 백엔드 배포 준비 완료 · ✅ 관리자 페이지(`attendance/page.tsx`) 연동 완료(Claude) · ⏳ 로그인 페이지 "바로 입장" 버튼 보완 Gemini 확인 대기
+
+---
+
 ### 📅 2026-09-07: 로그인 화면 내 출석 키오스크 / 학원 관리 탭 분리, 로컬 개발 전용 원클릭 로그인 구현 및 미사용 컴포넌트 정리
 - **작성자**: Gemini (Frontend)
 - **작업 배경**:

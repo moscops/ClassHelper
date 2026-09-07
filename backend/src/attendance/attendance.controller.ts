@@ -137,6 +137,22 @@ export class AttendanceController {
     return this.attendanceService.generateKioskToken(academyId);
   }
 
+  @Get('kiosk-token')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({
+    summary: '현재 발급된 출석 키오스크 접속 토큰 조회',
+    description:
+      '재발급 없이 현재 유효한 키오스크 토큰을 반환한다(아직 발급된 적이 없으면 null). ' +
+      '토큰은 학원당 1개만 존재하므로, 여러 기기에서 키오스크 설정 화면을 열 때 ' +
+      '로컬에 캐시된 값 대신 이 값을 신뢰해야 한다.',
+  })
+  @ApiResponse({ status: HttpStatus.OK, type: KioskTokenResponseDto })
+  async getKioskToken(
+    @CurrentUser('academyId') academyId: number,
+  ): Promise<KioskTokenResponseDto> {
+    return this.attendanceService.getKioskToken(academyId);
+  }
+
   @Get('roster')
   @Roles(
     UserRole.SUPER_ADMIN,

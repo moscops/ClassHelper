@@ -202,6 +202,11 @@
 * **엔드포인트**: `POST /attendance/kiosk-token` (SUPER_ADMIN/OWNER/ADMIN)
 * **Response (`KioskTokenResponseDto`)**: `{ "kioskToken": "a1b2c3..." }` — 재발급 시 기존 토큰 즉시 무효화.
 
+#### 토큰 조회 (스태프, 인증 필요) — 2026-09-07 버그 수정으로 신규
+* **엔드포인트**: `GET /attendance/kiosk-token` (SUPER_ADMIN/OWNER/ADMIN)
+* **Response (`KioskTokenResponseDto`)**: `{ "kioskToken": "a1b2c3..." | null }` — 재발급 없이 현재 값만 반환, 한 번도 발급된 적이 없으면 `null`.
+* **추가 배경**: 토큰은 학원당 1개뿐이라 어느 기기에서든 재발급하면 기존 토큰은 즉시 무효화된다. 프론트가 이 조회 없이 로컬(`localStorage`) 캐시만 믿고 URL을 보여주면, 다른 기기/브라우저에서 이미 재발급된 뒤에도 무효화된 옛 토큰 URL을 계속 보여줄 수 있다 — 이 경우 실제 원인은 "잘못된 토큰"인데 `kioskLookup`이 학원 자체를 못 찾아 404를 던지므로, 프론트에는 "일치하는 학생을 찾을 수 없음"으로 오인되어 표시된다. 관리자 페이지의 키오스크 설정 모달은 이제 열릴 때마다 이 엔드포인트로 서버의 현재 값을 다시 확인한다(토큰이 없을 때만 발급).
+
 #### 학생 조회 (비인증)
 * **엔드포인트**: `POST /attendance/kiosk/lookup`
 * **Request (`KioskLookupDto`)**:

@@ -609,5 +609,30 @@ describe('AttendanceService', () => {
         expect(result.kioskToken).toHaveLength(48);
       });
     });
+
+    describe('getKioskToken', () => {
+      it('재발급 없이 현재 저장된 토큰을 그대로 반환한다', async () => {
+        prisma.academy.findUnique.mockResolvedValue({
+          kioskToken: 'existing-token',
+        });
+
+        const result = await service.getKioskToken(10);
+
+        expect(prisma.academy.update).not.toHaveBeenCalled();
+        expect(prisma.academy.findUnique).toHaveBeenCalledWith({
+          where: { id: 10 },
+          select: { kioskToken: true },
+        });
+        expect(result).toEqual({ kioskToken: 'existing-token' });
+      });
+
+      it('한 번도 발급된 적이 없으면 kioskToken이 null이다', async () => {
+        prisma.academy.findUnique.mockResolvedValue({ kioskToken: null });
+
+        const result = await service.getKioskToken(10);
+
+        expect(result).toEqual({ kioskToken: null });
+      });
+    });
   });
 });
