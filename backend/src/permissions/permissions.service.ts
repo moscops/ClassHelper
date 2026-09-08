@@ -3,12 +3,19 @@ import { UserRole, PermissionModule } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RolePermissionDto } from './dto/role-permission.dto';
 
-const TARGET_ROLES = [UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF] as const;
+const TARGET_ROLES = [
+  UserRole.ADMIN,
+  UserRole.TEACHER,
+  UserRole.STAFF,
+] as const;
 const MODULES = Object.values(PermissionModule);
 
 // 이 세션 코드 확인(기존 @Roles() 패턴 근거)에 따른 기본값. OWNER/SUPER_ADMIN은 이
 // 맵에 없다 — PermissionGuard가 항상 먼저 걸러내므로 조회될 일이 없다.
-const DEFAULTS: Record<(typeof TARGET_ROLES)[number], Record<PermissionModule, boolean>> = {
+const DEFAULTS: Record<
+  (typeof TARGET_ROLES)[number],
+  Record<PermissionModule, boolean>
+> = {
   [UserRole.ADMIN]: {
     STUDENTS: true,
     CLASSES: true,

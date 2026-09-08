@@ -26,7 +26,7 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PermissionModule } from '@prisma/client';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -40,18 +40,21 @@ import {
 import { BulkImportResultDto } from './dto/bulk-import-result.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Students (원생 관리)')
 @Controller('students')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth()
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Post()
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF)
+  @RequirePermission(PermissionModule.STUDENTS)
   @ApiOperation({
     summary: '원생 신규 등록',
     description:
@@ -112,6 +115,7 @@ export class StudentsController {
 
   @Patch(':id')
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.STUDENTS)
   @ApiParam({ name: 'id', description: '원생 ID', example: 1 })
   @ApiOperation({
     summary: '원생 정보 수정',
@@ -136,6 +140,7 @@ export class StudentsController {
 
   @Patch(':id/status')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.STUDENTS)
   @ApiParam({ name: 'id', description: '원생 ID', example: 1 })
   @ApiOperation({
     summary: '원생 재원 상태 변경 (재원/휴원/퇴원)',
@@ -161,6 +166,7 @@ export class StudentsController {
 
   @Delete(':id')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.STUDENTS)
   @ApiParam({ name: 'id', description: '원생 ID', example: 1 })
   @ApiOperation({
     summary: '원생 삭제 (원장/실장 전용)',
@@ -200,6 +206,7 @@ export class StudentsController {
 
   @Post('bulk-import')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.STUDENTS)
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({

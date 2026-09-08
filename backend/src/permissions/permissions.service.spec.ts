@@ -34,7 +34,11 @@ describe('PermissionsService', () => {
     it('오버라이드 행이 있으면 그 값을 반환한다', async () => {
       prisma.rolePermission.findUnique.mockResolvedValue({ canEdit: false });
 
-      const result = await service.canEdit(10, UserRole.ADMIN, PermissionModule.STUDENTS);
+      const result = await service.canEdit(
+        10,
+        UserRole.ADMIN,
+        PermissionModule.STUDENTS,
+      );
 
       expect(result).toBe(false);
       expect(prisma.rolePermission.findUnique).toHaveBeenCalledWith({
@@ -51,7 +55,11 @@ describe('PermissionsService', () => {
     it('오버라이드가 없으면 기본값으로 폴백한다 (TEACHER + ATTENDANCE = true)', async () => {
       prisma.rolePermission.findUnique.mockResolvedValue(null);
 
-      const result = await service.canEdit(10, UserRole.TEACHER, PermissionModule.ATTENDANCE);
+      const result = await service.canEdit(
+        10,
+        UserRole.TEACHER,
+        PermissionModule.ATTENDANCE,
+      );
 
       expect(result).toBe(true);
     });
@@ -59,7 +67,11 @@ describe('PermissionsService', () => {
     it('오버라이드가 없으면 기본값으로 폴백한다 (TEACHER + TUITION = false)', async () => {
       prisma.rolePermission.findUnique.mockResolvedValue(null);
 
-      const result = await service.canEdit(10, UserRole.TEACHER, PermissionModule.TUITION);
+      const result = await service.canEdit(
+        10,
+        UserRole.TEACHER,
+        PermissionModule.TUITION,
+      );
 
       expect(result).toBe(false);
     });
@@ -67,8 +79,12 @@ describe('PermissionsService', () => {
     it('오버라이드가 없으면 기본값으로 폴백한다 (STAFF + ATTENDANCE = true, 그 외는 false)', async () => {
       prisma.rolePermission.findUnique.mockResolvedValue(null);
 
-      expect(await service.canEdit(10, UserRole.STAFF, PermissionModule.ATTENDANCE)).toBe(true);
-      expect(await service.canEdit(10, UserRole.STAFF, PermissionModule.CLASS_LOGS)).toBe(false);
+      expect(
+        await service.canEdit(10, UserRole.STAFF, PermissionModule.ATTENDANCE),
+      ).toBe(true);
+      expect(
+        await service.canEdit(10, UserRole.STAFF, PermissionModule.CLASS_LOGS),
+      ).toBe(false);
     });
 
     it('ADMIN은 모든 모듈이 기본값 true다', async () => {
@@ -91,13 +107,18 @@ describe('PermissionsService', () => {
 
     it('오버라이드가 있으면 기본값 대신 오버라이드 값을 사용한다', async () => {
       prisma.rolePermission.findMany.mockResolvedValue([
-        { role: UserRole.TEACHER, module: PermissionModule.STUDENTS, canEdit: true },
+        {
+          role: UserRole.TEACHER,
+          module: PermissionModule.STUDENTS,
+          canEdit: true,
+        },
       ]);
 
       const result = await service.getMatrix(10);
 
       const entry = result.find(
-        (r) => r.role === UserRole.TEACHER && r.module === PermissionModule.STUDENTS,
+        (r) =>
+          r.role === UserRole.TEACHER && r.module === PermissionModule.STUDENTS,
       );
       expect(entry?.canEdit).toBe(true);
     });
@@ -107,11 +128,19 @@ describe('PermissionsService', () => {
     it('전달된 각 항목을 upsert하고 갱신된 전체 매트릭스를 반환한다', async () => {
       prisma.rolePermission.upsert.mockResolvedValue({});
       prisma.rolePermission.findMany.mockResolvedValue([
-        { role: UserRole.TEACHER, module: PermissionModule.TUITION, canEdit: true },
+        {
+          role: UserRole.TEACHER,
+          module: PermissionModule.TUITION,
+          canEdit: true,
+        },
       ]);
 
       const result = await service.updateMatrix(10, [
-        { role: UserRole.TEACHER, module: PermissionModule.TUITION, canEdit: true },
+        {
+          role: UserRole.TEACHER,
+          module: PermissionModule.TUITION,
+          canEdit: true,
+        },
       ]);
 
       expect(prisma.rolePermission.upsert).toHaveBeenCalledWith({

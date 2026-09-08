@@ -17,7 +17,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PermissionModule } from '@prisma/client';
 import { NotificationsService } from './notifications.service';
 import { QueryNotificationDto } from './dto/query-notification.dto';
 import {
@@ -27,12 +27,14 @@ import {
 } from './dto/notification-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('06. 알림 및 카카오톡 관리 (Notifications)')
 @Controller('notifications')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth('access-token')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
@@ -136,6 +138,7 @@ export class NotificationsController {
 
   @Delete(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.NOTIFICATIONS)
   @ApiOperation({
     summary: '알림 삭제',
     description: '특정 알림 기록을 삭제합니다.',
@@ -154,6 +157,7 @@ export class NotificationsController {
 
   @Post(':id/retry')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.NOTIFICATIONS)
   @ApiOperation({
     summary: '실패한 카카오 알림톡/SMS 재발송',
     description: '발송 실패한 알림을 재전송합니다.',

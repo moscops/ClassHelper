@@ -18,7 +18,7 @@ import {
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PermissionModule } from '@prisma/client';
 import { TuitionService } from './tuition.service';
 import { GenerateInvoicesDto } from './dto/generate-invoices.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
@@ -32,18 +32,21 @@ import {
 } from './dto/tuition-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('04. 수강료 청구 및 수납 관리 (Billing & Tuition)')
 @Controller('tuition')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth('access-token')
 export class TuitionController {
   constructor(private readonly tuitionService: TuitionService) {}
 
   @Post('invoices/generate')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.TUITION)
   @ApiOperation({
     summary: '월간 수강료 청구서 일괄 자동 생성',
     description:
@@ -142,6 +145,7 @@ export class TuitionController {
 
   @Patch('invoices/:id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @RequirePermission(PermissionModule.TUITION)
   @ApiOperation({
     summary: '개별 청구서 할인/수정',
     description:
@@ -163,6 +167,7 @@ export class TuitionController {
 
   @Patch('invoices/:id/void')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @RequirePermission(PermissionModule.TUITION)
   @ApiOperation({
     summary: '청구서 취소',
     description:
@@ -183,6 +188,7 @@ export class TuitionController {
 
   @Post('invoices/:id/payments')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.TUITION)
   @ApiOperation({
     summary: '수강료 수납 처리',
     description:
@@ -205,6 +211,7 @@ export class TuitionController {
 
   @Post('invoices/:id/send-reminder')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.TUITION)
   @ApiOperation({
     summary: '미납자 대상 카카오 납부 안내 알림톡 발송',
     description: '해당 청구서의 학부모 연락처로 미납 안내 알림톡을 발송합니다.',

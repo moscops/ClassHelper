@@ -3,6 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { StudentStatus, Gender } from '@prisma/client';
 import { StudentsController } from './students.controller';
 import { StudentsService } from './students.service';
+import { PermissionsService } from '../permissions/permissions.service';
 
 describe('StudentsController', () => {
   let controller: StudentsController;
@@ -47,7 +48,13 @@ describe('StudentsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StudentsController],
-      providers: [{ provide: StudentsService, useValue: service }],
+      providers: [
+        { provide: StudentsService, useValue: service },
+        {
+          provide: PermissionsService,
+          useValue: { canEdit: jest.fn().mockResolvedValue(true) },
+        },
+      ],
     }).compile();
 
     controller = module.get<StudentsController>(StudentsController);

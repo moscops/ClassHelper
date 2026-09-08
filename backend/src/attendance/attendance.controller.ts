@@ -18,7 +18,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PermissionModule } from '@prisma/client';
 import { AttendanceService } from './attendance.service';
 import { RecordAttendanceDto } from './dto/record-attendance.dto';
 import { BatchAttendanceDto } from './dto/batch-attendance.dto';
@@ -37,12 +37,14 @@ import {
 import { AttendanceStatsResponseDto } from './dto/attendance-stats-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('03. 출결 관리 (Attendance)')
 @Controller('attendance')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth('access-token')
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
@@ -55,6 +57,7 @@ export class AttendanceController {
     UserRole.TEACHER,
     UserRole.STAFF,
   )
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '단일 학생 출결 등록 및 수정 (Upsert)',
     description:
@@ -80,6 +83,7 @@ export class AttendanceController {
     UserRole.TEACHER,
     UserRole.STAFF,
   )
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '반 전체 1초 일괄 출결 체크 (Batch Upsert)',
     description:
@@ -105,6 +109,7 @@ export class AttendanceController {
     UserRole.TEACHER,
     UserRole.STAFF,
   )
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '1초 빠른 원터치 등원/하원 체크',
     description:
@@ -224,6 +229,7 @@ export class AttendanceController {
 
   @Patch(':id/makeup')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '보강 수업(Makeup) 대상 지정 및 완료 처리',
     description:
@@ -245,6 +251,7 @@ export class AttendanceController {
 
   @Delete(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '출결 기록 삭제',
     description: '특정 출결 기록을 삭제합니다. (원장, 실장 전용)',
@@ -294,6 +301,7 @@ export class AttendanceController {
     UserRole.TEACHER,
     UserRole.STAFF,
   )
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '미등원 학생 학부모 카카오 안심 알림톡 일괄 자동 발송',
     description:

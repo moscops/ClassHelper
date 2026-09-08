@@ -855,7 +855,7 @@ All 8 controllers currently have identical class-level `@UseGuards(JwtAuthGuard,
 3. Change `@UseGuards(JwtAuthGuard, RolesGuard)` to `@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)`.
 4. For each route listed in the table for that file, insert `@RequirePermission(PermissionModule.X)` on the line immediately after that route's existing `@Roles(...)` decorator (after the closing `)` of `@Roles(...)`, whether it's single-line or multi-line).
 
-No test file changes needed for this task — this repo has no controller specs for these 8 modules (matches established convention), and the guard's own unit tests (Task 3) already cover its logic in isolation. Verification here is build + full suite, to catch any DI wiring mistakes.
+**Correction found during execution**: `students.controller.spec.ts` and `classes.controller.spec.ts` DO exist (the "no controller spec convention" claim in `CLAUDE.md` was stale/incomplete) and construct an isolated `TestingModule` with only `{ controllers: [X], providers: [XService] }` — no `PermissionsModule` import. Since `@Global()` modules are not automatically pulled into a separately-compiled `TestingModule`, `PermissionGuard`'s `PermissionsService` dependency fails to resolve there (`Nest can't resolve dependencies of the PermissionGuard`). Fix: add a mocked `PermissionsService` provider (`{ canEdit: jest.fn().mockResolvedValue(true) }`) to both spec files' `providers` array. The guard's own unit tests (Task 3) already cover its actual logic in isolation — this mock only needs to satisfy DI, not exercise real permission logic.
 
 - [ ] **Step 1: `src/students/students.controller.ts`**
 

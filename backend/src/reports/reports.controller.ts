@@ -17,7 +17,7 @@ import {
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PermissionModule } from '@prisma/client';
 import { ReportsService } from './reports.service';
 import { GenerateReportDto } from './dto/generate-report.dto';
 import {
@@ -27,12 +27,14 @@ import {
 } from './dto/report-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('07. 원생 리포트 (Reports)')
 @Controller('reports')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
 @ApiBearerAuth('access-token')
 export class ReportsController {
@@ -67,6 +69,7 @@ export class ReportsController {
   }
 
   @Post('students/:id/send')
+  @RequirePermission(PermissionModule.REPORTS)
   @ApiOperation({
     summary: '원생 리포트 생성 및 카카오 발송',
     description:
@@ -93,6 +96,7 @@ export class ReportsController {
   }
 
   @Post('classes/:id/send')
+  @RequirePermission(PermissionModule.REPORTS)
   @ApiOperation({
     summary: '반 전체 원생 리포트 일괄 발송',
     description:

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClassesController } from './classes.controller';
 import { ClassesService } from './classes.service';
+import { PermissionsService } from '../permissions/permissions.service';
 import { EnrollmentStatus } from '@prisma/client';
 
 describe('ClassesController', () => {
@@ -26,6 +27,10 @@ describe('ClassesController', () => {
         {
           provide: ClassesService,
           useValue: mockClassesService,
+        },
+        {
+          provide: PermissionsService,
+          useValue: { canEdit: jest.fn().mockResolvedValue(true) },
         },
       ],
     }).compile();

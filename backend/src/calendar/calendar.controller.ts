@@ -17,19 +17,21 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PermissionModule } from '@prisma/client';
 import { CalendarService } from './calendar.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventResponseDto } from './dto/event-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('06. 캘린더 (Calendar)')
 @Controller('calendar')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth('access-token')
 export class CalendarController {
   constructor(private readonly calendarService: CalendarService) {}
@@ -53,6 +55,7 @@ export class CalendarController {
 
   @Post('events')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.CALENDAR)
   @ApiOperation({
     summary: '학원 이벤트 생성',
     description: '학원 공식 행사/시험/특강/휴원/상담 등의 이벤트를 등록합니다.',
@@ -71,6 +74,7 @@ export class CalendarController {
 
   @Patch('events/:id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.CALENDAR)
   @ApiOperation({
     summary: '학원 이벤트 수정',
     description: '이벤트의 제목/카테고리/일시/설명 등을 수정합니다.',
@@ -91,6 +95,7 @@ export class CalendarController {
 
   @Delete('events/:id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.CALENDAR)
   @ApiOperation({
     summary: '학원 이벤트 삭제',
     description: '등록된 학원 이벤트를 삭제합니다.',

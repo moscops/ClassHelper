@@ -11,7 +11,8 @@ import { UserRole, PermissionModule } from '@prisma/client';
 
 export class UpdateRolePermissionItemDto {
   @ApiProperty({
-    description: 'ADMIN/TEACHER/STAFF만 가능 — OWNER/SUPER_ADMIN은 이 시스템의 대상이 아니다.',
+    description:
+      'ADMIN/TEACHER/STAFF만 가능 — OWNER/SUPER_ADMIN은 이 시스템의 대상이 아니다.',
     enum: [UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF],
     example: UserRole.TEACHER,
   })
@@ -31,7 +32,8 @@ export class UpdateRolePermissionItemDto {
 
 export class UpdateRolePermissionsDto {
   @ApiProperty({
-    description: '변경할 항목만 전달하면 된다(전체 24개를 매번 보낼 필요 없음).',
+    description:
+      '변경할 항목만 전달하면 된다(전체 24개를 매번 보낼 필요 없음).',
     type: [UpdateRolePermissionItemDto],
   })
   @IsArray()

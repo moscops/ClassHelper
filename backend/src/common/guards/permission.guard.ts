@@ -18,10 +18,9 @@ export class PermissionGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const module = this.reflector.getAllAndOverride<PermissionModule | undefined>(
-      PERMISSION_MODULE_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const module = this.reflector.getAllAndOverride<
+      PermissionModule | undefined
+    >(PERMISSION_MODULE_KEY, [context.getHandler(), context.getClass()]);
     if (!module) return true;
 
     const { user } = context

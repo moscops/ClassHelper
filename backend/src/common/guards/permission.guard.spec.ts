@@ -25,7 +25,9 @@ describe('PermissionGuard', () => {
   it('@RequirePermission이 없는 라우트는 항상 통과시킨다', async () => {
     reflector.getAllAndOverride.mockReturnValue(undefined);
 
-    const result = await guard.canActivate(buildContext({ role: UserRole.TEACHER }));
+    const result = await guard.canActivate(
+      buildContext({ role: UserRole.TEACHER }),
+    );
 
     expect(result).toBe(true);
     expect(permissionsService.canEdit).not.toHaveBeenCalled();
@@ -73,7 +75,9 @@ describe('PermissionGuard', () => {
     permissionsService.canEdit.mockResolvedValue(false);
 
     await expect(
-      guard.canActivate(buildContext({ role: UserRole.TEACHER, academyId: 10 })),
+      guard.canActivate(
+        buildContext({ role: UserRole.TEACHER, academyId: 10 }),
+      ),
     ).rejects.toThrow(ForbiddenException);
   });
 

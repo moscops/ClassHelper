@@ -18,7 +18,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PermissionModule } from '@prisma/client';
 import { ClassLogsService } from './class-logs.service';
 import { CreateClassLogDto } from './dto/create-class-log.dto';
 import { UpdateClassLogDto } from './dto/update-class-log.dto';
@@ -31,18 +31,21 @@ import {
 } from './dto/class-log-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('05. 수업 일지 및 과제 관리 (Class Logs & Homework)')
 @Controller('class-logs')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth('access-token')
 export class ClassLogsController {
   constructor(private readonly classLogsService: ClassLogsService) {}
 
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.CLASS_LOGS)
   @ApiOperation({
     summary: '수업 일지 신규 작성',
     description:
@@ -114,6 +117,7 @@ export class ClassLogsController {
 
   @Patch(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.CLASS_LOGS)
   @ApiOperation({
     summary: '수업 일지 수정',
     description: '수업 진도, 핵심 내용, 과제 공지, 특이사항을 수정합니다.',
@@ -134,6 +138,7 @@ export class ClassLogsController {
 
   @Delete(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.CLASS_LOGS)
   @ApiOperation({
     summary: '수업 일지 삭제',
     description: '수업 일지와 연결된 과제 검사 이력을 삭제합니다.',
@@ -152,6 +157,7 @@ export class ClassLogsController {
 
   @Patch(':id/homework-submissions')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.CLASS_LOGS)
   @ApiOperation({
     summary: '원생별 과제 검사 및 피드백 일괄 수정',
     description:
