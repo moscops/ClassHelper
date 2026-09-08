@@ -38,6 +38,7 @@ import {
   ChangePasswordResponseDto,
 } from './dto/auth-response.dto';
 import type { CurrentUserPayload } from '../common/decorators/current-user.decorator';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 @Injectable()
 export class AuthService {
@@ -47,6 +48,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   /**
@@ -190,6 +192,18 @@ export class AuthService {
     if (target.role === UserRole.OWNER) {
       throw new ForbiddenException(
         '원장 계정은 교직원 관리에서 수정할 수 없습니다.',
+      );
+    }
+    // 실장(ADMIN)의 직책 변경은 원장만 가능하다. 그렇지 않으면 실장 A가 동료 실장 B를
+    // TEACHER로 강등시켜 resetStaffPassword의 "대상이 OWNER/ADMIN이면 거부" 체크를
+    // 우회한 뒤 곧바로 B의 비밀번호를 초기화·강제 로그아웃시킬 수 있다(동료 계정 탈취).
+    if (
+      dto.role !== undefined &&
+      target.role === UserRole.ADMIN &&
+      currentUser.role !== UserRole.OWNER
+    ) {
+      throw new ForbiddenException(
+        '실장 계정의 직책 변경은 원장만 할 수 있습니다.',
       );
     }
 
@@ -434,6 +448,15 @@ export class AuthService {
 
     const tokens = await this.getTokens(user);
     await this.updateHashedRefreshToken(user.id, tokens.refreshToken);
+
+    // 방문 통계 기록 실패가 로그인 자체를 막아서는 안 된다 — 통계는 부가 기능이다.
+    try {
+      await this.analyticsService.recordStaffVisit(user.id, user.academyId ?? null);
+    } catch (err) {
+      this.logger.warn(
+        `방문 기록 실패(로그인은 정상 처리됨): ${(err as Error).message}`,
+      );
+    }
 
     return {
       ...tokens,

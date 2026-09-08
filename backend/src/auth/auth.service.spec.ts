@@ -11,6 +11,7 @@ import { UserRole, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 jest.mock('bcrypt');
 
@@ -19,6 +20,7 @@ describe('AuthService', () => {
   let prisma: any;
   let jwtService: any;
   let configService: any;
+  let analyticsService: any;
 
   const mockUser = {
     id: 1,
@@ -46,6 +48,10 @@ describe('AuthService', () => {
   };
 
   beforeEach(async () => {
+    analyticsService = {
+      recordStaffVisit: jest.fn().mockResolvedValue(undefined),
+    };
+
     prisma = {
       user: {
         findUnique: jest.fn(),
@@ -98,6 +104,7 @@ describe('AuthService', () => {
         { provide: PrismaService, useValue: prisma },
         { provide: JwtService, useValue: jwtService },
         { provide: ConfigService, useValue: configService },
+        { provide: AnalyticsService, useValue: analyticsService },
       ],
     }).compile();
 
@@ -309,6 +316,36 @@ describe('AuthService', () => {
       ).rejects.toThrow(UnauthorizedException);
       // 자격증명 실패와 구분되지 않도록 비밀번호 대조 자체를 시도하지 않아야 한다.
       expect(bcrypt.compare).not.toHaveBeenCalled();
+    });
+
+    it('로그인 성공 시 방문 기록(recordStaffVisit)을 호출한다', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      prisma.user.update.mockResolvedValue(mockUser);
+
+      await service.login({
+        email: 'owner@classhelper.kr',
+        password: 'password123!',
+      });
+
+      expect(analyticsService.recordStaffVisit).toHaveBeenCalledWith(
+        mockUser.id,
+        mockUser.academyId,
+      );
+    });
+
+    it('방문 기록이 실패해도 로그인 자체는 성공한다', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      prisma.user.update.mockResolvedValue(mockUser);
+      analyticsService.recordStaffVisit.mockRejectedValue(new Error('DB down'));
+
+      const result = await service.login({
+        email: 'owner@classhelper.kr',
+        password: 'password123!',
+      });
+
+      expect(result.accessToken).toBe('mocked-access-token');
     });
   });
 
@@ -522,6 +559,52 @@ describe('AuthService', () => {
         service.updateStaff(mockCurrentOwner, 1, { name: '변경시도' }),
       ).rejects.toThrow(ForbiddenException);
       expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('실장(ADMIN)이 동료 실장의 직책을 변경하려 하면 ForbiddenException 발생 (동료 계정 탈취용 강등 차단)', async () => {
+      const mockCurrentAdmin = { ...mockCurrentOwner, role: UserRole.ADMIN };
+      prisma.user.findFirst.mockResolvedValue({
+        ...mockTeacher,
+        id: 3,
+        role: UserRole.ADMIN,
+      });
+
+      await expect(
+        service.updateStaff(mockCurrentAdmin, 3, { role: UserRole.TEACHER }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('실장(ADMIN)이 동료 실장의 이름/연락처만 바꾸는 건(role 필드 없음) 허용된다', async () => {
+      const mockCurrentAdmin = { ...mockCurrentOwner, role: UserRole.ADMIN };
+      const coAdmin = { ...mockTeacher, id: 3, role: UserRole.ADMIN };
+      prisma.user.findFirst.mockResolvedValue(coAdmin);
+      prisma.user.update.mockResolvedValue({ ...coAdmin, phone: '010-0000-0000' });
+
+      const result = await service.updateStaff(mockCurrentAdmin, 3, {
+        phone: '010-0000-0000',
+      });
+
+      expect(result.phone).toBe('010-0000-0000');
+    });
+
+    it('원장(OWNER)은 실장의 직책을 변경할 수 있다', async () => {
+      prisma.user.findFirst.mockResolvedValue({
+        ...mockTeacher,
+        id: 3,
+        role: UserRole.ADMIN,
+      });
+      prisma.user.update.mockResolvedValue({
+        ...mockTeacher,
+        id: 3,
+        role: UserRole.TEACHER,
+      });
+
+      const result = await service.updateStaff(mockCurrentOwner, 3, {
+        role: UserRole.TEACHER,
+      });
+
+      expect(result.role).toBe(UserRole.TEACHER);
     });
   });
 
