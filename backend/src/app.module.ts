@@ -16,6 +16,7 @@ import { TuitionModule } from './tuition/tuition.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { ReportsModule } from './reports/reports.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { PermissionsModule } from './permissions/permissions.module';
 import { validateEnv } from './config/env.validation';
 
 @Module({
@@ -48,6 +49,7 @@ import { validateEnv } from './config/env.validation';
     CalendarModule,
     ReportsModule,
     AnalyticsModule,
+    PermissionsModule,
   ],
   controllers: [AppController],
   providers: [
