@@ -105,7 +105,8 @@ export class AnalyticsService {
     for (const v of visits) {
       const bucket = buckets.get(toDateKey(v.visitDate));
       if (!bucket) continue;
-      if (v.type === VisitorType.ANONYMOUS) bucket.anonymousVisitors = v._count._all;
+      if (v.type === VisitorType.ANONYMOUS)
+        bucket.anonymousVisitors = v._count._all;
       else bucket.loginCount = v._count._all;
     }
     for (const u of users) {

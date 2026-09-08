@@ -451,7 +451,10 @@ export class AuthService {
 
     // 방문 통계 기록 실패가 로그인 자체를 막아서는 안 된다 — 통계는 부가 기능이다.
     try {
-      await this.analyticsService.recordStaffVisit(user.id, user.academyId ?? null);
+      await this.analyticsService.recordStaffVisit(
+        user.id,
+        user.academyId ?? null,
+      );
     } catch (err) {
       this.logger.warn(
         `방문 기록 실패(로그인은 정상 처리됨): ${(err as Error).message}`,

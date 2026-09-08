@@ -96,8 +96,16 @@ describe('AnalyticsService', () => {
   describe('getStats', () => {
     it('날짜 범위 내 방문/로그인/가입/학원개설을 날짜별로 병합하고 빈 날짜는 0으로 채운다', async () => {
       prisma.siteVisit.groupBy.mockResolvedValue([
-        { visitDate: new Date('2026-09-07T00:00:00.000Z'), type: VisitorType.ANONYMOUS, _count: { _all: 5 } },
-        { visitDate: new Date('2026-09-08T00:00:00.000Z'), type: VisitorType.STAFF, _count: { _all: 2 } },
+        {
+          visitDate: new Date('2026-09-07T00:00:00.000Z'),
+          type: VisitorType.ANONYMOUS,
+          _count: { _all: 5 },
+        },
+        {
+          visitDate: new Date('2026-09-08T00:00:00.000Z'),
+          type: VisitorType.STAFF,
+          _count: { _all: 2 },
+        },
       ]);
       prisma.user.findMany.mockResolvedValue([
         { createdAt: new Date('2026-09-08T03:00:00.000Z') },

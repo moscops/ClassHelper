@@ -9,6 +9,31 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-08: 사이트 방문 통계(Site Visit Analytics) 백엔드 구현 — ⚠️ 프론트 기존 화면과 API 계약 불일치 발견
+- **작성자**: Claude (Backend)
+- **작업 배경**: 사용자 요청 — "날짜 기준 방문자 수 확인 메뉴", 이어서 "로그인/회원가입/학원개설 수도 함께" 확장.
+- **신규 API 엔드포인트**:
+  - `POST /analytics/track` (비인증, `/auth/login`과 동일 Throttle): `{ "visitorId": "<uuid>" }` — 프론트가 로컬에 생성/보관한 익명 UUID로 방문 기록. IP/User-Agent 등 PII는 저장하지 않음.
+  - `GET /analytics/stats?startDate=&endDate=` (`SUPER_ADMIN`): 날짜별 `{ date, anonymousVisitors, loginCount, newSignups, newAcademies }` 배열. 날짜 생략 시 최근 30일, 빈 날짜도 0으로 채워 반환.
+  - 로그인 시(`POST /auth/login`) 자동으로 `loginCount`에 반영됨(별도 프론트 연동 불필요).
+- **⚠️ 중요: 이미 구현된 프론트 화면(`admin/page.tsx`, `admin-service.ts`의 "사이트 방문자 분석" 메뉴)이 기대하는 계약과 다릅니다.**
+  - 프론트는 현재 `GET /admin/visitors`를 호출하도록 짜여 있고, 응답에 `pageViews`(PV), `newVisitors`/`returningVisitors`(신규·재방문 비율), `deviceBreakdown`(PC/모바일/태블릿 비율), `topService`(일자별 최다 이용 기능)를 기대합니다 — 이번에 만든 `/analytics/stats`에는 이 필드들이 전혀 없습니다(반대로 `newSignups`/`newAcademies`는 프론트 쪽 타입에 없음).
+  - 엔드포인트가 없어 지금 이 화면은 **전부 가짜 목업 데이터**(`generateMockVisitorData()`)를 보여주고 있습니다.
+  - 기기 비율(`deviceBreakdown`)은 User-Agent 저장이 필요한데 이번 백엔드 설계는 PII 최소화를 위해 의도적으로 아무것도 저장하지 않습니다. `topService`(기능별 사용량)는 방문 집계와는 완전히 다른 도메인(기능 사용 통계)이라 이번 스코프 밖입니다.
+  - 상세 비교표: `docs/domains/08-analytics.md` §5. **합의된 해결 방향 없음 — 사용자 확인 후 다음 세션에서 정리 예정.** 그 전까지는 프론트를 이 문서 뒤에 있는 실제 스펙에 맞춰 임의로 고치지 마세요.
+- **DTO/스키마**: 신규 `SiteVisit` 모델(+`VisitorType` enum), 마이그레이션 `20260908060000_add_site_visits`.
+- **상태**: ⏳ 프론트 연동 보류 (계약 불일치 해소 필요)
+
+---
+
+### 📅 2026-09-08: [보안 수정] 동료 실장 계정 탈취 체인 차단 (`/security-review`에서 발견)
+- **작성자**: Claude (Backend)
+- **작업 배경**: 바로 아래 "교직원 관리 실제 백엔드 구현" 커밋(`438c418`) 직후 사용자가 보안 점검 요청 → `PATCH /auth/staff/:id`(정보 수정)와 `PATCH /auth/staff/:id/password`(비번 초기화)를 조합하면, 실장 A가 동료 실장 B를 먼저 `role: "TEACHER"`로 강등시킨 뒤 곧바로 비번 초기화 API를 호출해 "대상이 OWNER/ADMIN이면 거부" 방어를 우회할 수 있는 체인을 발견.
+- **변경 사항**: `PATCH /auth/staff/:id` 요청 시, 대상이 `ADMIN`이고 `role` 필드를 바꾸려는 경우 요청자가 `OWNER`가 아니면 이제 `403`을 반환한다(이름/연락처만 바꾸는 요청은 실장끼리도 그대로 허용). **새 DTO 필드나 응답 형태 변경은 없음** — 순수 인가 로직 강화이므로 프론트 추가 작업은 필요 없고, 기존 에러 핸들링(범용 403 처리)이면 충분함.
+- **상태**: ✅ 백엔드 검증 완료 (auth.service.spec.ts Jest 통과) 및 커밋 반영
+
+---
+
 ### 📅 2026-09-08: 교직원 관리 실제 백엔드 구현 + 학원코드 자가입 + 비번초기화 보안 강화
 - **작성자**: Claude (Backend)
 - **작업 배경**:
@@ -39,12 +64,30 @@
      - 비번 초기화 모달을 수동 입력 대신 10자리 임시 비밀번호 1회 발급 확인 플로우로 전환 및 1회성 확인 모달 연동.
      - 상단에 "학원 초대 코드" 모달(조회, 재발급, 코드 및 초대 링크 원클릭 복사) 탑재.
      - 퇴사자 포함 필터(`includeInactive`) 및 상태 뱃지(`ACTIVE` / `INACTIVE`), 복합 통계 연동.
-  3. **사이드바 "보안 관리" 전용 탭 분리 (`src/components/common/AppLayout.tsx`)**:
-     - 기존 우측 다크모드 스위치 옆 비밀번호 변경 아이콘 버튼 완전 제거.
-     - 좌측 사이드바 "계정 & 보안" 및 "보안 & 거버넌스" 그룹에 `[보안 관리]` (`/change-password`, `ShieldCheck` 아이콘) 메뉴 탭 신규 배치.
-  4. **학원 코드 기반 교직원 자가입 플로우 (`src/app/login/page.tsx`, `src/app/join/page.tsx`)**:
+  3. **사이드바 "비밀번호 변경" 전용 탭 명칭 변경 및 `/change-password` 전체 사이드바 유지 (`src/components/common/AppLayout.tsx`, `src/app/change-password/page.tsx`)**:
+     - 좌측 사이드바 메뉴 탭 이름을 기존 "보안 관리"에서 "비밀번호 변경"(`KeyRound` 아이콘)으로 직관적으로 변경.
+     - 비밀번호 변경 페이지(`/change-password`) 접속 시에도 타 페이지와 동일하게 좌측 사이드바 및 전역 레이아웃(`AppLayout`)을 유지하도록 구조 개편.
+     - 임시 비밀번호 변경 대상(`mustChangePassword`)인 경우 타 메뉴 클릭을 차단하고 `opacity-40 cursor-not-allowed` 시각 피드백 제공.
+     - **사이드바 스크롤 상태 유지**: 페이지 전환 시 사이드바가 최상단으로 리셋되어 하단 탭이 시야에서 사라지던 문제를 해결. 모듈 레벨 변수 및 `sessionStorage` 기반 스크롤 위치 기억/복원과 활성 탭 `scrollIntoView({ block: 'nearest' })` 자동 동기화 탑재.
+     - **중복 뒤로가기 버튼 정리**: 좌측 사이드바 내 모든 이동 메뉴가 항시 제공되므로, 화면 상단 및 하단 카드의 불필요한 '대시보드로 돌아가기' 버튼을 제거하여 깔끔한 레이아웃 완성.
+  4. **학원 코드 기반 교직원 자가입 플로우 및 로그인 UI 정밀화 (`src/app/login/page.tsx`, `src/app/join/page.tsx`)**:
      - 로그인 페이지 상단에 `[✨ 교직원 초대 가입]` 탭 추가: 학원 초대 코드, 직책(강사/조교), 이름, 이메일, 연락처, 비밀번호 입력 후 원클릭 자가입 및 대시보드 자동 로그인.
      - 초대 링크(`/join?code=...` 또는 `/login?tab=join&code=...`) prefill 및 자동 탭 전환 지원.
+     - `activeTab === 'join'` 선택 시 상단 타이틀/설명이 출석 키오스크로 노출되던 조건문 분기 버그 수정.
+     - 컨테이너 너비를 `sm:max-w-lg`로 확장하고 탭 텍스트에 `whitespace-nowrap`을 적용하여 3개 탭("로그인", "교직원 초대 가입", "출석 키오스크")이 줄바꿈 없이 깔끔하게 1줄로 표시되도록 UI 개선.
+  5. **관리자 플랫폼(`SUPER_ADMIN`) 중복 바로가기 메뉴 제거 & 날짜별 사이트 방문자 분석 메뉴 신설 (`src/app/admin/page.tsx`, `src/lib/admin-service.ts`, `src/components/common/AppLayout.tsx`)**:
+     - **중복 바로가기 메뉴 완전 제거**: 좌측 사이드바가 플랫폼 전체 메뉴의 단일 진입점이 되도록, `/admin` 내부 상단의 탭 네비게이션 필즈 및 Overview 탭의 "세부 관리 빠른 이동" 카드 블록, 학원 목록 미리보기의 바로가기 버튼을 제거하고 요금제 플랜 점유율 카드를 전폭으로 확장. 상단 헤더는 현재 활성 탭에 맞춰 섹션명과 설명이 동적으로 변경되도록 개선.
+     - **좌측 사이드바 전용 메뉴 탑재**: `superAdminNavGroups`에 `[사이트 방문자 분석]` (`/admin?tab=visitors`, `Users` 아이콘) 메뉴 탭 추가.
+     - **날짜 기준 사이트 방문자 분석 메뉴 구현**:
+       - 조회 기간 필터(최근 7일 / 14일 / 30일 프리셋 및 시작일~종료일 직접 지정) 및 일자별 방문 통계 CSV 파일 다운로드 기능 탑재.
+       - 4대 주요 KPI 카드: 기간 총 순 방문자수(UV), 총 페이지뷰(PV 및 인당 평균 PV), 일평균 방문자, 신규 vs 재방문 비율 바 게이지.
+       - 날짜별 일일 방문자 추이 시각화 바 차트 (막대 클릭 시 해당 일자의 UV, PV, 로그인 사용자, 기기 점유율, 주요 활동 서비스 콜아웃 노출).
+       - 일자별 방문 기록 상세 테이블 (날짜 검색, 최신순/과거순 정렬, 요일 표기, UV/PV, 신규/재방문, 로그인 교직원, PC/모바일/태블릿 기기 비율, 최다 이용 서비스 뱃지).
+     - **백엔드(Claude) 향후 연동 참고사항**:
+       - 엔드포인트: `GET /admin/analytics/visitors` (Query: `startDate?: string, endDate?: string`, YYYY-MM-DD 형식)
+       - 권한: `SUPER_ADMIN` 전용
+       - 응답 인터페이스: `VisitorAnalyticsSummary` (`totalVisitors`, `totalPageViews`, `avgDailyVisitors`, `todayVisitors`, `todayPageViews`, `newVisitorPercentage`, `returningVisitorPercentage`, `dailyStats: DailyVisitorStat[]`)
+       - 프론트엔드([`src/lib/admin-service.ts`](frontend/src/lib/admin-service.ts))의 `getVisitorAnalytics()`가 이미 해당 엔드포인트를 우선 호출하도록 설계되어 있어, 백엔드에서 API 구현 완료 시 별도 프론트 수정 없이 즉시 실데이터로 자동 전환됩니다.
 - **빌드 검증**: `next build` 20개 라우트 정상 빌드 통과 (exit code 0)
 - **상태**: ✅ 백엔드 및 프론트엔드 연동 완료
 

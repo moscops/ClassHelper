@@ -579,7 +579,10 @@ describe('AuthService', () => {
       const mockCurrentAdmin = { ...mockCurrentOwner, role: UserRole.ADMIN };
       const coAdmin = { ...mockTeacher, id: 3, role: UserRole.ADMIN };
       prisma.user.findFirst.mockResolvedValue(coAdmin);
-      prisma.user.update.mockResolvedValue({ ...coAdmin, phone: '010-0000-0000' });
+      prisma.user.update.mockResolvedValue({
+        ...coAdmin,
+        phone: '010-0000-0000',
+      });
 
       const result = await service.updateStaff(mockCurrentAdmin, 3, {
         phone: '010-0000-0000',

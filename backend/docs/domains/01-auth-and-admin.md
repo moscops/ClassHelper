@@ -158,7 +158,7 @@
 * **엔드포인트**: `PATCH /auth/staff/:id` (`OWNER`, `ADMIN`)
 * **Request Body (`UpdateStaffDto`)**: `{ "name": "박강사", "phone": "010-1111-2222", "role": "ADMIN" }` — 전부 선택.
 * **Response Body**: `StaffMemberResponseDto`.
-* **동작 특성**: 대상이 다른 학원 소속이거나 없으면 `404`. 대상이 원장(`OWNER`)이면 `403`(이 API로 수정 불가). `role`은 DTO에서 `ADMIN`/`TEACHER`/`STAFF`로만 제한(권한 상승 방지 — `OWNER`/`SUPER_ADMIN`으로는 절대 변경 불가).
+* **동작 특성**: 대상이 다른 학원 소속이거나 없으면 `404`. 대상이 원장(`OWNER`)이면 `403`(이 API로 수정 불가). `role`은 DTO에서 `ADMIN`/`TEACHER`/`STAFF`로만 제한(권한 상승 방지 — `OWNER`/`SUPER_ADMIN`으로는 절대 변경 불가). **대상이 실장(`ADMIN`)이고 `role` 필드를 바꾸려는 경우, 요청자가 `OWNER`가 아니면 `403`** — 그렇지 않으면 실장 A가 동료 실장 B를 `TEACHER`로 강등시켜 §4.2.4의 "대상이 OWNER/ADMIN이면 거부" 체크를 우회한 뒤 곧바로 비밀번호를 초기화·강제 로그아웃시켜 동료 계정을 탈취할 수 있었음(2026-09-08 보안 리뷰에서 발견 및 즉시 수정, 배포 전이라 실서비스 영향 없음).
 
 ### 4.2.4. 교직원 비밀번호 초기화 — 2026-09-08 신규
 * **엔드포인트**: `PATCH /auth/staff/:id/password` (`OWNER`, `ADMIN`, Body 없음)
