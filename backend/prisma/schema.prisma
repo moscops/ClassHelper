@@ -37,6 +37,17 @@ enum VisitorType {
   STAFF     // 로그인한 교직원
 }
 
+enum PermissionModule {
+  STUDENTS
+  CLASSES
+  ATTENDANCE
+  CLASS_LOGS
+  TUITION
+  CALENDAR
+  NOTIFICATIONS
+  REPORTS
+}
+
 model Academy {
   id             Int           @id @default(autoincrement())
   name           String        @db.VarChar(100)
@@ -63,6 +74,7 @@ model Academy {
   academyEvents   AcademyEvent[]
   subscription    Subscription?
   siteVisits      SiteVisit[]
+  rolePermissions RolePermission[]
 
   @@index([status])
   @@map("academies")
@@ -116,6 +128,25 @@ model SiteVisit {
   @@unique([visitDate, dedupKey])
   @@index([visitDate])
   @@map("site_visits")
+}
+
+model RolePermission {
+  id        Int              @id @default(autoincrement())
+  academyId Int
+  // 애플리케이션(DTO) 레벨에서 ADMIN/TEACHER/STAFF만 허용 — OWNER/SUPER_ADMIN은 이
+  // 시스템의 토글 대상이 아니다(항상 전권이며 조회조차 이 테이블을 거치지 않는다).
+  role      UserRole
+  module    PermissionModule
+  canEdit   Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  academy Academy @relation(fields: [academyId], references: [id], onDelete: Cascade)
+
+  @@unique([academyId, role, module])
+  @@index([academyId])
+  @@map("role_permissions")
 }
 
 model AuditLog {
