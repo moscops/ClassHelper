@@ -88,6 +88,8 @@ function AdminPortalContent() {
     if (isHydrated) {
       if (!isAuthenticated || !user) {
         router.replace('/login');
+      } else if (user.mustChangePassword) {
+        router.replace('/change-password');
       } else if (user.role !== 'SUPER_ADMIN') {
         router.replace('/dashboard');
       }

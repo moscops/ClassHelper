@@ -7,8 +7,20 @@ export interface UserProfile {
   name: string;
   phone?: string | null;
   role: UserRole;
+  mustChangePassword?: boolean;
   createdAt: string;
 }
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 
 export type PlanTier = 'FREE' | 'PRO' | 'ENTERPRISE';
 export type SubscriptionStatus = 'ACTIVE' | 'CANCELED';

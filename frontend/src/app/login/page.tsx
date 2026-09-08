@@ -97,7 +97,9 @@ export default function LoginPage() {
     try {
       const response = await authService.login(values);
       setAuth(response);
-      if (response.user.role === 'SUPER_ADMIN') {
+      if (response.user.mustChangePassword) {
+        router.push('/change-password');
+      } else if (response.user.role === 'SUPER_ADMIN') {
         router.push('/admin');
       } else {
         router.push('/dashboard');
@@ -225,10 +227,18 @@ export default function LoginPage() {
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
-                  onClick={() => router.push(user?.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard')}
+                  onClick={() =>
+                    router.push(
+                      user?.mustChangePassword
+                        ? '/change-password'
+                        : user?.role === 'SUPER_ADMIN'
+                        ? '/admin'
+                        : '/dashboard',
+                    )
+                  }
                   className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
                 >
-                  대시보드
+                  {user?.mustChangePassword ? '비밀번호 변경' : '대시보드'}
                 </button>
                 <button
                   type="button"

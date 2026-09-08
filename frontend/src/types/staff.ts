@@ -21,11 +21,16 @@ export interface StaffMember {
   role: StaffRole;
   createdAt: string;
   updatedAt?: string;
+  mustChangePassword?: boolean;
+  tempPassword?: string;
   taughtClasses?: StaffTaughtClass[];
   taughtClassesCount?: number;
   processedPaymentsCount?: number;
   classLogsCount?: number;
 }
+
+export type StaffRegisteredResult = StaffMember;
+
 
 export interface CreateStaffInput {
   email: string;

@@ -20,6 +20,7 @@ import {
   Calendar,
   FileText,
   UserCheck,
+  KeyRound,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useNavStatusStore } from '@/stores/useNavStatusStore';
@@ -76,6 +77,13 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
   useEffect(() => {
     setIsMobileDrawerOpen(false);
   }, [pathname]);
+
+  // mustChangePassword guard: if user must change password, redirect to /change-password
+  useEffect(() => {
+    if (isHydrated && isAuthenticated && user?.mustChangePassword && pathname !== '/change-password') {
+      router.replace('/change-password');
+    }
+  }, [isHydrated, isAuthenticated, user?.mustChangePassword, pathname, router]);
 
   const handleLogout = async () => {
     try {
@@ -411,6 +419,13 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
           <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
             <div className="flex items-center gap-1.5">
               <ThemeToggle />
+              <Link
+                href="/change-password"
+                title="비밀번호 변경"
+                className="p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <KeyRound className="w-4 h-4" />
+              </Link>
             </div>
 
             <button
@@ -575,9 +590,18 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
 
             {/* Drawer Footer */}
             <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                {user.email}
-              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                  {user.email}
+                </span>
+                <Link
+                  href="/change-password"
+                  className="p-1 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+                  title="비밀번호 변경"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                </Link>
+              </div>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-xs font-bold cursor-pointer"

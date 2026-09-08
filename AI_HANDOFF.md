@@ -9,6 +9,35 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-08: 비밀번호 변경 화면 구현, 로그인/대시보드 강제 변경 가드 및 교직원 임시 비밀번호 1회 발급 연동 완료
+- **작성자**: Gemini (Frontend)
+- **작업 배경**:
+  - Claude가 구현한 `PATCH /auth/change-password` 및 `POST /auth/register-staff` 임시 비밀번호 발급 플로우에 맞춰 프론트엔드 전체 연동 완료.
+  - 임시 비밀번호로 발급받은 계정이 최초 로그인 시 시스템에 진입하기 전 반드시 비밀번호를 변경하도록 강제 가드 처리.
+  - 원장이 교직원 등록 시 비밀번호 입력을 비워두면 안전한 10자리 임시 비밀번호가 자동 발급되고, 이를 즉시 복사하여 전달할 수 있는 1회성 전용 모달 UI 구현.
+  - 일반 사용자도 언제든 비밀번호를 변경할 수 있는 전용 라우트(`/change-password`) 및 메뉴 링크 지원.
+- **프론트엔드 반영 사항 (Gemini)**:
+  1. **타입 정의 및 API 서비스 확장**:
+     - `src/types/auth.ts`: `UserProfile.mustChangePassword?: boolean`, `ChangePasswordPayload`, `ChangePasswordResponse` 추가.
+     - `src/types/staff.ts`: `StaffMember.mustChangePassword`, `StaffMember.tempPassword`, `StaffRegisteredResult` 추가.
+     - `src/lib/auth-service.ts`: `changePassword(payload)` 메서드 연동 (`PATCH /auth/change-password`).
+     - `src/lib/staff-service.ts`: `createStaff` 호출 시 비밀번호 미입력 시 필드를 생략하여 백엔드 임시 비밀번호 자동 생성을 트리거하고, 응답의 `tempPassword`를 반환받도록 개선.
+  2. **비밀번호 변경 전용 페이지 신규 구축 (`src/app/change-password/page.tsx`)**:
+     - 임시 비밀번호 계정(`mustChangePassword: true`) 대상 강제 변경 알림 및 자율 변경 모드 지원.
+     - 현재 비밀번호 대조, 새 비밀번호 4대 보안 정책(8자 이상, 영문, 숫자, 특수문자) 실시간 검증 체크리스트 및 일치 여부 확인 UI 탑재.
+     - 변경 성공 시 Zustand 스토어(`user.mustChangePassword = false`) 자동 갱신 및 대시보드/관리자 페이지 이동.
+  3. **로그인 및 전역 레이아웃 보안 가드 탑재**:
+     - `src/app/login/page.tsx`: 로그인 성공 시 `mustChangePassword === true`인 경우 `/change-password`로 즉시 강제 리다이렉트. 로그인 활성 세션 배너에서도 상태에 맞춰 비밀번호 변경 버튼 노출.
+     - `src/components/common/AppLayout.tsx`: `mustChangePassword` 상태의 사용자가 타 페이지 접근 시 `/change-password`로 강제 이동시키는 가드 탑재. 사이드바 및 모바일 드로어 하단에 "비밀번호 변경" 바로가기 링크 추가.
+     - `src/app/admin/page.tsx`: 최고관리자 포털에서도 `mustChangePassword` 체크 가드 추가.
+  4. **교직원 등록 폼 및 임시 비밀번호 1회성 발급 모달 (`src/app/staff/page.tsx`)**:
+     - 교직원 등록 모달에서 비밀번호 입력을 선택사항으로 변경 (미입력 시 10자리 임시 비밀번호 자동 발급 안내).
+     - 등록 완료 시 서버가 반환한 `tempPassword`를 모노스페이스로 강조 표시하고 1회 복사할 수 있는 전용 모달 탑재 (클립보드 원클릭 포맷 복사 및 경고 문구 제공).
+- **빌드 검증**: `yarn frontend:build` 19개 전 라우트 정상 통과 (exit code 0)
+- **상태**: ✅ 백엔드 및 프론트엔드 연동 완료
+
+---
+
 ### 📅 2026-09-07: 강사/직원 등록 시 임시 비밀번호 자동 발급 + 최초 로그인 비밀번호 변경 강제
 - **작성자**: Claude (Backend)
 - **작업 배경**: 사용자 질문 — "강사/실장/조교 로그인은 원장 동의가 필요한데, 원장이 직접 로그인시켜주는 게 나을지 권한 기반 셀프 로그인이 나을지" → 이미 구현된 "원장이 `POST /auth/register-staff`로 직접 계정을 만드는" 방식(A안)을 유지하되, 원장이 비밀번호를 직접 타이핑해서 알려줘야 했던 UX만 개선하기로 결정. (셀프가입+승인 플로우는 로드맵상 이미 "학원코드 승인"으로 후순위 연기된 상태라 이번엔 만들지 않음.)
@@ -23,7 +52,8 @@
   1. 강사/직원 등록 폼: 비밀번호 입력을 선택 사항으로 바꾸고(비워두면 자동 발급), 응답의 `tempPassword`가 있으면 **1회성 모달/카드로 노출**(복사 버튼 포함) — 새로고침하면 다시 볼 수 없다는 점을 안내 문구로 명시해주세요.
   2. 로그인 응답(`AuthResponseDto.user.mustChangePassword`)이 `true`면 대시보드로 보내지 말고 **비밀번호 변경 화면으로 강제 이동**시켜주세요(신규 `PATCH /auth/change-password` 연동).
   3. `src/lib/auth-service.ts`(또는 해당 파일)에 `changePassword(currentPassword, newPassword)` 함수 추가 필요.
-- **상태**: ⏳ Gemini 프론트엔드 연동 대기 중
+- **상태**: ✅ 프론트엔드 연동 완료 (2026-09-08 Gemini 반영)
+
 
 ---
 

@@ -141,18 +141,32 @@ export const staffService = {
    */
   createStaff: async (input: CreateStaffInput): Promise<StaffMember> => {
     let createdUser: any = null;
+    let tempPassword: string | undefined = undefined;
+
+    // 백엔드 POST /auth/register-staff 호출
+    const payload: Record<string, any> = {
+      email: input.email.trim(),
+      name: input.name.trim(),
+      role: input.role,
+    };
+    if (input.phone && input.phone.trim()) {
+      payload.phone = input.phone.trim();
+    }
+    // 비밀번호가 입력되었을 때만 전송 (미입력 시 백엔드가 보안 임시 비밀번호 자동 생성)
+    if (input.password && input.password.trim()) {
+      payload.password = input.password.trim();
+    }
+
     try {
-      // 백엔드 POST /auth/register-staff 호출
-      const res = await api.post('/auth/register-staff', {
-        email: input.email,
-        password: input.password || 'classhelper1234!',
-        name: input.name,
-        phone: input.phone,
-        role: input.role,
-      });
+      const res = await api.post('/auth/register-staff', payload);
       createdUser = res.data;
-    } catch {
-      // 폴백용 가상 ID 생성
+      tempPassword = res.data?.tempPassword;
+    } catch (err: any) {
+      // API 오류가 있는 경우 그대로 rethrow하여 UI에서 에러 메시지(중복 이메일, 비밀번호 정책 미달 등) 노출
+      if (err?.response) {
+        throw err;
+      }
+      // 네트워크 단절 등 오프라인 폴백용 가상 ID 생성
       createdUser = {
         id: Date.now(),
         email: input.email,
@@ -171,6 +185,8 @@ export const staffService = {
       phone: createdUser.phone,
       role: createdUser.role,
       createdAt: createdUser.createdAt || new Date().toISOString(),
+      mustChangePassword: createdUser.mustChangePassword ?? true,
+      tempPassword: tempPassword,
       taughtClasses: [],
       taughtClassesCount: 0,
     };
@@ -182,6 +198,7 @@ export const staffService = {
 
     return newStaff;
   },
+
 
   /**
    * 교직원 정보 및 직책 수정

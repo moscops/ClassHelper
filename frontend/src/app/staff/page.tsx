@@ -70,6 +70,13 @@ export default function StaffPage() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
+  const [tempPasswordModalData, setTempPasswordModalData] = useState<{
+    name: string;
+    email: string;
+    role: string;
+    tempPassword: string;
+  } | null>(null);
+  const [copiedTempPassword, setCopiedTempPassword] = useState(false);
 
   // Selected Staff for actions
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
@@ -264,21 +271,39 @@ export default function StaffPage() {
       setCreateError('올바른 이메일 주소를 입력해주세요.');
       return;
     }
-    if (createForm.password && createForm.password.length < 6) {
-      setCreateError('비밀번호는 최소 6자 이상이어야 합니다.');
+    if (createForm.password && createForm.password.trim().length < 8) {
+      setCreateError('직접 지정할 비밀번호는 영문, 숫자, 특수문자 포함 최소 8자 이상이어야 합니다.');
       return;
     }
 
     setIsSubmittingCreate(true);
     setCreateError(null);
     try {
-      const newStaff = await staffService.createStaff(createForm);
+      const newStaff = await staffService.createStaff({
+        ...createForm,
+        password: createForm.password?.trim() || undefined,
+      });
       setStaffList((prev) => [newStaff, ...prev]);
       setIsCreateModalOpen(false);
-      setToastMessage({
-        type: 'success',
-        text: `신규 교직원 [${newStaff.name}]님이 등록되었습니다.`,
-      });
+
+      if (newStaff.tempPassword) {
+        setTempPasswordModalData({
+          name: newStaff.name,
+          email: newStaff.email,
+          role: newStaff.role,
+          tempPassword: newStaff.tempPassword,
+        });
+        setCopiedTempPassword(false);
+        setToastMessage({
+          type: 'success',
+          text: `교직원 [${newStaff.name}] 등록 완료! 임시 비밀번호가 발급되었습니다.`,
+        });
+      } else {
+        setToastMessage({
+          type: 'success',
+          text: `신규 교직원 [${newStaff.name}]님이 등록되었습니다.`,
+        });
+      }
     } catch (err: any) {
       setCreateError(
         err?.response?.data?.message || '교직원 등록 중 오류가 발생했습니다.',
@@ -1183,16 +1208,16 @@ export default function StaffPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    초기 비밀번호
+                    초기 비밀번호 <span className="text-slate-400 font-normal">(선택)</span>
                   </label>
-                  <span className="text-[11px] text-slate-400">
-                    미입력 시 기본값 (classhelper1234!)
+                  <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+                    미입력 시 임시 비밀번호 자동 발급
                   </span>
                 </div>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="최소 6자 이상"
+                    placeholder="비워둘 시 안전한 임시 비밀번호 자동 생성 (직접 입력 시 8자 이상)"
                     value={createForm.password}
                     onChange={(e) =>
                       setCreateForm((prev) => ({
@@ -1214,6 +1239,9 @@ export default function StaffPage() {
                     )}
                   </button>
                 </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  * 비밀번호를 비워두면 영문+숫자+특수문자 조합의 임시 비밀번호가 자동 생성되며, 등록 완료 시 단 1회 화면에 표시됩니다.
+                </p>
               </div>
 
               {/* Phone */}
@@ -1696,6 +1724,129 @@ export default function StaffPage() {
                 className="px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all cursor-pointer"
               >
                 닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. One-Time Temporary Password Notice Modal */}
+      {tempPasswordModalData && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setTempPasswordModalData(null);
+            }
+          }}
+        >
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-amber-50/50 dark:bg-amber-950/20">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 flex items-center justify-center">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span>임시 비밀번호 자동 발급 완료</span>
+                  </h3>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">
+                    1회성 안내: 화면을 닫으면 다시 조회할 수 없습니다.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTempPasswordModalData(null)}
+                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              {/* Staff Target Info */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    {tempPasswordModalData.name} 님
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                    {tempPasswordModalData.role === 'ADMIN'
+                      ? '실장/관리자'
+                      : tempPasswordModalData.role === 'TEACHER'
+                      ? '강사'
+                      : '조교'}
+                  </span>
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  로그인 이메일: <strong className="text-slate-700 dark:text-slate-300">{tempPasswordModalData.email}</strong>
+                </div>
+              </div>
+
+              {/* Password Display Box */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <span>발급된 임시 비밀번호</span>
+                  <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-normal">
+                    영문+숫자+특수문자 조합
+                  </span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-base font-bold text-indigo-600 dark:text-indigo-400 tracking-wider select-all break-all text-center">
+                    {tempPasswordModalData.tempPassword}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textToCopy = `[클래스헬퍼] ${tempPasswordModalData.name}님의 초기 교직원 접속 계정\n- 이메일: ${tempPasswordModalData.email}\n- 임시 비밀번호: ${tempPasswordModalData.tempPassword}\n* 최초 로그인 시 비밀번호 변경이 필요합니다.`;
+                      navigator.clipboard.writeText(textToCopy);
+                      setCopiedTempPassword(true);
+                      setTimeout(() => setCopiedTempPassword(false), 2500);
+                    }}
+                    className="shrink-0 px-4 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                  >
+                    {copiedTempPassword ? (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-300" />
+                        <span>복사됨!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        <span>전체 복사</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Notice Warning */}
+              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-xs space-y-1">
+                <div className="font-bold flex items-center gap-1 text-amber-800 dark:text-amber-300">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  <span>보안 및 전달 주의사항</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-amber-800/90 dark:text-amber-300/90">
+                  • 이 임시 비밀번호는 서버에 암호화 저장되어 지금 창을 닫으면 <strong>다시 확인할 수 없습니다.</strong>
+                  <br />
+                  • 교직원에게 접속 정보와 함께 즉시 전달해주세요.
+                  <br />
+                  • 교직원이 최초 로그인하면 즉시 <strong>새 비밀번호로 변경</strong>하도록 시스템이 유도합니다.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="shrink-0 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/60 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setTempPasswordModalData(null)}
+                className="px-5 py-2.5 rounded-2xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm"
+              >
+                확인 및 닫기
               </button>
             </div>
           </div>
