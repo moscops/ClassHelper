@@ -32,6 +32,11 @@ enum UserStatus {
   INACTIVE // 퇴사 처리 (로그인 차단, 소프트 삭제 — 관련 수업일지/결제이력 등 참조 데이터는 보존)
 }
 
+enum VisitorType {
+  ANONYMOUS // 비로그인 방문자 (공개 랜딩/로그인 페이지)
+  STAFF     // 로그인한 교직원
+}
+
 model Academy {
   id             Int           @id @default(autoincrement())
   name           String        @db.VarChar(100)
@@ -57,6 +62,7 @@ model Academy {
   notifications   Notification[]
   academyEvents   AcademyEvent[]
   subscription    Subscription?
+  siteVisits      SiteVisit[]
 
   @@index([status])
   @@map("academies")
@@ -86,10 +92,30 @@ model User {
   classLogs         ClassLog[]       @relation("TeacherClassLogs")
   processedPayments TuitionPayment[] @relation("ProcessedPayments")
   auditLogs         AuditLog[]       @relation("AdminAuditLogs")
+  siteVisits        SiteVisit[]
 
   @@index([academyId, role])
   @@index([role])
   @@map("users")
+}
+
+model SiteVisit {
+  id        BigInt      @id @default(autoincrement())
+  visitDate DateTime    @db.Date // 하루 단위로 truncate된 날짜
+  type      VisitorType
+  // 로그인: "user:{userId}", 비로그인: "anon:{visitorId}". 같은 날 같은 dedupKey는 1건만 남는다.
+  dedupKey  String      @db.VarChar(120)
+  userId    Int?
+  academyId Int?
+
+  createdAt DateTime @default(now())
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  academy Academy? @relation(fields: [academyId], references: [id], onDelete: SetNull)
+
+  @@unique([visitDate, dedupKey])
+  @@index([visitDate])
+  @@map("site_visits")
 }
 
 model AuditLog {
