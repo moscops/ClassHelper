@@ -9,20 +9,29 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
-### 📅 2026-09-08: 사이트 방문 통계(Site Visit Analytics) 백엔드 구현 — ⚠️ 프론트 기존 화면과 API 계약 불일치 발견
-- **작성자**: Claude (Backend)
+### 📅 2026-09-08: 사이트 방문 통계(Site Visit Analytics) 백엔드 구현 및 프론트엔드 실데이터 연동 완료
+- **작성자**: Claude (Backend) & Gemini (Frontend)
 - **작업 배경**: 사용자 요청 — "날짜 기준 방문자 수 확인 메뉴", 이어서 "로그인/회원가입/학원개설 수도 함께" 확장.
 - **신규 API 엔드포인트**:
   - `POST /analytics/track` (비인증, `/auth/login`과 동일 Throttle): `{ "visitorId": "<uuid>" }` — 프론트가 로컬에 생성/보관한 익명 UUID로 방문 기록. IP/User-Agent 등 PII는 저장하지 않음.
   - `GET /analytics/stats?startDate=&endDate=` (`SUPER_ADMIN`): 날짜별 `{ date, anonymousVisitors, loginCount, newSignups, newAcademies }` 배열. 날짜 생략 시 최근 30일, 빈 날짜도 0으로 채워 반환.
   - 로그인 시(`POST /auth/login`) 자동으로 `loginCount`에 반영됨(별도 프론트 연동 불필요).
-- **⚠️ 중요: 이미 구현된 프론트 화면(`admin/page.tsx`, `admin-service.ts`의 "사이트 방문자 분석" 메뉴)이 기대하는 계약과 다릅니다.**
-  - 프론트는 현재 `GET /admin/visitors`를 호출하도록 짜여 있고, 응답에 `pageViews`(PV), `newVisitors`/`returningVisitors`(신규·재방문 비율), `deviceBreakdown`(PC/모바일/태블릿 비율), `topService`(일자별 최다 이용 기능)를 기대합니다 — 이번에 만든 `/analytics/stats`에는 이 필드들이 전혀 없습니다(반대로 `newSignups`/`newAcademies`는 프론트 쪽 타입에 없음).
-  - 엔드포인트가 없어 지금 이 화면은 **전부 가짜 목업 데이터**(`generateMockVisitorData()`)를 보여주고 있습니다.
-  - 기기 비율(`deviceBreakdown`)은 User-Agent 저장이 필요한데 이번 백엔드 설계는 PII 최소화를 위해 의도적으로 아무것도 저장하지 않습니다. `topService`(기능별 사용량)는 방문 집계와는 완전히 다른 도메인(기능 사용 통계)이라 이번 스코프 밖입니다.
-  - 상세 비교표: `docs/domains/08-analytics.md` §5. **합의된 해결 방향 없음 — 사용자 확인 후 다음 세션에서 정리 예정.** 그 전까지는 프론트를 이 문서 뒤에 있는 실제 스펙에 맞춰 임의로 고치지 마세요.
+- **프론트엔드 실데이터 연동 완료 내역 (Gemini)**:
+  1. **API 클라이언트 표준화 (`src/lib/admin-service.ts`)**:
+     - 기존 가짜 목업 함수(`generateMockVisitorData`)를 완전 제거.
+     - `DailyAnalyticsStat` (`date`, `anonymousVisitors`, `loginCount`, `newSignups`, `newAcademies`) 및 `VisitorAnalyticsSummary` 인터페이스 정의.
+     - `adminService.trackVisitor(visitorId)` (`POST /analytics/track`) 및 `adminService.getVisitorAnalytics(startDate, endDate)` (`GET /analytics/stats`) 실데이터 호출 구현.
+  2. **익명 방문자 자동 비콘 추적 유틸 (`src/lib/analytics-tracker.ts`, `src/components/common/AppLayout.tsx`, `src/app/login/page.tsx`)**:
+     - `localStorage` 기반 익명 UUID(`classhelper_visitor_id`) 자동 생성 및 하루 1회 중복 방지 캐싱.
+     - 메인 레이아웃 및 로그인 페이지 마운트 시 `ensureSiteVisitTracked()`를 통해 백엔드 `POST /analytics/track` 자동 전송 (비로그인 방문자 UV 집계 지원, 실패 시 무시).
+  3. **관리자 포털 방문자 & 플랫폼 성장 분석 UI 개편 (`src/app/admin/page.tsx`)**:
+     - 목업 전용 필드(PV, 기기 비율, 최다 서비스 등)를 제거하고, 백엔드 실데이터 기반의 4대 핵심 지표로 재편: **총 순방문자(UV, 비로그인+로그인), 로그인 교직원 수, 신규 가입 교직원 수, 신규 개설 학원 수**.
+     - 일일 방문 & 성장 추이 스택 바 차트: 비로그인(퍼플) + 로그인(인디고) 스택 막대, 신규 가입자/학원 개설 뱃지 표시. 막대 클릭 시 해당 일자의 상세 지표 팝업 연동.
+     - 날짜별 방문 & 성장 기록 테이블: 일자별 총 UV, 비로그인, 로그인, 신규 가입자 뱃지, 신규 학원 뱃지 및 일일 순성장률 태그 렌더링.
+     - 실데이터 기준 CSV 내보내기 헤더 및 데이터 포맷 갱신.
 - **DTO/스키마**: 신규 `SiteVisit` 모델(+`VisitorType` enum), 마이그레이션 `20260908060000_add_site_visits`.
-- **상태**: ⏳ 프론트 연동 보류 (계약 불일치 해소 필요)
+- **빌드 검증**: `next build` 20개 라우트 프로덕션 빌드 정상 통과 (exit code 0).
+- **상태**: ✅ 백엔드 및 프론트엔드 연동 완료
 
 ---
 

@@ -34,6 +34,12 @@ import {
   ShieldCheck,
   Phone,
   MapPin,
+  Download,
+  ArrowDown,
+  ArrowUp,
+  BarChart2,
+  Smartphone,
+  Monitor,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -42,18 +48,20 @@ import {
   AdminAcademyItem,
   AdminAuditLogItem,
   UpdateSubscriptionPayload,
+  DailyAnalyticsStat,
+  VisitorAnalyticsSummary,
 } from '@/lib/admin-service';
 import { PlanTier, SubscriptionStatus } from '@/types/auth';
 import { AppLayout } from '@/components/common/AppLayout';
 
-type AdminTab = 'overview' | 'academies' | 'subscriptions' | 'audit-logs' | 'system';
+type AdminTab = 'overview' | 'visitors' | 'academies' | 'subscriptions' | 'audit-logs' | 'system';
 
 function AdminPortalContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get('tab') as AdminTab | null;
   const activeTab: AdminTab =
-    rawTab && ['overview', 'academies', 'subscriptions', 'audit-logs', 'system'].includes(rawTab)
+    rawTab && ['overview', 'visitors', 'academies', 'subscriptions', 'audit-logs', 'system'].includes(rawTab)
       ? rawTab
       : 'overview';
 
@@ -82,6 +90,55 @@ function AdminPortalContent() {
   const [modalNotes, setModalNotes] = useState<string>('');
   const [modalReason, setModalReason] = useState<string>('');
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
+
+  // Visitor Analytics State
+  const [visitorSummary, setVisitorSummary] = useState<VisitorAnalyticsSummary | null>(null);
+  const [isLoadingVisitors, setIsLoadingVisitors] = useState<boolean>(false);
+  const [visitorDatePreset, setVisitorDatePreset] = useState<'7d' | '14d' | '30d' | 'custom'>('14d');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [visitorSearchTerm, setVisitorSearchTerm] = useState<string>('');
+  const [visitorSortOrder, setVisitorSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [selectedVisitorDate, setSelectedVisitorDate] = useState<DailyAnalyticsStat | null>(null);
+
+  const loadVisitorData = async (preset = visitorDatePreset, start?: string, end?: string) => {
+    setIsLoadingVisitors(true);
+    try {
+      let startStr = start;
+      let endStr = end;
+      if (preset !== 'custom') {
+        const now = new Date();
+        const days = preset === '7d' ? 6 : preset === '14d' ? 13 : 29;
+        const fromDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+        startStr = fromDate.toISOString().split('T')[0];
+        endStr = now.toISOString().split('T')[0];
+      }
+      const data = await adminService.getVisitorAnalytics(startStr, endStr);
+      setVisitorSummary(data);
+      if (data.dailyStats.length > 0) {
+        setSelectedVisitorDate(data.dailyStats[0]);
+      }
+    } catch (err) {
+      console.error('Failed to load visitor analytics:', err);
+    } finally {
+      setIsLoadingVisitors(false);
+    }
+  };
+
+  const handleDownloadVisitorCsv = () => {
+    if (!visitorSummary?.dailyStats) return;
+    const header = '날짜,총방문자(UV),비로그인방문자,로그인교직원,신규가입자,신규개설학원\n';
+    const rows = visitorSummary.dailyStats.map(d =>
+      `${d.date},${d.anonymousVisitors + d.loginCount},${d.anonymousVisitors},${d.loginCount},${d.newSignups},${d.newAcademies}`
+    ).join('\n');
+    const blob = new Blob(['\uFEFF' + header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `classhelper_analytics_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Authentication & Role verification
   useEffect(() => {
@@ -118,6 +175,7 @@ function AdminPortalContent() {
   useEffect(() => {
     if (isAuthenticated && user?.role === 'SUPER_ADMIN') {
       loadAdminData();
+      loadVisitorData();
     }
   }, [isAuthenticated, user]);
 
@@ -132,10 +190,6 @@ function AdminPortalContent() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  const switchTab = (tab: AdminTab) => {
-    router.push(`/admin?tab=${tab}`);
-  };
 
   const handleOpenAcademyDetail = async (academyId: number) => {
     setSelectedAcademyIdForDetail(academyId);
@@ -308,6 +362,69 @@ function AdminPortalContent() {
     return matchesSearch && matchesStatus && matchesPlan;
   });
 
+  const filteredDailyStats = (visitorSummary?.dailyStats ?? [])
+    .filter((stat) => {
+      if (!visitorSearchTerm) return true;
+      return stat.date.includes(visitorSearchTerm);
+    })
+    .sort((a, b) => {
+      if (visitorSortOrder === 'desc') {
+        return b.date.localeCompare(a.date);
+      }
+      return a.date.localeCompare(b.date);
+    });
+
+  const getTabHeader = () => {
+    switch (activeTab) {
+      case 'visitors':
+        return {
+          badge: 'Platform Traffic & Growth Analytics',
+          title: '사이트 방문자 & 플랫폼 성장 분석',
+          desc: '날짜별 순 방문자(비로그인 UV + 교직원 로그인), 신규 가입자 및 신규 개설 학원 실시간 통계를 집계합니다.',
+          icon: Users,
+        };
+      case 'academies':
+        return {
+          badge: 'Tenants & Academies',
+          title: '입점 학원 통합 관리',
+          desc: 'ClassHelper에 등록된 모든 학원의 상세 상태, 원생/교직원 규모 및 운영 권한을 통합 관리합니다.',
+          icon: Building2,
+        };
+      case 'subscriptions':
+        return {
+          badge: 'SaaS Billing & Subscriptions',
+          title: '구독 요금제 & 플랜 제어',
+          desc: '학원별 요금제 등급(FREE / PRO / ENTERPRISE), 구독 상태 및 만료일을 제어합니다.',
+          icon: CreditCard,
+        };
+      case 'audit-logs':
+        return {
+          badge: 'Governance & Security Audit',
+          title: '관리자 감사 로그',
+          desc: '플랫폼 관리자의 주요 정책 변경, 테넌트 상태 수정 및 시스템 작업 이력을 열람합니다.',
+          icon: FileText,
+        };
+      case 'system':
+        return {
+          badge: 'Infrastructure & Database',
+          title: '시스템 & 인프라 모니터링',
+          desc: 'PostgreSQL 멀티테넌트 데이터베이스, 자동 백업 주기 및 엔진 가동 상태를 점검합니다.',
+          icon: ShieldCheck,
+        };
+      case 'overview':
+      default:
+        return {
+          badge: 'Platform Root Governance',
+          title: '종합 관제 대시보드',
+          desc: '입점 학원 모니터링, 실시간 운영 현황, 요금제 점유율 및 플랫폼 핵심 지표를 종합 관제합니다.',
+          icon: Activity,
+        };
+    }
+  };
+
+  const currentHeader = getTabHeader();
+  const HeaderIcon = currentHeader.icon;
+
   if (!isHydrated || !isAuthenticated || user?.role !== 'SUPER_ADMIN') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -320,99 +437,41 @@ function AdminPortalContent() {
     <AppLayout currentPath="/admin" currentTab={activeTab}>
       <main className="flex-1 relative overflow-hidden py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
-          {/* 1. Header Title & Top Tab Navigation */}
+          {/* Header Title */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase tracking-wide">
-                  Platform Root Governance
+                  {currentHeader.badge}
                 </span>
-                <span className="text-xs text-slate-400">ClassHelper SaaS 총괄</span>
+                <span className="text-xs text-slate-400">ClassHelper SaaS 관리자 포털</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5 mt-1">
-                <Shield className="w-7 h-7 text-purple-600 dark:text-purple-400" />
-                <span>플랫폼 최고 관리자 포털</span>
+                <HeaderIcon className="w-7 h-7 text-purple-600 dark:text-purple-400" />
+                <span>{currentHeader.title}</span>
               </h1>
               <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                입점 학원 모니터링, 요금제(Plan Tier) 구독 제어, 시스템 상태 및 거버넌스 로그를 세부 관리합니다.
+                {currentHeader.desc}
               </p>
             </div>
 
             <div className="flex items-center gap-2 self-start md:self-auto">
               <button
                 type="button"
-                onClick={loadAdminData}
-                disabled={isLoading}
+                onClick={() => {
+                  if (activeTab === 'visitors') {
+                    loadVisitorData();
+                  } else {
+                    loadAdminData();
+                  }
+                }}
+                disabled={isLoading || isLoadingVisitors}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-all cursor-pointer"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading || isLoadingVisitors ? 'animate-spin' : ''}`} />
                 <span>새로고침</span>
               </button>
             </div>
-          </div>
-
-          {/* 2. Granular Tab Navigation Pills */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => switchTab('overview')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'overview'
-                  ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-300 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Activity className="w-4 h-4" />
-              <span>종합 관제 대시보드</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => switchTab('academies')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'academies'
-                  ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-300 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Building2 className="w-4 h-4" />
-              <span>입점 학원 관리 ({academies.length})</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => switchTab('subscriptions')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'subscriptions'
-                  ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-300 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <CreditCard className="w-4 h-4" />
-              <span>구독 & 요금제 ({planCounts.PRO + planCounts.ENTERPRISE} 유료)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => switchTab('audit-logs')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'audit-logs'
-                  ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-300 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>관리자 감사 로그 ({auditLogs.length})</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => switchTab('system')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'system'
-                  ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-300 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>시스템 & 인프라 (정상)</span>
-            </button>
           </div>
 
           {/* ========================================================================= */}
@@ -518,170 +577,105 @@ function AdminPortalContent() {
                 </div>
               </div>
 
-              {/* Plan Distribution Progress Bar & Quick Actions */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                {/* Plan Distribution Breakdown */}
-                <div className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                        SaaS 요금제 플랜 점유율
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        전체 입점 학원 중 유료 플랜 전환율 및 등급 분포
-                      </p>
-                    </div>
-                    <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">
-                      유료 전환율:{' '}
-                      {academies.length > 0
-                        ? Math.round(
-                            ((planCounts.PRO + planCounts.ENTERPRISE) / academies.length) * 100,
-                          )
-                        : 0}
-                      %
-                    </span>
-                  </div>
-
-                  {/* Multi-color Bar */}
-                  <div className="h-3.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
-                    <div
-                      style={{
-                        width: `${
-                          academies.length > 0
-                            ? (planCounts.FREE / academies.length) * 100
-                            : 100
-                        }%`,
-                      }}
-                      className="bg-slate-400 dark:bg-slate-600 transition-all duration-500"
-                      title={`Free 플랜: ${planCounts.FREE}개`}
-                    />
-                    <div
-                      style={{
-                        width: `${
-                          academies.length > 0
-                            ? (planCounts.PRO / academies.length) * 100
-                            : 0
-                        }%`,
-                      }}
-                      className="bg-indigo-500 transition-all duration-500"
-                      title={`Pro 플랜: ${planCounts.PRO}개`}
-                    />
-                    <div
-                      style={{
-                        width: `${
-                          academies.length > 0
-                            ? (planCounts.ENTERPRISE / academies.length) * 100
-                            : 0
-                        }%`,
-                      }}
-                      className="bg-purple-600 transition-all duration-500"
-                      title={`Enterprise 플랜: ${planCounts.ENTERPRISE}개`}
-                    />
-                  </div>
-
-                  {/* Plan Legend */}
-                  <div className="grid grid-cols-3 gap-3 pt-2 text-xs">
-                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-                      <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
-                        <span className="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-600" />
-                        <span>FREE 플랜</span>
-                      </div>
-                      <div className="mt-1 text-lg font-black text-slate-900 dark:text-white">
-                        {planCounts.FREE}
-                        <span className="text-xs font-normal text-slate-400 ml-1">학원</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">기본 30명 한도</p>
-                    </div>
-
-                    <div className="p-3 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40">
-                      <div className="flex items-center gap-1.5 font-bold text-indigo-700 dark:text-indigo-300">
-                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
-                        <span>PRO 플랜</span>
-                      </div>
-                      <div className="mt-1 text-lg font-black text-indigo-950 dark:text-indigo-200">
-                        {planCounts.PRO}
-                        <span className="text-xs font-normal text-indigo-400 ml-1">학원</span>
-                      </div>
-                      <p className="text-[11px] text-indigo-600/80 dark:text-indigo-400/80 mt-0.5">
-                        무제한 원생 & 출결
-                      </p>
-                    </div>
-
-                    <div className="p-3 rounded-2xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/40">
-                      <div className="flex items-center gap-1.5 font-bold text-purple-700 dark:text-purple-300">
-                        <span className="w-2.5 h-2.5 rounded-full bg-purple-600" />
-                        <span>ENTERPRISE</span>
-                      </div>
-                      <div className="mt-1 text-lg font-black text-purple-950 dark:text-purple-200">
-                        {planCounts.ENTERPRISE}
-                        <span className="text-xs font-normal text-purple-400 ml-1">학원</span>
-                      </div>
-                      <p className="text-[11px] text-purple-600/80 dark:text-purple-400/80 mt-0.5">
-                        다지점 본원/분원
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Navigation Cards */}
-                <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-3 flex flex-col justify-between">
+              {/* Plan Distribution Visual */}
+              <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      세부 관리 빠른 이동
+                      SaaS 요금제 플랜 점유율
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      특정 관리 작업 탭으로 바로 이동합니다.
+                      전체 입점 학원 중 유료 플랜 전환율 및 등급 분포
+                    </p>
+                  </div>
+                  <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">
+                    유료 전환율:{' '}
+                    {academies.length > 0
+                      ? Math.round(
+                          ((planCounts.PRO + planCounts.ENTERPRISE) / academies.length) * 100,
+                        )
+                      : 0}
+                    %
+                  </span>
+                </div>
+
+                {/* Multi-color Bar */}
+                <div className="h-3.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                  <div
+                    style={{
+                      width: `${
+                        academies.length > 0
+                          ? (planCounts.FREE / academies.length) * 100
+                          : 100
+                      }%`,
+                    }}
+                    className="bg-slate-400 dark:bg-slate-600 transition-all duration-500"
+                    title={`Free 플랜: ${planCounts.FREE}개`}
+                  />
+                  <div
+                    style={{
+                      width: `${
+                        academies.length > 0
+                          ? (planCounts.PRO / academies.length) * 100
+                          : 0
+                      }%`,
+                    }}
+                    className="bg-indigo-500 transition-all duration-500"
+                    title={`Pro 플랜: ${planCounts.PRO}개`}
+                  />
+                  <div
+                    style={{
+                      width: `${
+                        academies.length > 0
+                          ? (planCounts.ENTERPRISE / academies.length) * 100
+                          : 0
+                      }%`,
+                    }}
+                    className="bg-purple-600 transition-all duration-500"
+                    title={`Enterprise 플랜: ${planCounts.ENTERPRISE}개`}
+                  />
+                </div>
+
+                {/* Plan Legend */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-600" />
+                      <span>FREE 플랜</span>
+                    </div>
+                    <div className="mt-1 text-lg font-black text-slate-900 dark:text-white">
+                      {planCounts.FREE}
+                      <span className="text-xs font-normal text-slate-400 ml-1">학원</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">기본 30명 한도</p>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40">
+                    <div className="flex items-center gap-1.5 font-bold text-indigo-700 dark:text-indigo-300">
+                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                      <span>PRO 플랜</span>
+                    </div>
+                    <div className="mt-1 text-lg font-black text-indigo-950 dark:text-indigo-200">
+                      {planCounts.PRO}
+                      <span className="text-xs font-normal text-indigo-400 ml-1">학원</span>
+                    </div>
+                    <p className="text-[11px] text-indigo-600/80 dark:text-indigo-400/80 mt-0.5">
+                      무제한 원생 & 출결
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => switchTab('academies')}
-                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200/70 dark:border-slate-700 transition-all text-xs font-semibold cursor-pointer text-left"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                        <span>입점 학원 목록 및 상태 변경</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => switchTab('subscriptions')}
-                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200/70 dark:border-slate-700 transition-all text-xs font-semibold cursor-pointer text-left"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <CreditCard className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                        <span>구독 요금제 및 만료일 관리</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => switchTab('audit-logs')}
-                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200/70 dark:border-slate-700 transition-all text-xs font-semibold cursor-pointer text-left"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                        <span>관리자 감사 로그 전체 조회</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => switchTab('system')}
-                      className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200/70 dark:border-slate-700 transition-all text-xs font-semibold cursor-pointer text-left"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span>시스템 아키텍처 및 백업 모니터링</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </button>
+                  <div className="p-3 rounded-2xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/40">
+                    <div className="flex items-center gap-1.5 font-bold text-purple-700 dark:text-purple-300">
+                      <span className="w-2.5 h-2.5 rounded-full bg-purple-600" />
+                      <span>ENTERPRISE</span>
+                    </div>
+                    <div className="mt-1 text-lg font-black text-purple-950 dark:text-purple-200">
+                      {planCounts.ENTERPRISE}
+                      <span className="text-xs font-normal text-purple-400 ml-1">학원</span>
+                    </div>
+                    <p className="text-[11px] text-purple-600/80 dark:text-purple-400/80 mt-0.5">
+                      다지점 본원/분원
+                    </p>
                   </div>
                 </div>
               </div>
@@ -695,17 +689,12 @@ function AdminPortalContent() {
                       <span>입점 학원 개요 (최근 등록순)</span>
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      자세한 검색 및 조작은 &apos;입점 학원 관리&apos; 탭에서 수행할 수 있습니다.
+                      자세한 검색 및 조작은 좌측 사이드바의 &apos;입점 학원 통합 관리&apos; 메뉴에서 수행할 수 있습니다.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => switchTab('academies')}
-                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-bold flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>전체 {academies.length}개 학원 관리</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </button>
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                    최근 5개 학원 표시
+                  </span>
                 </div>
 
                 <div className="border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-x-auto">
@@ -781,6 +770,513 @@ function AdminPortalContent() {
                           </td>
                         </tr>
                       ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: 사이트 방문자 분석 (VISITORS) */}
+          {/* ========================================================================= */}
+          {activeTab === 'visitors' && (
+            <div className="space-y-7 animate-in fade-in duration-200">
+              {/* 1. Filter Bar & Controls */}
+              <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">
+                    조회 기간:
+                  </span>
+                  {(
+                    [
+                      { key: '7d', label: '최근 7일' },
+                      { key: '14d', label: '최근 14일' },
+                      { key: '30d', label: '최근 30일' },
+                      { key: 'custom', label: '직접 지정' },
+                    ] as const
+                  ).map((preset) => (
+                    <button
+                      key={preset.key}
+                      type="button"
+                      onClick={() => {
+                        setVisitorDatePreset(preset.key);
+                        if (preset.key !== 'custom') {
+                          loadVisitorData(preset.key);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        visitorDatePreset === preset.key
+                          ? 'bg-purple-600 text-white shadow-xs'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+
+                  {visitorDatePreset === 'custom' && (
+                    <div className="flex items-center gap-2 ml-1">
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                      />
+                      <span className="text-slate-400 text-xs">~</span>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => loadVisitorData('custom', customStartDate, customEndDate)}
+                        className="px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 cursor-pointer"
+                      >
+                        조회
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 self-end md:self-auto">
+                  <button
+                    type="button"
+                    onClick={handleDownloadVisitorCsv}
+                    disabled={!visitorSummary?.dailyStats.length}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>CSV 내보내기</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Key Metrics 4 Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                {/* Total UV */}
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-start justify-between">
+                  <div>
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      기간 순 방문자 (UV)
+                    </span>
+                    <div className="mt-1.5 flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                        {isLoadingVisitors ? '...' : (visitorSummary?.totalVisitors ?? 0).toLocaleString()}
+                      </span>
+                      <span className="text-xs text-slate-400">명</span>
+                    </div>
+                    <div className="mt-2 text-[11px] text-purple-600 dark:text-purple-400 font-semibold">
+                      오늘 방문: {visitorSummary?.todayVisitors ?? 0}명 (비로그인 {visitorSummary?.dailyStats.find(d => d.date === new Date().toISOString().slice(0, 10))?.anonymousVisitors ?? 0} + 로그인 {visitorSummary?.todayLogins ?? 0})
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400">
+                    <Users className="w-5 h-5" />
+                  </div>
+                </div>
+
+                {/* Logged in staff */}
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-start justify-between">
+                  <div>
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      로그인 교직원 (누적)
+                    </span>
+                    <div className="mt-1.5 flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                        {isLoadingVisitors ? '...' : (visitorSummary?.totalLogins ?? 0).toLocaleString()}
+                      </span>
+                      <span className="text-xs text-slate-400">명</span>
+                    </div>
+                    <div className="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                      오늘 로그인: {visitorSummary?.todayLogins ?? 0}명 (고유 사용자)
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+                    <UserCheck className="w-5 h-5" />
+                  </div>
+                </div>
+
+                {/* New Signups */}
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-start justify-between">
+                  <div>
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      신규 가입 교직원
+                    </span>
+                    <div className="mt-1.5 flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                        {isLoadingVisitors ? '...' : (visitorSummary?.totalNewSignups ?? 0).toLocaleString()}
+                      </span>
+                      <span className="text-xs text-slate-400">명</span>
+                    </div>
+                    <div className="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                      오늘 신규 가입: +{visitorSummary?.todayNewSignups ?? 0}명
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                </div>
+
+                {/* New Academies */}
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-start justify-between">
+                  <div>
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      신규 개설 학원
+                    </span>
+                    <div className="mt-1.5 flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                        {isLoadingVisitors ? '...' : (visitorSummary?.totalNewAcademies ?? 0).toLocaleString()}
+                      </span>
+                      <span className="text-xs text-slate-400">개 학원</span>
+                    </div>
+                    <div className="mt-2 text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
+                      오늘 신규 개설: +{visitorSummary?.todayNewAcademies ?? 0}개
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Daily Visitor Trend Interactive Chart */}
+              <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <BarChart2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      <span>날짜별 일일 방문자 및 성장 추이 (UV)</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      막대를 클릭하면 해당 날짜의 비로그인 방문자, 교직원 로그인, 신규 가입 및 학원 개설 세부 현황을 확인할 수 있습니다.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded-sm bg-purple-600" />
+                      <span>비로그인 방문 (UV)</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded-sm bg-indigo-500" />
+                      <span>교직원 로그인</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span>신규 가입</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      <span>신규 학원</span>
+                    </div>
+                  </div>
+                </div>
+
+                {isLoadingVisitors ? (
+                  <div className="h-64 flex items-center justify-center">
+                    <RefreshCw className="w-6 h-6 animate-spin text-purple-600" />
+                  </div>
+                ) : !visitorSummary?.dailyStats.length ? (
+                  <div className="h-48 flex items-center justify-center text-xs text-slate-400">
+                    표시할 방문 통계 데이터가 없습니다.
+                  </div>
+                ) : (
+                  <div className="pt-4">
+                    {/* Chart Bars */}
+                    <div className="h-56 flex items-end gap-2 sm:gap-3 overflow-x-auto pb-2 px-1">
+                      {visitorSummary.dailyStats.map((item) => {
+                        const totalUV = item.anonymousVisitors + item.loginCount;
+                        const maxVal = Math.max(
+                          ...(visitorSummary.dailyStats.map((d) => d.anonymousVisitors + d.loginCount) || [10]),
+                          10
+                        );
+                        const heightPct = totalUV > 0 ? Math.max(14, Math.round((totalUV / maxVal) * 100)) : 6;
+                        const isSelected = selectedVisitorDate?.date === item.date;
+                        const dateObj = new Date(item.date);
+                        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                        const dayName = isNaN(dateObj.getTime()) ? '' : dayNames[dateObj.getDay()];
+                        const isWeekend = dayName === '토' || dayName === '일';
+
+                        const anonPct = totalUV > 0 ? Math.round((item.anonymousVisitors / totalUV) * 100) : 50;
+
+                        return (
+                          <div
+                            key={item.date}
+                            onClick={() => setSelectedVisitorDate(item)}
+                            className="flex-1 min-w-[36px] sm:min-w-[48px] flex flex-col items-center gap-1.5 group cursor-pointer"
+                          >
+                            {/* Visitor Count or Indicator Badge */}
+                            <div className="h-4 flex items-center justify-center">
+                              {item.newAcademies > 0 ? (
+                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                                  +{item.newAcademies}원
+                                </span>
+                              ) : item.newSignups > 0 ? (
+                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                  +{item.newSignups}인
+                                </span>
+                              ) : (
+                                <span
+                                  className={`text-[10px] font-extrabold transition-colors ${
+                                    isSelected
+                                      ? 'text-purple-600 dark:text-purple-400'
+                                      : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'
+                                  }`}
+                                >
+                                  {totalUV}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Stacked Bar Container */}
+                            <div className="w-full flex items-end justify-center h-40 bg-slate-50 dark:bg-slate-800/40 rounded-xl p-1 relative overflow-hidden">
+                              <div
+                                style={{ height: `${heightPct}%` }}
+                                className={`w-full rounded-lg flex flex-col justify-end overflow-hidden transition-all duration-300 ${
+                                  isSelected
+                                    ? 'ring-2 ring-purple-600 shadow-md shadow-purple-500/20'
+                                    : 'group-hover:opacity-90'
+                                }`}
+                              >
+                                {/* Top: Anonymous */}
+                                <div
+                                  style={{ height: `${anonPct}%` }}
+                                  className="w-full bg-purple-600 transition-all"
+                                  title={`비로그인 방문: ${item.anonymousVisitors}명`}
+                                />
+                                {/* Bottom: Logged in */}
+                                <div
+                                  style={{ height: `${100 - anonPct}%` }}
+                                  className="w-full bg-indigo-500 transition-all"
+                                  title={`교직원 로그인: ${item.loginCount}명`}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Date Label */}
+                            <div className="text-center">
+                              <div
+                                className={`text-[11px] font-bold ${
+                                  isSelected
+                                    ? 'text-purple-600 dark:text-purple-400'
+                                    : 'text-slate-600 dark:text-slate-300'
+                                }`}
+                              >
+                                {item.date.slice(5)}
+                              </div>
+                              <div
+                                className={`text-[10px] ${
+                                  isWeekend
+                                    ? 'text-rose-500 font-semibold'
+                                    : 'text-slate-400'
+                                }`}
+                              >
+                                {dayName}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Selected Date Detail Banner */}
+                    {selectedVisitorDate && (
+                      <div className="mt-4 p-4 rounded-2xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <div className="w-2.5 h-2.5 rounded-full bg-purple-600 shrink-0" />
+                          <span className="font-bold text-slate-900 dark:text-white">
+                            {selectedVisitorDate.date} 상세 분석
+                          </span>
+                          <span className="text-slate-400">|</span>
+                          <span className="text-slate-600 dark:text-slate-300">
+                            총 순방문 <strong className="text-purple-600 dark:text-purple-400">{selectedVisitorDate.anonymousVisitors + selectedVisitorDate.loginCount}</strong>명
+                          </span>
+                          <span className="text-slate-600 dark:text-slate-300">
+                            비로그인 <strong className="text-purple-500">{selectedVisitorDate.anonymousVisitors}</strong>명
+                          </span>
+                          <span className="text-slate-600 dark:text-slate-300">
+                            교직원 로그인 <strong className="text-indigo-600 dark:text-indigo-400">{selectedVisitorDate.loginCount}</strong>명
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 text-[11px] flex-wrap">
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                            신규 가입 +{selectedVisitorDate.newSignups}명
+                          </span>
+                          <span>•</span>
+                          <span className="font-semibold text-amber-600 dark:text-amber-400">
+                            신규 학원 +{selectedVisitorDate.newAcademies}개원
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 4. Detailed Daily Visitors Table */}
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <CalendarCheck2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                      <span>날짜별 방문 & 성장 기록 목록</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      ClassHelper SaaS 플랫폼의 일자별 순 방문자, 교직원 로그인, 신규 가입자 및 학원 개설 현황을 실시간 집계합니다.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="날짜 검색 (예: 2026-09)..."
+                        value={visitorSearchTerm}
+                        onChange={(e) => setVisitorSearchTerm(e.target.value)}
+                        className="pl-8 pr-3 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-purple-500/20"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setVisitorSortOrder(visitorSortOrder === 'desc' ? 'asc' : 'desc')}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
+                    >
+                      {visitorSortOrder === 'desc' ? (
+                        <>
+                          <ArrowDown className="w-3 h-3 text-purple-600" />
+                          <span>최신순</span>
+                        </>
+                      ) : (
+                        <>
+                          <ArrowUp className="w-3 h-3 text-purple-600" />
+                          <span>과거순</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
+                        <th className="py-3 px-4">방문 일자</th>
+                        <th className="py-3 px-4">총 순방문 (UV)</th>
+                        <th className="py-3 px-4">비로그인 방문</th>
+                        <th className="py-3 px-4">로그인 교직원</th>
+                        <th className="py-3 px-4">신규 가입 교직원</th>
+                        <th className="py-3 px-4">신규 개설 학원</th>
+                        <th className="py-3 px-4 text-right">일일 성장 지표</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                      {filteredDailyStats.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="py-8 text-center text-slate-400">
+                            해당 조건의 일일 방문 기록이 없습니다.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredDailyStats.map((stat) => {
+                          const dateObj = new Date(stat.date);
+                          const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                          const dayName = isNaN(dateObj.getTime()) ? '' : dayNames[dateObj.getDay()];
+                          const isWeekend = dayName === '토' || dayName === '일';
+                          const totalUV = stat.anonymousVisitors + stat.loginCount;
+
+                          return (
+                            <tr
+                              key={stat.date}
+                              className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${
+                                selectedVisitorDate?.date === stat.date ? 'bg-purple-50/30 dark:bg-purple-950/20' : ''
+                              }`}
+                            >
+                              <td className="py-3 px-4">
+                                <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                  <span>{stat.date}</span>
+                                  <span
+                                    className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${
+                                      isWeekend
+                                        ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                    }`}
+                                  >
+                                    {dayName}요일
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <span className="font-extrabold text-slate-900 dark:text-white">
+                                  {totalUV.toLocaleString()}
+                                </span>
+                                <span className="text-[11px] text-slate-400 ml-1">명</span>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <span className="font-semibold text-purple-600 dark:text-purple-400">
+                                  {stat.anonymousVisitors.toLocaleString()}
+                                </span>
+                                <span className="text-[11px] text-slate-400 ml-1">명</span>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                                  {stat.loginCount.toLocaleString()}
+                                </span>
+                                <span className="text-[11px] text-slate-400 ml-1">명</span>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                {stat.newSignups > 0 ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                    <Sparkles className="w-3 h-3 text-emerald-500" />
+                                    <span>+{stat.newSignups}명</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400 text-xs">-</span>
+                                )}
+                              </td>
+
+                              <td className="py-3 px-4">
+                                {stat.newAcademies > 0 ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                    <Building2 className="w-3 h-3 text-amber-500" />
+                                    <span>+{stat.newAcademies}개원</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400 text-xs">-</span>
+                                )}
+                              </td>
+
+                              <td className="py-3 px-4 text-right">
+                                {stat.newAcademies > 0 ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200">
+                                    신규 학원 입점
+                                  </span>
+                                ) : stat.newSignups > 0 ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200">
+                                    교직원 신규 유입
+                                  </span>
+                                ) : stat.loginCount > 0 ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
+                                    학사 운영 활성
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-normal bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                    일반 방문
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
                     </tbody>
                   </table>
                 </div>

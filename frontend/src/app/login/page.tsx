@@ -29,6 +29,7 @@ import { authService } from '@/lib/auth-service';
 import { attendanceService } from '@/lib/attendance-service';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ensureSiteVisitTracked } from '@/lib/analytics-tracker';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -78,6 +79,10 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    ensureSiteVisitTracked();
+  }, []);
 
   const {
     register,
@@ -270,7 +275,7 @@ export default function LoginPage() {
       </div>
 
       {/* Clean Single Center Card */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+      <div className="sm:mx-auto sm:w-full sm:max-w-lg relative z-10">
         {/* Brand Logo Header */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
@@ -282,11 +287,17 @@ export default function LoginPage() {
             </span>
           </Link>
           <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {activeTab === 'admin' ? '학원 로그인' : '출석 키오스크'}
+            {activeTab === 'admin'
+              ? '학원 로그인'
+              : activeTab === 'join'
+              ? '교직원 초대 가입'
+              : '출석 키오스크'}
           </h2>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             {activeTab === 'admin'
               ? '원장님, 강사 및 관리자 계정으로 접속하세요.'
+              : activeTab === 'join'
+              ? '전달받은 학원 초대 코드로 간편하게 교직원 계정을 생성하세요.'
               : '로비 태블릿 거치용 전화번호 4자리 셀프 출석 체크 전용 모드입니다.'}
           </p>
         </div>
@@ -341,14 +352,14 @@ export default function LoginPage() {
                 setKioskError(null);
                 setJoinErrorMessage(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'admin'
                   ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span>로그인</span>
+              <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="whitespace-nowrap">로그인</span>
             </button>
             <button
               type="button"
@@ -358,14 +369,14 @@ export default function LoginPage() {
                 setKioskError(null);
                 setJoinErrorMessage(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'join'
                   ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="truncate">교직원 초대 가입</span>
+              <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="whitespace-nowrap">교직원 초대 가입</span>
             </button>
             <button
               type="button"
@@ -375,14 +386,14 @@ export default function LoginPage() {
                 setKioskError(null);
                 setJoinErrorMessage(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'kiosk'
                   ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Tablet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span>출석 키오스크</span>
+              <Tablet className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="whitespace-nowrap">출석 키오스크</span>
             </button>
           </div>
 

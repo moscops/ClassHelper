@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -26,6 +26,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useNavStatusStore } from '@/stores/useNavStatusStore';
 import { authService } from '@/lib/auth-service';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ensureSiteVisitTracked } from '@/lib/analytics-tracker';
 
 interface NavItem {
   label: string;
@@ -49,6 +50,9 @@ interface AppLayoutProps {
   currentPath?: string;
   currentTab?: string;
 }
+
+// Module-level cache to preserve desktop sidebar scroll position across route navigations
+let savedSidebarScrollTop = 0;
 
 export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps) {
   const pathname = usePathname();
@@ -78,12 +82,57 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
     setIsMobileDrawerOpen(false);
   }, [pathname]);
 
+  const desktopNavRef = useRef<HTMLElement>(null);
+
+  // Restore and maintain desktop sidebar scroll position across route navigations
+  useEffect(() => {
+    const nav = desktopNavRef.current;
+    if (!nav) return;
+
+    // 1. Immediately restore previous scroll position
+    let targetScroll = savedSidebarScrollTop;
+    if (targetScroll === 0 && typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('classhelper_sidebar_scroll');
+        if (stored) targetScroll = Number(stored);
+      } catch {}
+    }
+
+    if (targetScroll > 0) {
+      nav.scrollTop = targetScroll;
+    }
+
+    // 2. Ensure active menu item is scrolled into view if it was outside view
+    const activeEl = nav.querySelector<HTMLElement>('[data-active="true"]');
+    if (activeEl) {
+      const navRect = nav.getBoundingClientRect();
+      const elRect = activeEl.getBoundingClientRect();
+      const isAbove = elRect.top < navRect.top;
+      const isBelow = elRect.bottom > navRect.bottom;
+
+      if (isAbove || isBelow) {
+        activeEl.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+
+      // Sync saved scroll position
+      savedSidebarScrollTop = nav.scrollTop;
+      try {
+        sessionStorage.setItem('classhelper_sidebar_scroll', String(nav.scrollTop));
+      } catch {}
+    }
+  }, [pathname, activePath]);
+
   // mustChangePassword guard: if user must change password, redirect to /change-password
   useEffect(() => {
     if (isHydrated && isAuthenticated && user?.mustChangePassword && pathname !== '/change-password') {
       router.replace('/change-password');
     }
   }, [isHydrated, isAuthenticated, user?.mustChangePassword, pathname, router]);
+
+  // Track site visit for analytics beacon
+  useEffect(() => {
+    ensureSiteVisitTracked();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -140,6 +189,12 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
           active: activePath === '/admin' && (currentTab === 'overview' || !currentTab),
         },
         {
+          label: '사이트 방문자 분석',
+          href: '/admin?tab=visitors',
+          icon: Users,
+          active: activePath === '/admin' && currentTab === 'visitors',
+        },
+        {
           label: '시스템 & 인프라',
           href: '/admin?tab=system',
           icon: ShieldCheck,
@@ -174,9 +229,9 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
           active: activePath === '/admin' && currentTab === 'audit-logs',
         },
         {
-          label: '보안 관리',
+          label: '비밀번호 변경',
           href: '/change-password',
-          icon: ShieldCheck,
+          icon: KeyRound,
           active: activePath === '/change-password',
         },
       ],
@@ -276,9 +331,9 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
       groupTitle: '계정 & 보안',
       items: [
         {
-          label: '보안 관리',
+          label: '비밀번호 변경',
           href: '/change-password',
-          icon: ShieldCheck,
+          icon: KeyRound,
           active: activePath === '/change-password',
         },
       ],
@@ -345,7 +400,16 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
         ) : null}
 
         {/* Navigation Groups List */}
-        <nav className="flex-1 px-3 space-y-5 overflow-y-auto pt-1 pb-4">
+        <nav
+          ref={desktopNavRef}
+          onScroll={(e) => {
+            savedSidebarScrollTop = e.currentTarget.scrollTop;
+            try {
+              sessionStorage.setItem('classhelper_sidebar_scroll', String(e.currentTarget.scrollTop));
+            } catch {}
+          }}
+          className="flex-1 px-3 space-y-3.5 overflow-y-auto pt-1 pb-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+        >
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1">
               <div className="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -353,12 +417,28 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
               </div>
               {group.items.map((item) => {
                 const Icon = item.icon;
+                const isLocked = Boolean(user?.mustChangePassword && item.href !== '/change-password');
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    data-active={item.active ? 'true' : 'false'}
+                    onClick={(e) => {
+                      if (isLocked) {
+                        e.preventDefault();
+                        return;
+                      }
+                      if (desktopNavRef.current) {
+                        savedSidebarScrollTop = desktopNavRef.current.scrollTop;
+                        try {
+                          sessionStorage.setItem('classhelper_sidebar_scroll', String(desktopNavRef.current.scrollTop));
+                        } catch {}
+                      }
+                    }}
                     className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border transition-colors duration-150 select-none ${
-                      item.active
+                      isLocked
+                        ? 'opacity-40 cursor-not-allowed border-transparent text-slate-400 dark:text-slate-600'
+                        : item.active
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs shadow-indigo-600/20'
                         : item.alert
                         ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800'
@@ -551,13 +631,23 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
                   </div>
                   {group.items.map((item) => {
                     const Icon = item.icon;
+                    const isLocked = Boolean(user?.mustChangePassword && item.href !== '/change-password');
                     return (
                       <Link
                         key={item.href}
                         href={item.href}
-                        onClick={() => setIsMobileDrawerOpen(false)}
+                        data-active={item.active ? 'true' : 'false'}
+                        onClick={(e) => {
+                          if (isLocked) {
+                            e.preventDefault();
+                            return;
+                          }
+                          setIsMobileDrawerOpen(false);
+                        }}
                         className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold border transition-colors duration-150 select-none ${
-                          item.active
+                          isLocked
+                            ? 'opacity-40 cursor-not-allowed border-transparent text-slate-400 dark:text-slate-600'
+                            : item.active
                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                             : item.alert
                             ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800'
