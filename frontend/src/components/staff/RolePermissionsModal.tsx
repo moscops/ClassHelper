@@ -331,7 +331,7 @@ export function RolePermissionsModal({
               <Info className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
                 <p className="font-semibold">
-                  원장님이 각 직책의 '수정' 권한을 비활성화하면, 해당 직책은 안전하게 '조회 전용'으로 전환됩니다.
+                  원장님이 각 직책의 &apos;수정&apos; 권한을 비활성화하면, 해당 직책은 안전하게 &apos;조회 전용&apos;으로 전환됩니다.
                 </p>
                 <p className="text-indigo-700 dark:text-indigo-300/80 text-[11px]">
                   비활성화된 메뉴에서 데이터 수정/생성/삭제 시도 시 시스템 레벨(PermissionGuard)에서 차단되며 권한 안내 메시지가 표시됩니다.
