@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useNavStatusStore } from '@/stores/useNavStatusStore';
+import { usePermissionsStore } from '@/stores/usePermissionsStore';
 import { authService } from '@/lib/auth-service';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ensureSiteVisitTracked } from '@/lib/analytics-tracker';
@@ -68,14 +69,17 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
 
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
-  // Background sync for status (preserves global cache across route changes)
+  // Background sync for status & permissions (preserves global cache across route changes)
   useEffect(() => {
     if (isHydrated && isAuthenticated) {
       updateStatus();
+      if (academy?.id) {
+        usePermissionsStore.getState().fetchPermissions(academy.id);
+      }
       const interval = setInterval(updateStatus, 25000);
       return () => clearInterval(interval);
     }
-  }, [isHydrated, isAuthenticated, updateStatus]);
+  }, [isHydrated, isAuthenticated, academy?.id, updateStatus]);
 
   // Close mobile drawer on route change
   useEffect(() => {

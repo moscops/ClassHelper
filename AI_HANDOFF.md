@@ -9,8 +9,8 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
-### 📅 2026-09-08: 역할별 커스텀 권한(Role Permissions) 백엔드 구현
-- **작성자**: Claude (Backend)
+### 📅 2026-09-08: 역할별 커스텀 권한(Role Permissions) 백엔드 구현 및 프론트엔드 연동 완료
+- **작성자**: Claude (Backend) & Gemini (Frontend)
 - **작업 배경**: 사용자 요청 — 원장이 실장/강사/조교 각 역할의 메뉴별 "수정" 권한을 교직원 관리 탭에서 커스텀할 수 있게. 초기 기본값은 최소 권한(강사/조교는 대부분 보기만), 이후 원장이 변경 가능.
 - **신규 API 엔드포인트**:
   - `GET /auth/role-permissions` (`OWNER`, `ADMIN`): 3역할(ADMIN/TEACHER/STAFF)×8메뉴 = 24개 항목을 항상 전부 반환(미설정은 기본값으로 채움).
@@ -19,12 +19,25 @@
   - ADMIN: 8개 메뉴 전부 수정 가능(기존 동작과 동일, 변화 없음)
   - TEACHER: 출결(ATTENDANCE)·수업일지(CLASS_LOGS)·리포트(REPORTS)만 수정 가능, 나머지(원생관리/반관리/수강료/캘린더/알림)는 보기만
   - STAFF: 출결만 수정 가능, 나머지는 보기만
-- **⚠️ 중요 — 8개 메뉴에서 새로운 `403` 케이스가 생겼습니다**: 원장이 교직원 관리에서 특정 역할의 권한을 끄면, 기존에 통하던 요청(예: 강사의 원생 정보 수정)이 `403 Forbidden`을 반환합니다. 에러 메시지: `"원장이 이 메뉴에 대한 수정 권한을 아직 부여하지 않았습니다."` — 기존 권한 부족(`"해당 작업에 대한 접근 권한이 없습니다."`)과 문구가 다르니, 프론트에서 이 메시지를 그대로 노출하면 사용자가 "역할 자체가 안 되는 것"과 "원장이 아직 안 켜준 것"을 구분할 수 있습니다.
-- **프론트 작업 필요 사항 (아직 미구현)**:
-  1. **교직원 관리 탭에 "권한 설정" 버튼** → 3역할×8메뉴 매트릭스 UI(토글), `GET/PATCH /auth/role-permissions` 연동. 실장 로그인 시엔 조회만 되고 저장 버튼은 비활성화(백엔드도 `PATCH`는 원장 전용으로 막지만 UX상 미리 막는 게 맞음).
-  2. 각 메뉴 화면에서 로그인한 사용자의 `canEdit`이 `false`인 항목은 수정/삭제 버튼을 미리 숨기거나 비활성화(백엔드가 최종 방어선이므로 필수는 아니지만 UX 개선). `GET /auth/role-permissions`를 앱 진입 시 한 번 불러와 클라이언트에 캐시해두고 자기 role에 맞는 행만 걸러 쓰는 방식 권장.
+- **프론트엔드 연동 완료 내역 (Gemini)**:
+  1. **타입 정의 및 메타데이터 (`src/types/permission.ts`)**:
+     - `PermissionModule` (8개 모듈), `ControllableRole` (ADMIN/TEACHER/STAFF), `RolePermissionItem`, `UpdateRolePermissionItem`, `PERMISSION_MODULES`, `CONTROLLABLE_ROLES`, `DEFAULT_ROLE_PERMISSIONS` 정의.
+  2. **API 서비스 및 판정 유틸 (`src/lib/permissions-service.ts`)**:
+     - `getRolePermissions()` (`GET /auth/role-permissions`), `updateRolePermissions()` (`PATCH /auth/role-permissions`) 구현.
+     - `canEditModule(role, module, permissions)` 헬퍼 구현: OWNER/SUPER_ADMIN은 항상 전권(true), ADMIN/TEACHER/STAFF는 전달된 매트릭스 또는 시스템 기본값으로 정밀 판정.
+  3. **전역 권한 캐시 스토어 (`src/stores/usePermissionsStore.ts`) & 레이아웃 연동 (`src/components/common/AppLayout.tsx`)**:
+     - Zustand 기반 `usePermissionsStore` 생성: 권한 매트릭스 캐싱, 원장 변경 시 즉시 동기화, `canEdit(module)` 전역 쿼리 지원.
+     - `AppLayout` 마운트 시 권한 매트릭스 자동 프리패치 및 주기적 동기화 연결.
+  4. **역할별 권한 매트릭스 모달 UI (`src/components/staff/RolePermissionsModal.tsx`)**:
+     - **3역할 × 8메뉴 전체 매트릭스 한눈에 보기 (Table View)** 및 **역할별 상세 카드 뷰 (Card Grid View)** 지원.
+     - 원장(OWNER) 편집 모드: 각 셀별 원클릭 토글 스위치(수정 가능 ↔ 조회 전용), 역할별 일괄 허용/차단 버튼, "기본값 복원" 버튼, 변경 건수 감지 및 `PATCH /auth/role-permissions` 저장 연동.
+     - 실장(ADMIN) 모드: 권한 현황 조회 전용 지원 및 "원장님만 권한 수정이 가능합니다" 안내 배지 표출.
+  5. **교직원 관리 센터 헤더 액션 연동 (`src/app/staff/page.tsx`)**:
+     - 상단 헤더 빠른 실행 영역에 `[Sliders 역할별 권한 설정]` 버튼 추가 (원장/실장에게 노출).
+     - 권한 저장 성공 시 토스트 알림 연동.
 - **DTO/스키마**: 신규 `RolePermission` 모델(+`PermissionModule` enum, 8종), 마이그레이션 `20260908070000_add_role_permissions`.
-- **상태**: ⏳ 프론트엔드 연동 대기 중
+- **빌드 검증**: `next build` 20개 라우트 정상 빌드 통과 (exit code 0).
+- **상태**: ✅ 백엔드 및 프론트엔드 연동 완료
 
 ---
 

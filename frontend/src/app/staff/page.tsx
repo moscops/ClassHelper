@@ -33,6 +33,7 @@ import {
   AlertTriangle,
   Copy,
   Check,
+  Sliders,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { staffService } from '@/lib/staff-service';
@@ -44,6 +45,7 @@ import {
 } from '@/types/staff';
 import { CustomDropdown, DropdownOption } from '@/components/CustomDropdown';
 import { AppLayout } from '@/components/common/AppLayout';
+import { RolePermissionsModal } from '@/components/staff/RolePermissionsModal';
 
 export default function StaffPage() {
   const router = useRouter();
@@ -119,6 +121,9 @@ export default function StaffPage() {
   const [isRegeneratingJoinCode, setIsRegeneratingJoinCode] = useState(false);
   const [copiedJoinCode, setCopiedJoinCode] = useState(false);
   const [copiedInviteLink, setCopiedInviteLink] = useState(false);
+
+  // Role Permissions Modal State
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
 
   // Korean Today Date String (Dashboard Spec)
   const todayDateStr = useMemo(() => {
@@ -625,6 +630,17 @@ export default function StaffPage() {
                   <KeyRound className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   <span>학원 초대 코드</span>
                 </button>
+
+                {(user?.role === 'OWNER' || user?.role === 'ADMIN') && (
+                  <button
+                    onClick={() => setIsPermissionsModalOpen(true)}
+                    className="px-3.5 py-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+                    title="실장/강사/조교 역할별 8대 메뉴 수정 권한 매트릭스 설정"
+                  >
+                    <Sliders className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <span>역할별 권한 설정</span>
+                  </button>
+                )}
 
                 <button
                   onClick={handleOpenCreateModal}
@@ -2129,6 +2145,15 @@ export default function StaffPage() {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 7: 역할별 메뉴 권한 매트릭스 설정 모달                                 */}
+      {/* ========================================================================= */}
+      <RolePermissionsModal
+        isOpen={isPermissionsModalOpen}
+        onClose={() => setIsPermissionsModalOpen(false)}
+        onSuccess={(msg) => setToastMessage({ type: 'success', text: msg })}
+      />
     </AppLayout>
   );
 }
