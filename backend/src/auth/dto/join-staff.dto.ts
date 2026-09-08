@@ -10,22 +10,28 @@ import {
   Matches,
 } from 'class-validator';
 
-export class RegisterStaffDto {
+export class JoinStaffDto {
   @ApiProperty({
-    description: '강사/직원 이메일 (로그인 ID)',
-    example: 'teacher1@classhelper.kr',
+    description: '원장/실장에게 전달받은 학원 자가입 코드',
+    example: 'a1b2c3d4e5f6...',
+  })
+  @IsString()
+  @IsNotEmpty({ message: '학원 코드를 입력해주세요.' })
+  code: string;
+
+  @ApiProperty({
+    description: '이메일 (로그인 ID)',
+    example: 'teacher2@classhelper.kr',
   })
   @IsEmail({}, { message: '올바른 이메일 형식을 입력해주세요.' })
   @IsNotEmpty({ message: '이메일을 입력해주세요.' })
   email: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description:
-      '초기 비밀번호 (8자 이상, 영문/숫자/특수문자 포함). 생략하면 서버가 임시 비밀번호를 자동 생성하여 응답에 1회 반환한다. ' +
-      '어느 경우든 최초 로그인 시 비밀번호 변경이 필요하도록 표시된다.',
+      '비밀번호 (8자 이상, 영문/숫자/특수문자 포함) — 본인이 직접 지정한다.',
     example: 'Teacher123!',
   })
-  @IsOptional()
   @IsString()
   @MinLength(8, { message: '비밀번호는 최소 8자 이상이어야 합니다.' })
   @Matches(
@@ -35,27 +41,27 @@ export class RegisterStaffDto {
         '비밀번호는 영문, 숫자, 특수문자(!@#$%^&* 등)를 모두 포함하여 8자 이상이어야 합니다.',
     },
   )
-  password?: string;
+  password: string;
 
-  @ApiProperty({ description: '이름', example: '이강사' })
+  @ApiProperty({ description: '이름', example: '박강사' })
   @IsString()
   @IsNotEmpty({ message: '이름을 입력해주세요.' })
   name: string;
 
-  @ApiPropertyOptional({ description: '휴대폰 번호', example: '010-9876-5432' })
+  @ApiPropertyOptional({ description: '휴대폰 번호', example: '010-1111-2222' })
   @IsString()
   @IsOptional()
   phone?: string;
 
   @ApiProperty({
     description:
-      '직책/권한 (TEACHER, ADMIN, STAFF만 지정 가능 — OWNER/SUPER_ADMIN은 이 API로 절대 만들 수 없다)',
-    enum: [UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF],
-    default: UserRole.TEACHER,
+      '직책 (TEACHER, STAFF만 자가입 가능 — ADMIN/OWNER/SUPER_ADMIN은 자가입으로 절대 될 수 없다. ' +
+      '실장 승격이 필요하면 가입 후 원장이 교직원 관리에서 변경한다.)',
+    enum: [UserRole.TEACHER, UserRole.STAFF],
     example: UserRole.TEACHER,
   })
-  @IsIn([UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF], {
-    message: '유효한 역할을 선택해주세요 (TEACHER, ADMIN, STAFF).',
+  @IsIn([UserRole.TEACHER, UserRole.STAFF], {
+    message: '자가입은 TEACHER 또는 STAFF만 선택할 수 있습니다.',
   })
   role: UserRole;
 }

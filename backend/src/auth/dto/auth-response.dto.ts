@@ -1,5 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole, PlanTier, SubscriptionStatus } from '@prisma/client';
+import {
+  UserRole,
+  UserStatus,
+  PlanTier,
+  SubscriptionStatus,
+} from '@prisma/client';
 
 export class SubscriptionSummaryDto {
   @ApiProperty({ enum: PlanTier, example: PlanTier.FREE })
@@ -51,6 +56,33 @@ export class StaffRegisteredResponseDto extends UserProfileDto {
     example: 'Xk7#mQ2p9!',
   })
   tempPassword?: string;
+}
+
+export class StaffMemberResponseDto extends UserProfileDto {
+  @ApiProperty({
+    description:
+      '재직 상태. INACTIVE는 퇴사 처리된(소프트 삭제) 계정으로 로그인이 차단된다.',
+    enum: UserStatus,
+    example: UserStatus.ACTIVE,
+  })
+  status: UserStatus;
+
+  @ApiProperty({ description: '담당 중인 수업 수', example: 2 })
+  taughtClassesCount: number;
+
+  @ApiProperty({ description: '작성한 수업일지 수', example: 15 })
+  classLogsCount: number;
+
+  @ApiProperty({ description: '처리한 수납 건수', example: 8 })
+  processedPaymentsCount: number;
+}
+
+export class StaffDeactivatedResponseDto {
+  @ApiProperty({ example: true })
+  success: boolean;
+
+  @ApiProperty({ example: '퇴사 처리되었습니다.' })
+  message: string;
 }
 
 export class AcademySummaryDto {

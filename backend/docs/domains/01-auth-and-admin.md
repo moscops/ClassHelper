@@ -18,6 +18,7 @@
   * `phoneNumber`: 학원 대표번호 (알림톡 발신번호로 사용)
   * `address`: 학원 소재지 주소
   * `settings`: 학원별 알림 설정 및 커스텀 JSONB 옵션
+  * `staffJoinCode`: 교직원 학원코드 자가입용 비밀 코드 (미발급 시 `null`) — `kioskToken`과 동일한 발급/재발급 패턴 (2026-09-08 추가)
 
 ### 2) `User` (사용자 계정)
 * **역할**: 시스템에 로그인하여 학원 업무 또는 플랫폼 관리 작업을 수행하는 주체.
@@ -30,6 +31,7 @@
   * `role`: `UserRole` (`SUPER_ADMIN`, `OWNER`, `ADMIN`, `TEACHER`, `STAFF`)
   * `hashedRefreshToken`: RTR 보안 토큰 해시
   * `mustChangePassword`: 원장/관리자가 대신 계정을 만들며 비밀번호를 발급한 경우 `true` — `PATCH /auth/change-password` 성공 시 `false`로 해제 (2026-09-07 추가)
+  * `status`: `UserStatus` (`ACTIVE`, `INACTIVE`) — 퇴사 처리(소프트 삭제) 여부. `INACTIVE`는 로그인이 차단된다. 하드 삭제를 쓰지 않는 이유는 `ClassLog.teacher` 등 다수 관계가 `onDelete: Cascade`라 실제 삭제 시 해당 교직원이 남긴 수업일지/결제 이력이 함께 사라지기 때문 (2026-09-08 추가)
 
 ### 3) `AuditLog` (관리자 감사 로그)
 * **역할**: 슈퍼 관리자 또는 원장님의 고위험 작업(학원 정지, 권한 변경, 강제 데이터 수정 등)을 영구 기록.
@@ -66,8 +68,11 @@
 | **학원 계정 승인 / 일시정지** | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **플랫폼 보안 감사 로그 열람** | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **학원 기본 정보 & 설정 수정** | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **강사/직원 신규 등록 및 권한 부여** | ❌ | ✅ | ❌ | ❌ | ❌ |
-| **본인 학원 강사/직원 목록 조회** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **강사/직원 신규 등록 및 권한 부여** | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **학원코드 자가입 코드 발급/조회** | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **교직원(강사/조교) 목록 조회·정보 수정·퇴사 처리** | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **교직원(강사/조교) 비밀번호 초기화** | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **원장/실장(OWNER/ADMIN) 비밀번호 초기화** | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **본인 비밀번호 및 프로필 수정** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **학원 요금제 등급 변경** | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **본인 학원 요금제 조회 (`/auth/me`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -144,10 +149,57 @@
 * **Response Body (`ChangePasswordResponseDto`)**: `{ "success": true, "message": "비밀번호가 성공적으로 변경되었습니다." }`
 * **동작 특성**: 현재 비밀번호 불일치 시 `401 Unauthorized`. `/auth/login`과 동일한 수준의 Throttle(60초 5회) 적용. 성공 시 `mustChangePassword`를 `false`로 해제 — 원장이 발급한 임시 비밀번호로 로그인한 계정이 이 API를 통해 정상 계정으로 전환된다.
 
+### 4.2.2. 교직원 목록 조회 — 2026-09-08 신규
+* **엔드포인트**: `GET /auth/staff?includeInactive=false` (`OWNER`, `ADMIN`)
+* **Response Body**: `StaffMemberResponseDto[]` — `UserProfileDto` + `status`, `taughtClassesCount`, `classLogsCount`, `processedPaymentsCount`.
+* **동작 특성**: `academyId` 스코프. 기본은 재직(`ACTIVE`)만 포함하며 `includeInactive=true`면 퇴사자(`INACTIVE`)도 함께 반환한다.
+
+### 4.2.3. 교직원 정보 수정 — 2026-09-08 신규
+* **엔드포인트**: `PATCH /auth/staff/:id` (`OWNER`, `ADMIN`)
+* **Request Body (`UpdateStaffDto`)**: `{ "name": "박강사", "phone": "010-1111-2222", "role": "ADMIN" }` — 전부 선택.
+* **Response Body**: `StaffMemberResponseDto`.
+* **동작 특성**: 대상이 다른 학원 소속이거나 없으면 `404`. 대상이 원장(`OWNER`)이면 `403`(이 API로 수정 불가). `role`은 DTO에서 `ADMIN`/`TEACHER`/`STAFF`로만 제한(권한 상승 방지 — `OWNER`/`SUPER_ADMIN`으로는 절대 변경 불가).
+
+### 4.2.4. 교직원 비밀번호 초기화 — 2026-09-08 신규
+* **엔드포인트**: `PATCH /auth/staff/:id/password` (`OWNER`, `ADMIN`, Body 없음)
+* **Response Body (`StaffRegisteredResponseDto`)**: `UserProfileDto` + `tempPassword`(이 응답에서만 1회 평문 반환).
+* **동작 특성**: 대상이 원장/실장(`OWNER`/`ADMIN`)이면 `403` — 서버가 실제로 강제하며, 프론트 버튼 숨김에만 의존하지 않는다(본인 비밀번호는 §4.2.1로만 변경 가능). 성공 시 새 임시 비밀번호로 초기화하고 `mustChangePassword=true`, 대상의 `hashedRefreshToken`을 무효화(강제 로그아웃)한다.
+
+### 4.2.5. 교직원 퇴사 처리 — 2026-09-08 신규
+* **엔드포인트**: `DELETE /auth/staff/:id` (`OWNER`, `ADMIN`)
+* **Response Body (`StaffDeactivatedResponseDto`)**: `{ "success": true, "message": "퇴사 처리되었습니다." }`
+* **동작 특성**: 소프트 삭제 — `User.status`를 `INACTIVE`로 바꾸고 `hashedRefreshToken`을 무효화한다(하드 삭제 아님, §1 참고). 대상이 원장이거나 요청자 본인이면 `403`.
+
+### 4.2.6. 학원코드 자가입 코드 발급/재발급 — 2026-09-08 신규
+* **엔드포인트**: `POST /auth/staff-join-code` (`OWNER`, `ADMIN`)
+* **Response Body (`StaffJoinCodeResponseDto`)**: `{ "staffJoinCode": "a1b2c3..." }`
+* **동작 특성**: `kiosk-token`과 동일한 패턴 — 재발급 시 기존 코드는 즉시 무효화된다.
+
+### 4.2.7. 학원코드 조회 (재발급 없음) — 2026-09-08 신규
+* **엔드포인트**: `GET /auth/staff-join-code` (`OWNER`, `ADMIN`)
+* **Response Body (`StaffJoinCodeResponseDto`)**: `{ "staffJoinCode": string | null }` — 미발급 시 `null`.
+* **동작 특성**: `GET /attendance/kiosk-token`과 동일한 이유 — 여러 기기에서 열 때 로컬 캐시 대신 이 값을 신뢰해야 한다.
+
+### 4.2.8. 학원코드로 교직원 자가입 — 2026-09-08 신규
+* **엔드포인트**: `POST /auth/join-staff` (인증 불필요)
+* **Request Body (`JoinStaffDto`)**:
+  ```json
+  {
+    "code": "a1b2c3d4e5f6...",
+    "email": "teacher2@classhelper.kr",
+    "password": "Teacher123!",
+    "name": "박강사",
+    "phone": "010-1111-2222",
+    "role": "TEACHER"
+  }
+  ```
+* **Response Body (`AuthResponseDto`)**: 4.1과 동일한 형태 — 가입과 동시에 로그인 처리되어 토큰이 즉시 발급된다.
+* **동작 특성**: 원장/실장이 공유한 학원코드로 강사/조교 본인이 **승인 절차 없이 즉시** 해당 학원 소속 계정을 만든다. `role`은 DTO에서 `TEACHER`/`STAFF`만 허용(`ADMIN`/`OWNER`로는 절대 자가입 불가 — 승격이 필요하면 가입 후 §4.2.3으로 원장/실장이 변경). 비밀번호는 본인이 직접 정하므로 `mustChangePassword=false`로 시작. 코드가 유효하지 않으면 `404`, 이메일 중복 시 `409`. `/auth/login`과 동일한 Throttle(60초 5회) 적용. 기존 `POST /auth/register-staff`(원장/실장이 직접 계정 생성)는 폐기되지 않고 그대로 병행 유지된다.
+
 ### 4.3. 로그인
 * **엔드포인트**: `POST /auth/login` (인증 불필요)
 * **Request Body (`LoginDto`)**: `{ "email": "owner@classhelper.kr", "password": "password123!" }`
-* **Response Body (`AuthResponseDto`)**: 4.1과 동일한 형태로 Access/Refresh Token과 `user`, `academy` 정보를 반환합니다. 이메일/비밀번호 불일치 시 `401 Unauthorized`.
+* **Response Body (`AuthResponseDto`)**: 4.1과 동일한 형태로 Access/Refresh Token과 `user`, `academy` 정보를 반환합니다. 이메일/비밀번호 불일치 시 `401 Unauthorized`. 퇴사 처리(`status=INACTIVE`)된 계정도 동일하게 `401`(계정 상태를 유추할 수 없도록 자격증명 불일치와 같은 메시지) — 2026-09-08 추가.
 
 ### 4.4. 토큰 재발급 (RTR)
 * **엔드포인트**: `POST /auth/refresh` (인증 불필요, Refresh Token 필요)

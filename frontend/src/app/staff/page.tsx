@@ -56,7 +56,8 @@ export default function StaffPage() {
   const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>('GRID');
 
   // Copy feedback state
-  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState<number | string | null>(null);
+
 
   // Toast / Alert banner
   const [toastMessage, setToastMessage] = useState<{
@@ -103,14 +104,21 @@ export default function StaffPage() {
   const [editError, setEditError] = useState<string | null>(null);
 
   // Password Reset State
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   // Delete State
   const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Inactive Staff & Join Code State
+  const [includeInactive, setIncludeInactive] = useState(false);
+  const [isJoinCodeModalOpen, setIsJoinCodeModalOpen] = useState(false);
+  const [staffJoinCode, setStaffJoinCode] = useState<string | null>(null);
+  const [isLoadingJoinCode, setIsLoadingJoinCode] = useState(false);
+  const [isRegeneratingJoinCode, setIsRegeneratingJoinCode] = useState(false);
+  const [copiedJoinCode, setCopiedJoinCode] = useState(false);
+  const [copiedInviteLink, setCopiedInviteLink] = useState(false);
 
   // Korean Today Date String (Dashboard Spec)
   const todayDateStr = useMemo(() => {
@@ -131,7 +139,7 @@ export default function StaffPage() {
   const loadStaffData = async () => {
     setIsLoading(true);
     try {
-      const data = await staffService.getStaffList();
+      const data = await staffService.getStaffList(includeInactive);
       setStaffList(data);
     } catch {
       setToastMessage({
@@ -156,7 +164,8 @@ export default function StaffPage() {
         loadStaffData();
       }
     }
-  }, [isHydrated, isAuthenticated, user, router]);
+  }, [isHydrated, isAuthenticated, user, router, includeInactive]);
+
 
   // ESC key modal closing
   useEffect(() => {
@@ -195,7 +204,7 @@ export default function StaffPage() {
   }, [staffList]);
 
   // Copy to clipboard helper
-  const handleCopy = (text: string, id: number) => {
+  const handleCopy = (text: string, id: number | string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -319,7 +328,7 @@ export default function StaffPage() {
     setEditForm({
       name: staff.name,
       phone: staff.phone || '',
-      role: staff.role,
+      role: staff.role === 'OWNER' ? 'ADMIN' : staff.role,
     });
     setEditError(null);
     setIsEditModalOpen(true);
@@ -357,8 +366,6 @@ export default function StaffPage() {
   // Password Reset Action
   const handleOpenPasswordModal = (staff: StaffMember) => {
     setSelectedStaff(staff);
-    setNewPassword('');
-    setConfirmPassword('');
     setPasswordError(null);
     setIsPasswordModalOpen(true);
   };
@@ -366,36 +373,35 @@ export default function StaffPage() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStaff) return;
-    if (newPassword.length < 6) {
-      setPasswordError('새 비밀번호는 최소 6자 이상 입력해주세요.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordError('비밀번호 확인이 일치하지 않습니다.');
-      return;
-    }
 
     setIsSubmittingPassword(true);
     setPasswordError(null);
     try {
-      await staffService.resetStaffPassword(selectedStaff.id, {
-        newPassword,
-      });
+      const res = await staffService.resetStaffPassword(selectedStaff.id);
       setIsPasswordModalOpen(false);
       setToastMessage({
         type: 'success',
-        text: `[${selectedStaff.name}]님의 비밀번호가 재설정되었습니다.`,
+        text: `[${selectedStaff.name}]님의 비밀번호가 임시 비밀번호로 초기화되었습니다.`,
       });
+      if (res.tempPassword) {
+        setTempPasswordModalData({
+          name: selectedStaff.name,
+          email: selectedStaff.email,
+          role: selectedStaff.role,
+          tempPassword: res.tempPassword,
+        });
+      }
+      await loadStaffData();
     } catch (err: any) {
       setPasswordError(
-        err?.response?.data?.message || '비밀번호 재설정 중 오류가 발생했습니다.',
+        err?.response?.data?.message || '비밀번호 초기화 중 오류가 발생했습니다.',
       );
     } finally {
       setIsSubmittingPassword(false);
     }
   };
 
-  // Delete Action
+  // Delete / Deactivate Action
   const handleOpenDeleteModal = (staff: StaffMember) => {
     setSelectedStaff(staff);
     setDeleteError(null);
@@ -408,20 +414,57 @@ export default function StaffPage() {
     setDeleteError(null);
     try {
       await staffService.deleteStaff(selectedStaff.id);
-      setStaffList((prev) => prev.filter((s) => s.id !== selectedStaff.id));
       setIsDeleteModalOpen(false);
       setToastMessage({
         type: 'info',
-        text: `[${selectedStaff.name}]님이 퇴사/삭제 처리되었습니다.`,
+        text: `[${selectedStaff.name}] 교직원이 퇴사(비활성) 처리되었습니다.`,
       });
+      await loadStaffData();
     } catch (err: any) {
       setDeleteError(
-        err?.response?.data?.message || '교직원 삭제 중 오류가 발생했습니다.',
+        err?.response?.data?.message || '교직원 퇴사 처리 중 오류가 발생했습니다.',
       );
     } finally {
       setIsSubmittingDelete(false);
     }
   };
+
+  // Join Code Modal Actions
+  const handleOpenJoinCodeModal = async () => {
+    setIsJoinCodeModalOpen(true);
+    setIsLoadingJoinCode(true);
+    try {
+      const res = await staffService.getStaffJoinCode();
+      setStaffJoinCode(res.staffJoinCode);
+    } catch {
+      setToastMessage({
+        type: 'error',
+        text: '학원 초대 코드를 불러오는 중 오류가 발생했습니다.',
+      });
+    } finally {
+      setIsLoadingJoinCode(false);
+    }
+  };
+
+  const handleGenerateJoinCode = async () => {
+    setIsRegeneratingJoinCode(true);
+    try {
+      const res = await staffService.generateStaffJoinCode();
+      setStaffJoinCode(res.staffJoinCode);
+      setToastMessage({
+        type: 'success',
+        text: '새로운 학원 초대 코드가 성공적으로 발급되었습니다.',
+      });
+    } catch {
+      setToastMessage({
+        type: 'error',
+        text: '학원 초대 코드 발급 중 오류가 발생했습니다.',
+      });
+    } finally {
+      setIsRegeneratingJoinCode(false);
+    }
+  };
+
 
   // View Classes Action
   const handleOpenClassModal = (staff: StaffMember) => {
@@ -575,6 +618,15 @@ export default function StaffPage() {
                 </button>
 
                 <button
+                  onClick={handleOpenJoinCodeModal}
+                  className="px-3.5 py-2.5 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+                  title="강사/조교가 직접 가입할 수 있는 학원 초대 코드 조회 및 발급"
+                >
+                  <KeyRound className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <span>학원 초대 코드</span>
+                </button>
+
+                <button
                   onClick={handleOpenCreateModal}
                   className="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md shadow-indigo-600/20 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
                 >
@@ -582,6 +634,7 @@ export default function StaffPage() {
                   <span>+ 신규 교직원 등록</span>
                 </button>
               </div>
+
             </div>
           </div>
 
@@ -704,7 +757,7 @@ export default function StaffPage() {
               </div>
 
               {/* Role Filter Dropdown */}
-              <div className="w-full sm:w-48">
+              <div className="w-full sm:w-44">
                 <CustomDropdown
                   value={roleFilter}
                   onChange={(val) => setRoleFilter(val as any)}
@@ -712,7 +765,19 @@ export default function StaffPage() {
                   fullWidth
                 />
               </div>
+
+              {/* Inactive Staff Toggle */}
+              <label className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer select-none shrink-0 hover:bg-slate-200 dark:hover:bg-slate-700/80 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={includeInactive}
+                  onChange={(e) => setIncludeInactive(e.target.checked)}
+                  className="w-4 h-4 text-indigo-600 rounded-md border-slate-300 dark:border-slate-700 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                />
+                <span>퇴사자 포함</span>
+              </label>
             </div>
+
 
             {/* Right: View Mode Toggle & Total Counter */}
             <div className="w-full md:w-auto flex items-center justify-between sm:justify-end gap-3 shrink-0">
@@ -785,7 +850,11 @@ export default function StaffPage() {
                 const badge = getRoleBadge(staff.role);
                 const RoleIcon = badge.icon;
                 const isOwner = staff.role === 'OWNER';
+                const isAdmin = staff.role === 'ADMIN';
                 const isCurrentUser = user?.id === staff.id;
+                const canResetPassword = !isOwner && !isAdmin && !isCurrentUser;
+                const canEdit = !isOwner;
+                const canDelete = !isOwner && !isCurrentUser && staff.status !== 'INACTIVE';
 
                 return (
                   <div
@@ -820,6 +889,11 @@ export default function StaffPage() {
                               {isCurrentUser && (
                                 <span className="px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
                                   본인
+                                </span>
+                              )}
+                              {staff.status === 'INACTIVE' && (
+                                <span className="px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950 text-[10px] font-bold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900">
+                                  퇴사
                                 </span>
                               )}
                             </div>
@@ -858,15 +932,22 @@ export default function StaffPage() {
                         <div className="flex items-center justify-between gap-2 text-slate-600 dark:text-slate-400">
                           <div className="flex items-center gap-2 min-w-0 truncate">
                             <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span>{staff.phone || '연락처 미등록'}</span>
+                            <span className="truncate">
+                              {staff.phone || '연락처 미등록'}
+                            </span>
                           </div>
                           {staff.phone && (
-                            <a
-                              href={`tel:${staff.phone}`}
-                              className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
+                            <button
+                              onClick={() => handleCopy(staff.phone!, `phone-${staff.id}`)}
+                              className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                              title="연락처 복사"
                             >
-                              전화걸기
-                            </a>
+                              {copiedId === `phone-${staff.id}` ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
                           )}
                         </div>
 
@@ -880,13 +961,13 @@ export default function StaffPage() {
                       </div>
 
                       {/* Assigned Classes */}
-                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-1.5">
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                            <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
+                          <span className="font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                            <BookOpen className="w-3.5 h-3.5 text-slate-400" />
                             담당 수업 반
                           </span>
-                          <span className="text-[11px] text-slate-400">
+                          <span className="font-bold text-slate-900 dark:text-white">
                             {staff.taughtClasses?.length || 0}개 반
                           </span>
                         </div>
@@ -924,29 +1005,33 @@ export default function StaffPage() {
                     {/* Card Actions Footer */}
                     <div className="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenEditModal(staff)}
-                          className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                        >
-                          <Edit3 className="w-3.5 h-3.5 text-indigo-500" />
-                          <span>수정</span>
-                        </button>
+                        {canEdit && (
+                          <button
+                            onClick={() => handleOpenEditModal(staff)}
+                            className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>수정</span>
+                          </button>
+                        )}
 
-                        <button
-                          onClick={() => handleOpenPasswordModal(staff)}
-                          className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                          title="비밀번호 초기화"
-                        >
-                          <KeyRound className="w-3.5 h-3.5 text-amber-500" />
-                          <span>비번 초기화</span>
-                        </button>
+                        {canResetPassword && (
+                          <button
+                            onClick={() => handleOpenPasswordModal(staff)}
+                            className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                            title="비밀번호 초기화"
+                          >
+                            <KeyRound className="w-3.5 h-3.5 text-amber-500" />
+                            <span>비번 초기화</span>
+                          </button>
+                        )}
                       </div>
 
-                      {!isOwner && (
+                      {canDelete && (
                         <button
                           onClick={() => handleOpenDeleteModal(staff)}
                           className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
-                          title="교직원 삭제/퇴사 처리"
+                          title="교직원 퇴사 처리"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -976,7 +1061,11 @@ export default function StaffPage() {
                       const badge = getRoleBadge(staff.role);
                       const RoleIcon = badge.icon;
                       const isOwner = staff.role === 'OWNER';
+                      const isAdmin = staff.role === 'ADMIN';
                       const isCurrentUser = user?.id === staff.id;
+                      const canResetPassword = !isOwner && !isAdmin && !isCurrentUser;
+                      const canEdit = !isOwner;
+                      const canDelete = !isOwner && !isCurrentUser && staff.status !== 'INACTIVE';
 
                       return (
                         <tr
@@ -1009,6 +1098,11 @@ export default function StaffPage() {
                                       본인
                                     </span>
                                   )}
+                                  {staff.status === 'INACTIVE' && (
+                                    <span className="px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950 text-[10px] font-bold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900">
+                                      퇴사
+                                    </span>
+                                  )}
                                 </div>
                                 <span className="text-xs text-slate-400 block truncate">
                                   {staff.email}
@@ -1020,20 +1114,16 @@ export default function StaffPage() {
                           {/* Role */}
                           <td className="py-4 px-4">
                             <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${badge.bg} ${badge.text} ${badge.border}`}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border ${badge.bg} ${badge.text} ${badge.border}`}
                             >
-                              <RoleIcon className="w-3.5 h-3.5" />
+                              <RoleIcon className="w-3 h-3 shrink-0" />
                               <span>{badge.label}</span>
                             </span>
                           </td>
 
-                          {/* Phone */}
-                          <td className="py-4 px-4 text-slate-600 dark:text-slate-300">
-                            {staff.phone ? (
-                              <span>{staff.phone}</span>
-                            ) : (
-                              <span className="text-slate-400 text-xs italic">미등록</span>
-                            )}
+                          {/* Contact */}
+                          <td className="py-4 px-4 text-xs text-slate-600 dark:text-slate-300">
+                            {staff.phone || '연락처 미등록'}
                           </td>
 
                           {/* Assigned Classes */}
@@ -1071,21 +1161,25 @@ export default function StaffPage() {
                           {/* Actions */}
                           <td className="py-4 px-4 sm:px-6 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => handleOpenEditModal(staff)}
-                                className="p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 transition-colors cursor-pointer"
-                                title="정보 수정"
-                              >
-                                <Edit3 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleOpenPasswordModal(staff)}
-                                className="p-1.5 rounded-xl text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition-colors cursor-pointer"
-                                title="비밀번호 초기화"
-                              >
-                                <KeyRound className="w-4 h-4" />
-                              </button>
-                              {!isOwner && (
+                              {canEdit && (
+                                <button
+                                  onClick={() => handleOpenEditModal(staff)}
+                                  className="p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 transition-colors cursor-pointer"
+                                  title="정보 수정"
+                                >
+                                  <Edit3 className="w-4 h-4" />
+                                </button>
+                              )}
+                              {canResetPassword && (
+                                <button
+                                  onClick={() => handleOpenPasswordModal(staff)}
+                                  className="p-1.5 rounded-xl text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition-colors cursor-pointer"
+                                  title="비밀번호 초기화"
+                                >
+                                  <KeyRound className="w-4 h-4" />
+                                </button>
+                              )}
+                              {canDelete && (
                                 <button
                                   onClick={() => handleOpenDeleteModal(staff)}
                                   className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
@@ -1438,7 +1532,7 @@ export default function StaffPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: 비밀번호 초기화 모달                                               */}
+      {/* MODAL 3: 비밀번호 초기화 모달 (임시 비밀번호 1회 발급)                         */}
       {/* ========================================================================= */}
       {isPasswordModalOpen && selectedStaff && (
         <div
@@ -1455,7 +1549,7 @@ export default function StaffPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                    비밀번호 초기화
+                    교직원 비밀번호 초기화
                   </h3>
                   <p className="text-[11px] text-slate-400">{selectedStaff.name} ({selectedStaff.email})</p>
                 </div>
@@ -1481,36 +1575,26 @@ export default function StaffPage() {
                 </div>
               )}
 
-              <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200">
-                💡 원장님이 설정한 새 비밀번호로 해당 직원의 계정이 즉시 갱신됩니다. 직원이 로그인할 수 있도록 변경된 비밀번호를 전달해주세요.
+              <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 space-y-2">
+                <div className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>비밀번호 초기화 안내</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-amber-800/90 dark:text-amber-300/90">
+                  • <strong>{selectedStaff.name}</strong> 님의 계정 비밀번호가 영문, 숫자, 특수문자가 포함된 강력한 <strong>임시 비밀번호</strong>로 초기화됩니다.
+                  <br />
+                  • 초기화 즉시 해당 교직원의 기존 접속 세션은 <strong>강제 로그아웃</strong>됩니다.
+                  <br />
+                  • 새로 발급된 임시 비밀번호는 완료 직후 <strong>화면에 1회 표시</strong>되며, 복사하여 전달할 수 있습니다.
+                </p>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  새 비밀번호 <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="최소 6자 이상"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  비밀번호 확인 <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  required
-                  placeholder="새 비밀번호 다시 입력"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                />
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-xs space-y-1">
+                <div className="text-slate-500 dark:text-slate-400">초기화 대상 교직원</div>
+                <div className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                  {selectedStaff.name} ({selectedStaff.role === 'TEACHER' ? '강사' : selectedStaff.role === 'ADMIN' ? '실장' : '조교'})
+                </div>
+                <div className="text-slate-400 text-[11px]">{selectedStaff.email}</div>
               </div>
             </form>
 
@@ -1531,10 +1615,10 @@ export default function StaffPage() {
                 {isSubmittingPassword ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>재설정 중...</span>
+                    <span>발급 중...</span>
                   </>
                 ) : (
-                  <span>비밀번호 재설정 완료</span>
+                  <span>임시 비밀번호 발급 및 초기화</span>
                 )}
               </button>
             </div>
@@ -1852,6 +1936,200 @@ export default function StaffPage() {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 6: 교직원 학원 초대 코드 관리 모달                                    */}
+
+      {/* ========================================================================= */}
+      {isJoinCodeModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsJoinCodeModalOpen(false);
+          }}
+        >
+          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="shrink-0 flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center shadow-2xs">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    교직원 학원 초대 코드
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    강사/조교가 코드로 직접 가입하면 즉시 학원 교직원으로 등록됩니다.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsJoinCodeModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5">
+              {isLoadingJoinCode ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
+                  <Loader2 className="w-7 h-7 animate-spin text-indigo-600" />
+                  <span className="text-xs">학원 초대 코드 확인 중...</span>
+                </div>
+              ) : !staffJoinCode ? (
+                <div className="py-8 text-center space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">
+                    <KeyRound className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                      아직 발급된 초대 코드가 없습니다
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                      초대 코드를 생성하면 강사 및 조교가 코드를 입력하여 간편하게 직접 가입할 수 있습니다.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGenerateJoinCode}
+                    disabled={isRegeneratingJoinCode}
+                    className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold inline-flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20 disabled:opacity-50"
+                  >
+                    {isRegeneratingJoinCode ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                    <span>초대 코드 발급하기</span>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Code Display Box */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                      <span>우리 학원 교직원 가입 코드</span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> 유효한 코드
+                      </span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400 tracking-wider select-all break-all text-center">
+                        {staffJoinCode}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(staffJoinCode);
+                          setCopiedJoinCode(true);
+                          setTimeout(() => setCopiedJoinCode(false), 2000);
+                        }}
+                        className="shrink-0 px-3.5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                      >
+                        {copiedJoinCode ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-300" />
+                            <span>복사됨!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" />
+                            <span>코드 복사</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Invite Link Box */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      원클릭 교직원 초대 링크
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={typeof window !== 'undefined' ? `${window.location.origin}/login?tab=join&code=${staffJoinCode}` : ''}
+                        className="flex-1 px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 select-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const link = `${window.location.origin}/login?tab=join&code=${staffJoinCode}`;
+                          navigator.clipboard.writeText(link);
+                          setCopiedInviteLink(true);
+                          setTimeout(() => setCopiedInviteLink(false), 2000);
+                        }}
+                        className="shrink-0 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
+                      >
+                        {copiedInviteLink ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-600" />
+                            <span>링크 복사됨!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" />
+                            <span>링크 복사</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Guide Alert */}
+                  <div className="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 text-xs text-indigo-900 dark:text-indigo-200 space-y-1">
+                    <div className="font-bold flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <span>교직원 자가입 안내</span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-indigo-700 dark:text-indigo-300">
+                      선생님이나 조교님께 위 코드 또는 초대 링크를 전달해주세요. 초대 링크로 접속하면 학원 코드가 자동 입력되어 간편하게 가입 및 로그인이 완료됩니다.
+                    </p>
+                  </div>
+
+                  {/* Regenerate Warning & Button */}
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400">
+                      보안을 위해 주기적인 재발급을 권장합니다.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm('학원 코드를 재발급하시겠습니까? 기존 코드는 즉시 무효화되어 이전에 전달한 링크로는 가입할 수 없습니다.')) {
+                          handleGenerateJoinCode();
+                        }
+                      }}
+                      disabled={isRegeneratingJoinCode}
+                      className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isRegeneratingJoinCode ? 'animate-spin' : ''}`} />
+                      <span>코드 재발급</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="shrink-0 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/60 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setIsJoinCodeModalOpen(false)}
+                className="px-4 py-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
+

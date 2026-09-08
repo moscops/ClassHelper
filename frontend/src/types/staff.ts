@@ -19,6 +19,7 @@ export interface StaffMember {
   name: string;
   phone?: string | null;
   role: StaffRole;
+  status?: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
   updatedAt?: string;
   mustChangePassword?: boolean;
@@ -31,7 +32,6 @@ export interface StaffMember {
 
 export type StaffRegisteredResult = StaffMember;
 
-
 export interface CreateStaffInput {
   email: string;
   password?: string;
@@ -43,11 +43,24 @@ export interface CreateStaffInput {
 export interface UpdateStaffInput {
   name?: string;
   phone?: string;
-  role?: StaffRole;
+  role?: 'ADMIN' | 'TEACHER' | 'STAFF';
 }
 
 export interface ResetStaffPasswordInput {
   newPassword?: string;
+}
+
+export interface JoinStaffInput {
+  code: string;
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+  role: 'TEACHER' | 'STAFF';
+}
+
+export interface StaffJoinCodeResponse {
+  staffJoinCode: string | null;
 }
 
 export interface StaffStats {
@@ -59,3 +72,4 @@ export interface StaffStats {
   assignedClassesCount: number;
   activeAccountsCount: number;
 }
+

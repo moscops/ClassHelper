@@ -9,6 +9,47 @@
 
 ## 🔄 최근 동기화 히스토리 (최신순)
 
+### 📅 2026-09-08: 교직원 관리 실제 백엔드 구현 + 학원코드 자가입 + 비번초기화 보안 강화
+- **작성자**: Claude (Backend)
+- **작업 배경**:
+  - 사용자 리포트: "교직원 관리 페이지에서 원장 본인도 현재 비밀번호 없이 새 비밀번호로 변경할 수 있다."
+  - 확인 결과 **`GET/PATCH/DELETE /auth/staff/*`가 백엔드에 아예 존재하지 않았음**. `staff-service.ts`가 이 경로들을 호출하다 실패하면 `catch`로 무시하고 `localStorage` 목업으로 폴백하며 가짜 성공 메시지를 보여주고 있었다 — 즉 지금까지 교직원 목록/수정/비번초기화/퇴사 처리가 **전부 프론트 전용 목업**이었고 실제로는 아무것도 저장되지 않았다.
+  - 사용자 요청 3가지: (1) 원장/실장 본인 행에는 비번 초기화 버튼이 없어야 함, (2) 본인 비밀번호 변경은 "보안 관리" 사이드바 탭으로 분리(프론트 작업, 사용자가 직접 진행), (3) 원장/실장이 직접 계정을 만드는 대신 학원코드로 강사/조교가 자가입하도록.
+- **변경/추가된 API 엔드포인트**:
+  - `GET /auth/staff?includeInactive=false` (OWNER/ADMIN): 교직원 목록. 기본 재직만, `includeInactive=true`면 퇴사자 포함.
+  - `PATCH /auth/staff/:id` (OWNER/ADMIN): 이름/연락처/직책 수정. 대상이 OWNER면 403.
+  - `PATCH /auth/staff/:id/password` (OWNER/ADMIN, Body 없음): 비밀번호 초기화 → `tempPassword` 1회 반환. **대상이 OWNER/ADMIN이면 403** — 서버가 실제로 막는다(프론트 버튼 숨김과 별개).
+  - `DELETE /auth/staff/:id` (OWNER/ADMIN): 퇴사 처리(소프트 삭제, `status=INACTIVE`). 대상이 OWNER이거나 본인이면 403.
+  - `POST /auth/staff-join-code` / `GET /auth/staff-join-code` (OWNER/ADMIN): 학원코드 자가입용 코드 발급·재발급 / 조회(kiosk-token과 동일 패턴).
+  - `POST /auth/join-staff` (비인증, `/auth/login`과 동일 Throttle): `{ code, email, password, name, phone?, role }`로 강사/조교 본인이 즉시 자가입 + 자동 로그인(토큰 발급). `role`은 TEACHER/STAFF만 가능.
+  - 기존 `POST /auth/register-staff`(원장/실장 직접 등록)는 그대로 병행 유지.
+- **주요 DTO 및 스키마 변경 사항**:
+  - `User.status: UserStatus`(`ACTIVE`/`INACTIVE`, 신규 enum, 신규 컬럼) — 하드 삭제 대신 소프트 삭제(교직원의 수업일지/결제이력 등 참조 데이터 보존 목적). `INACTIVE`는 로그인 차단.
+  - `Academy.staffJoinCode: String?` (신규, unique) — `kioskToken`과 동일한 성격.
+  - `StaffMemberResponseDto` 신규(`UserProfileDto` + `status`, `taughtClassesCount`, `classLogsCount`, `processedPaymentsCount`).
+  - **보안 수정**: `RegisterStaffDto.role`이 기존엔 `UserRole` 전체(`OWNER`/`SUPER_ADMIN` 포함)를 허용해 실장이 자기 자신을 원장/최고관리자로 승격시킬 수 있는 권한상승 취약점이 있었음 — `ADMIN`/`TEACHER`/`STAFF`로만 제한. `UpdateStaffDto.role`/`JoinStaffDto.role`도 동일 제한.
+  - 마이그레이션 `20260908050000_add_staff_management` — **이 세션도 샌드박스에 docker/DB 접근 권한이 없어 실제 DB에는 미적용**(파일만 수기 작성, `prisma generate`로 타입만 갱신). 배포 시 Dockerfile CMD가 자동 반영, 로컬 dev DB는 별도 `migrate deploy` 필요.
+- **프론트엔드 연동 반영 내역 (Gemini)**:
+  1. **`staff-service.ts` 전면 개편 및 실제 백엔드 연동**:
+     - 기존 `localStorage` 기반 mock 폴백을 완전 제거하고 백엔드 API 에러가 사용자에게 투명하게 전달되도록 표준화.
+     - `getStaffList(includeInactive)`, `updateStaff`, `resetStaffPassword`, `deleteStaff`, `getStaffJoinCode`, `generateStaffJoinCode`, `joinStaffByCode` 구현.
+     - `authService.joinStaff` 메서드 추가 연동.
+  2. **교직원 관리 페이지(`src/app/staff/page.tsx`) 권한 및 UI 보안 제한 강화**:
+     - `OWNER`(원장), `ADMIN`(실장), `isCurrentUser`(본인)에 대해 "비번 초기화" 버튼 렌더링 원천 차단 (`canResetPassword = !isOwner && !isAdmin && !isCurrentUser`).
+     - 비번 초기화 모달을 수동 입력 대신 10자리 임시 비밀번호 1회 발급 확인 플로우로 전환 및 1회성 확인 모달 연동.
+     - 상단에 "학원 초대 코드" 모달(조회, 재발급, 코드 및 초대 링크 원클릭 복사) 탑재.
+     - 퇴사자 포함 필터(`includeInactive`) 및 상태 뱃지(`ACTIVE` / `INACTIVE`), 복합 통계 연동.
+  3. **사이드바 "보안 관리" 전용 탭 분리 (`src/components/common/AppLayout.tsx`)**:
+     - 기존 우측 다크모드 스위치 옆 비밀번호 변경 아이콘 버튼 완전 제거.
+     - 좌측 사이드바 "계정 & 보안" 및 "보안 & 거버넌스" 그룹에 `[보안 관리]` (`/change-password`, `ShieldCheck` 아이콘) 메뉴 탭 신규 배치.
+  4. **학원 코드 기반 교직원 자가입 플로우 (`src/app/login/page.tsx`, `src/app/join/page.tsx`)**:
+     - 로그인 페이지 상단에 `[✨ 교직원 초대 가입]` 탭 추가: 학원 초대 코드, 직책(강사/조교), 이름, 이메일, 연락처, 비밀번호 입력 후 원클릭 자가입 및 대시보드 자동 로그인.
+     - 초대 링크(`/join?code=...` 또는 `/login?tab=join&code=...`) prefill 및 자동 탭 전환 지원.
+- **빌드 검증**: `next build` 20개 라우트 정상 빌드 통과 (exit code 0)
+- **상태**: ✅ 백엔드 및 프론트엔드 연동 완료
+
+---
+
 ### 📅 2026-09-08: 비밀번호 변경 화면 구현, 로그인/대시보드 강제 변경 가드 및 교직원 임시 비밀번호 1회 발급 연동 완료
 - **작성자**: Gemini (Frontend)
 - **작업 배경**:

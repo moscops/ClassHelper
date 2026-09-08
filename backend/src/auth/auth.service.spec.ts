@@ -7,7 +7,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { UserRole, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -30,6 +30,7 @@ describe('AuthService', () => {
     role: UserRole.OWNER,
     hashedRefreshToken: 'hashed_refresh_token_value',
     mustChangePassword: false,
+    status: UserStatus.ACTIVE,
     createdAt: new Date(),
     updatedAt: new Date(),
     academy: {
@@ -48,11 +49,15 @@ describe('AuthService', () => {
     prisma = {
       user: {
         findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
       },
       academy: {
         create: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
       },
       subscription: {
         create: jest.fn(),
@@ -289,6 +294,22 @@ describe('AuthService', () => {
         }),
       ).rejects.toThrow(UnauthorizedException);
     });
+
+    it('퇴사 처리(INACTIVE)된 계정은 비밀번호가 맞아도 UnauthorizedException 발생', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        status: UserStatus.INACTIVE,
+      });
+
+      await expect(
+        service.login({
+          email: 'owner@classhelper.kr',
+          password: 'password123!',
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+      // 자격증명 실패와 구분되지 않도록 비밀번호 대조 자체를 시도하지 않아야 한다.
+      expect(bcrypt.compare).not.toHaveBeenCalled();
+    });
   });
 
   describe('refreshTokens', () => {
@@ -410,6 +431,271 @@ describe('AuthService', () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
       await expect(service.getMe(999)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  const mockCurrentOwner = {
+    userId: 1,
+    academyId: 10,
+    email: 'owner@classhelper.kr',
+    name: '김원장',
+    role: UserRole.OWNER,
+  };
+
+  const mockTeacher = {
+    id: 2,
+    academyId: 10,
+    email: 'teacher@classhelper.kr',
+    password: 'hashedPassword',
+    name: '이강사',
+    phone: null,
+    role: UserRole.TEACHER,
+    hashedRefreshToken: null,
+    mustChangePassword: false,
+    status: UserStatus.ACTIVE,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    _count: { taughtClasses: 2, classLogs: 5, processedPayments: 1 },
+  };
+
+  describe('listStaff', () => {
+    it('academyId로 스코프된 재직(ACTIVE) 교직원 목록을 담당 수/일지 수와 함께 반환한다', async () => {
+      prisma.user.findMany.mockResolvedValue([mockTeacher]);
+
+      const result = await service.listStaff(10, false);
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { academyId: 10, status: UserStatus.ACTIVE },
+        }),
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].taughtClassesCount).toBe(2);
+      expect(result[0].classLogsCount).toBe(5);
+      expect(result[0].processedPaymentsCount).toBe(1);
+    });
+
+    it('includeInactive=true면 status 필터 없이 조회한다', async () => {
+      prisma.user.findMany.mockResolvedValue([mockTeacher]);
+
+      await service.listStaff(10, true);
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { academyId: 10 } }),
+      );
+    });
+  });
+
+  describe('updateStaff', () => {
+    it('교직원 이름/연락처/직책을 수정한다', async () => {
+      prisma.user.findFirst.mockResolvedValue(mockTeacher);
+      prisma.user.update.mockResolvedValue({
+        ...mockTeacher,
+        name: '박강사',
+        role: UserRole.ADMIN,
+      });
+
+      const result = await service.updateStaff(mockCurrentOwner, 2, {
+        name: '박강사',
+        role: UserRole.ADMIN,
+      });
+
+      expect(prisma.user.findFirst).toHaveBeenCalledWith({
+        where: { id: 2, academyId: 10 },
+      });
+      expect(result.name).toBe('박강사');
+      expect(result.role).toBe(UserRole.ADMIN);
+    });
+
+    it('대상이 없거나 다른 학원 소속이면 NotFoundException 발생', async () => {
+      prisma.user.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.updateStaff(mockCurrentOwner, 999, { name: '박강사' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('대상이 원장(OWNER)이면 ForbiddenException 발생', async () => {
+      prisma.user.findFirst.mockResolvedValue({ ...mockUser, id: 1 });
+
+      await expect(
+        service.updateStaff(mockCurrentOwner, 1, { name: '변경시도' }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resetStaffPassword', () => {
+    it('강사/조교 비밀번호를 초기화하고 임시 비밀번호를 1회 반환하며 강제 로그아웃시킨다', async () => {
+      prisma.user.findFirst.mockResolvedValue(mockTeacher);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('newHashedTempPw');
+      prisma.user.update.mockResolvedValue({
+        ...mockTeacher,
+        password: 'newHashedTempPw',
+        mustChangePassword: true,
+      });
+
+      const result = await service.resetStaffPassword(mockCurrentOwner, 2);
+
+      expect(result.tempPassword).toBeDefined();
+      expect(result.tempPassword).toMatch(
+        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/,
+      );
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 2 },
+        data: {
+          password: 'newHashedTempPw',
+          mustChangePassword: true,
+          hashedRefreshToken: null,
+        },
+      });
+    });
+
+    it.each([UserRole.OWNER, UserRole.ADMIN])(
+      '대상이 %s면 ForbiddenException 발생 (교직원 관리에서 초기화 불가)',
+      async (role) => {
+        prisma.user.findFirst.mockResolvedValue({ ...mockTeacher, role });
+
+        await expect(
+          service.resetStaffPassword(mockCurrentOwner, 2),
+        ).rejects.toThrow(ForbiddenException);
+        expect(prisma.user.update).not.toHaveBeenCalled();
+      },
+    );
+
+    it('대상이 없으면 NotFoundException 발생', async () => {
+      prisma.user.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.resetStaffPassword(mockCurrentOwner, 999),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('deactivateStaff', () => {
+    it('교직원을 퇴사 처리(status=INACTIVE)하고 강제 로그아웃시킨다', async () => {
+      prisma.user.findFirst.mockResolvedValue(mockTeacher);
+      prisma.user.update.mockResolvedValue({
+        ...mockTeacher,
+        status: UserStatus.INACTIVE,
+      });
+
+      const result = await service.deactivateStaff(mockCurrentOwner, 2);
+
+      expect(result.success).toBe(true);
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 2 },
+        data: { status: UserStatus.INACTIVE, hashedRefreshToken: null },
+      });
+    });
+
+    it('대상이 원장(OWNER)이면 ForbiddenException 발생', async () => {
+      prisma.user.findFirst.mockResolvedValue({ ...mockUser, id: 1 });
+
+      await expect(
+        service.deactivateStaff(mockCurrentOwner, 1),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('본인 계정을 대상으로 하면 ForbiddenException 발생', async () => {
+      prisma.user.findFirst.mockResolvedValue({
+        ...mockTeacher,
+        id: mockCurrentOwner.userId,
+      });
+
+      await expect(
+        service.deactivateStaff(mockCurrentOwner, mockCurrentOwner.userId),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('학원코드 자가입', () => {
+    it('generateStaffJoinCode: 코드를 새로 발급한다', async () => {
+      prisma.academy.update.mockResolvedValue({ staffJoinCode: 'newcode' });
+
+      const result = await service.generateStaffJoinCode(10);
+
+      expect(result.staffJoinCode).toBeDefined();
+      expect(prisma.academy.update).toHaveBeenCalledWith({
+        where: { id: 10 },
+        data: { staffJoinCode: result.staffJoinCode },
+      });
+    });
+
+    it('getStaffJoinCode: 발급된 적 없으면 null 반환', async () => {
+      prisma.academy.findUnique.mockResolvedValue({ staffJoinCode: null });
+
+      const result = await service.getStaffJoinCode(10);
+
+      expect(result.staffJoinCode).toBeNull();
+    });
+
+    it('joinStaffByCode: 유효한 코드로 즉시 가입 및 토큰 발급 성공', async () => {
+      prisma.academy.findUnique.mockResolvedValue({
+        ...mockUser.academy,
+        status: 'ACTIVE',
+        subscription: null,
+      });
+      prisma.user.findUnique.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+      prisma.user.create.mockResolvedValue({
+        ...mockTeacher,
+        mustChangePassword: false,
+      });
+      prisma.user.update.mockResolvedValue(mockTeacher);
+
+      const result = await service.joinStaffByCode({
+        code: 'valid-code',
+        email: 'teacher@classhelper.kr',
+        password: 'Password123!',
+        name: '이강사',
+        role: UserRole.TEACHER,
+      });
+
+      expect(result.accessToken).toBe('mocked-access-token');
+      expect(result.user.mustChangePassword).toBe(false);
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            academyId: mockUser.academy.id,
+            role: UserRole.TEACHER,
+            mustChangePassword: false,
+          }),
+        }),
+      );
+    });
+
+    it('joinStaffByCode: 유효하지 않은 코드면 NotFoundException 발생', async () => {
+      prisma.academy.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.joinStaffByCode({
+          code: 'invalid-code',
+          email: 'teacher@classhelper.kr',
+          password: 'Password123!',
+          name: '이강사',
+          role: UserRole.TEACHER,
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('joinStaffByCode: 이미 사용 중인 이메일이면 ConflictException 발생', async () => {
+      prisma.academy.findUnique.mockResolvedValue({
+        ...mockUser.academy,
+        status: 'ACTIVE',
+      });
+      prisma.user.findUnique.mockResolvedValue(mockTeacher);
+
+      await expect(
+        service.joinStaffByCode({
+          code: 'valid-code',
+          email: 'teacher@classhelper.kr',
+          password: 'Password123!',
+          name: '이강사',
+          role: UserRole.TEACHER,
+        }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 });

@@ -1,5 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class GenerateReportDto {
   @ApiProperty({
@@ -20,7 +25,8 @@ export class GenerateReportDto {
 
   @ApiPropertyOptional({
     description: '사용자가 직접 수정한 카카오 알림톡 메시지 본문 (선택)',
-    example: '[김민준 학생 리포트]\n📅 기간: 2026-09-01 ~ 2026-09-30\n...\n이번 달에도 성실히 학습하였습니다.',
+    example:
+      '[김민준 학생 리포트]\n📅 기간: 2026-09-01 ~ 2026-09-30\n...\n이번 달에도 성실히 학습하였습니다.',
   })
   @IsOptional()
   @IsString({ message: '수정 메시지는 문자열이어야 합니다.' })

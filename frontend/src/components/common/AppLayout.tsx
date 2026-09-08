@@ -173,6 +173,12 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
           icon: FileText,
           active: activePath === '/admin' && currentTab === 'audit-logs',
         },
+        {
+          label: '보안 관리',
+          href: '/change-password',
+          icon: ShieldCheck,
+          active: activePath === '/change-password',
+        },
       ],
     },
   ];
@@ -266,7 +272,19 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
           : []),
       ],
     },
+    {
+      groupTitle: '계정 & 보안',
+      items: [
+        {
+          label: '보안 관리',
+          href: '/change-password',
+          icon: ShieldCheck,
+          active: activePath === '/change-password',
+        },
+      ],
+    },
   ];
+
 
   const navGroups: NavGroup[] = isSuperAdmin ? superAdminNavGroups : academyNavGroups;
 
@@ -419,13 +437,6 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
           <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
             <div className="flex items-center gap-1.5">
               <ThemeToggle />
-              <Link
-                href="/change-password"
-                title="비밀번호 변경"
-                className="p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-xs font-semibold transition-colors cursor-pointer"
-              >
-                <KeyRound className="w-4 h-4" />
-              </Link>
             </div>
 
             <button
@@ -437,6 +448,7 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
               <span>로그아웃</span>
             </button>
           </div>
+
         </div>
       </aside>
 
@@ -594,13 +606,6 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                   {user.email}
                 </span>
-                <Link
-                  href="/change-password"
-                  className="p-1 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400"
-                  title="비밀번호 변경"
-                >
-                  <KeyRound className="w-3.5 h-3.5" />
-                </Link>
               </div>
               <button
                 onClick={handleLogout}
@@ -610,6 +615,7 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
                 <span>로그아웃</span>
               </button>
             </div>
+
           </div>
         </div>
       )}

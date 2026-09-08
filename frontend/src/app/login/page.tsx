@@ -22,7 +22,9 @@ import {
   KeyRound,
   CheckCircle2,
   Sparkles,
+  UserPlus,
 } from 'lucide-react';
+
 import { authService } from '@/lib/auth-service';
 import { attendanceService } from '@/lib/attendance-service';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -122,11 +124,23 @@ export default function LoginPage() {
     await onSubmit({ email, password: pass });
   };
 
-  const [activeTab, setActiveTab] = useState<'admin' | 'kiosk'>('admin');
+  const [activeTab, setActiveTab] = useState<'admin' | 'join' | 'kiosk'>('admin');
   const [inputKioskToken, setInputKioskToken] = useState('');
   const [kioskError, setKioskError] = useState<string | null>(null);
   const [isKioskLoading, setIsKioskLoading] = useState(false);
   const [isDevKioskLoading, setIsDevKioskLoading] = useState(false);
+
+  // Staff Self-Join Form State
+  const [joinCode, setJoinCode] = useState('');
+  const [joinRole, setJoinRole] = useState<'TEACHER' | 'STAFF'>('TEACHER');
+  const [joinName, setJoinName] = useState('');
+  const [joinEmail, setJoinEmail] = useState('');
+  const [joinPhone, setJoinPhone] = useState('');
+  const [joinPassword, setJoinPassword] = useState('');
+  const [joinConfirmPassword, setJoinConfirmPassword] = useState('');
+  const [showJoinPassword, setShowJoinPassword] = useState(false);
+  const [isJoinLoading, setIsJoinLoading] = useState(false);
+  const [joinErrorMessage, setJoinErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -135,9 +149,70 @@ export default function LoginPage() {
       const params = new URLSearchParams(window.location.search);
       if (params.get('tab') === 'kiosk' || params.get('mode') === 'kiosk') {
         setActiveTab('kiosk');
+      } else if (params.get('tab') === 'join' || params.get('code')) {
+        setActiveTab('join');
+        if (params.get('code')) {
+          setJoinCode(params.get('code')!);
+        }
       }
     }
   }, []);
+
+  const handleJoinSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCode.trim()) {
+      setJoinErrorMessage('학원 초대 코드를 입력해주세요.');
+      return;
+    }
+    if (!joinName.trim()) {
+      setJoinErrorMessage('이름을 입력해주세요.');
+      return;
+    }
+    if (!joinEmail.trim()) {
+      setJoinErrorMessage('이메일을 입력해주세요.');
+      return;
+    }
+    if (joinPassword.length < 8) {
+      setJoinErrorMessage('비밀번호는 최소 8자 이상이어야 합니다.');
+      return;
+    }
+    const hasLetter = /[A-Za-z]/.test(joinPassword);
+    const hasDigit = /\d/.test(joinPassword);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(joinPassword);
+    if (!hasLetter || !hasDigit || !hasSpecial) {
+      setJoinErrorMessage('비밀번호는 영문, 숫자, 특수문자(!@#$%^&* 등)를 모두 포함해야 합니다.');
+      return;
+    }
+    if (joinPassword !== joinConfirmPassword) {
+      setJoinErrorMessage('비밀번호 확인이 일치하지 않습니다.');
+      return;
+    }
+
+    setIsJoinLoading(true);
+    setJoinErrorMessage(null);
+    try {
+      const response = await authService.joinStaff({
+        code: joinCode.trim(),
+        role: joinRole,
+        name: joinName.trim(),
+        email: joinEmail.trim(),
+        phone: joinPhone.trim() || undefined,
+        password: joinPassword.trim(),
+      });
+      setAuth(response);
+      router.push('/dashboard');
+    } catch (err: any) {
+      const message =
+        err.response?.data?.message ||
+        (Array.isArray(err.response?.data?.message)
+          ? err.response.data.message.join(', ')
+          : '교직원 가입 중 오류가 발생했습니다. 학원 코드를 확인해주세요.');
+      setJoinErrorMessage(message);
+    } finally {
+      setIsJoinLoading(false);
+    }
+  };
+
 
   const extractToken = (input: string) => {
     const trimmed = input.trim();
@@ -257,22 +332,40 @@ export default function LoginPage() {
           )}
 
           {/* Mode Switcher Tabs */}
-          <div className="flex p-1 mb-6 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
+          <div className="flex p-1 mb-6 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 gap-1">
             <button
               type="button"
               onClick={() => {
                 setActiveTab('admin');
                 setErrorMessage(null);
                 setKioskError(null);
+                setJoinErrorMessage(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === 'admin'
-                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Building2 className="w-4 h-4" />
-              <span>학원 관리 로그인</span>
+              <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>로그인</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('join');
+                setErrorMessage(null);
+                setKioskError(null);
+                setJoinErrorMessage(null);
+              }}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                activeTab === 'join'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700 font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="truncate">교직원 초대 가입</span>
             </button>
             <button
               type="button"
@@ -280,22 +373,19 @@ export default function LoginPage() {
                 setActiveTab('kiosk');
                 setErrorMessage(null);
                 setKioskError(null);
+                setJoinErrorMessage(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === 'kiosk'
-                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Tablet className="w-4 h-4" />
-              <div className="flex items-center gap-1.5">
-                <span>출석 키오스크</span>
-                <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-300 text-[10px] font-bold rounded-full">
-                  셀프
-                </span>
-              </div>
+              <Tablet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>출석 키오스크</span>
             </button>
           </div>
+
 
           {/* 1. Admin / Staff Login Tab */}
           {activeTab === 'admin' && (
@@ -439,7 +529,184 @@ export default function LoginPage() {
             </>
           )}
 
-          {/* 2. Attendance Kiosk Entry Tab */}
+          {/* 2. Staff Self-Join Tab */}
+          {activeTab === 'join' && (
+            <div className="space-y-4">
+              <div className="text-center mb-3">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  교직원 학원 초대 코드 가입
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  학원에서 발급받은 초대 코드로 가입하면 즉시 교직원으로 자동 등록됩니다.
+                </p>
+              </div>
+
+              {joinErrorMessage && (
+                <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <span>{joinErrorMessage}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleJoinSubmit} className="space-y-3.5">
+                {/* Academy Code */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    학원 초대 코드 <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="원장님께 전달받은 초대 코드 입력"
+                      value={joinCode}
+                      onChange={(e) => setJoinCode(e.target.value.trim())}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-indigo-600 dark:text-indigo-400 font-bold"
+                    />
+                  </div>
+                </div>
+
+                {/* Role Selection */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    가입 직책 선택 <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setJoinRole('TEACHER')}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        joinRole === 'TEACHER'
+                          ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-2xs'
+                          : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>강사 (선생님)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setJoinRole('STAFF')}
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        joinRole === 'STAFF'
+                          ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-2xs'
+                          : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <Building2 className="w-3.5 h-3.5" />
+                      <span>조교 / 행정스태프</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Name */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    이름 <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="홍길동"
+                    value={joinName}
+                    onChange={(e) => setJoinName(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    이메일 (로그인 ID) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="teacher@classhelper.kr"
+                    value={joinEmail}
+                    onChange={(e) => setJoinEmail(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  />
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    휴대폰 번호 <span className="text-slate-400 font-normal">(선택)</span>
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="010-1234-5678"
+                    value={joinPhone}
+                    onChange={(e) => setJoinPhone(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  />
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    비밀번호 <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showJoinPassword ? 'text' : 'password'}
+                      required
+                      placeholder="8자 이상, 영문/숫자/특수문자 포함"
+                      value={joinPassword}
+                      onChange={(e) => setJoinPassword(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowJoinPassword(!showJoinPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    >
+                      {showJoinPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    비밀번호 확인 <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="비밀번호 다시 입력"
+                    value={joinConfirmPassword}
+                    onChange={(e) => setJoinConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  />
+                  {joinPassword && joinConfirmPassword && (
+                    <p className={`text-[11px] mt-1 font-medium ${joinPassword === joinConfirmPassword ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                      {joinPassword === joinConfirmPassword ? '✓ 비밀번호가 일치합니다.' : '✗ 비밀번호가 일치하지 않습니다.'}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isJoinLoading}
+                  className="w-full mt-2 flex justify-center items-center py-3 px-4 rounded-xl shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-3 focus:ring-indigo-100 dark:focus:ring-indigo-950 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {isJoinLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      <span>교직원 등록 처리 중...</span>
+                    </>
+                  ) : (
+                    <span>교직원 가입 및 대시보드 입장</span>
+                  )}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* 3. Attendance Kiosk Entry Tab */}
           {activeTab === 'kiosk' && (
             <div className="space-y-4">
               {/* Kiosk Error Alert */}
@@ -542,14 +809,37 @@ export default function LoginPage() {
 
         {/* Footer Link */}
         {activeTab === 'admin' ? (
+          <div className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1.5">
+            <div>
+              아직 등록된 학원이 없으신가요?{' '}
+              <Link
+                href="/register"
+                className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline underline-offset-4 transition-colors"
+              >
+                학원 개설 및 원장님 가입
+              </Link>
+            </div>
+            <div>
+              원장님께 초대 코드를 받으셨나요?{' '}
+              <button
+                type="button"
+                onClick={() => setActiveTab('join')}
+                className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 underline underline-offset-4 cursor-pointer"
+              >
+                교직원 초대 가입
+              </button>
+            </div>
+          </div>
+        ) : activeTab === 'join' ? (
           <div className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
-            아직 등록된 학원이 없으신가요?{' '}
-            <Link
-              href="/register"
-              className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline underline-offset-4 transition-colors"
+            이미 등록된 계정이 있으신가요?{' '}
+            <button
+              type="button"
+              onClick={() => setActiveTab('admin')}
+              className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 underline underline-offset-4 cursor-pointer"
             >
-              학원 개설 및 원장님 가입
-            </Link>
+              학원 관리 로그인으로 이동
+            </button>
           </div>
         ) : (
           <div className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
@@ -563,6 +853,7 @@ export default function LoginPage() {
             </button>
           </div>
         )}
+
       </div>
     </div>
   );
