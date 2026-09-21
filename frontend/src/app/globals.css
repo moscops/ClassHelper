@@ -200,3 +200,21 @@
   width: 0 !important;
   height: 0 !important;
 }
+
+/* App shell: AppHeader sets data-shell on <body>. From lg up the sidebar is fixed on the left
+   (expanded or collapsed to an icon rail); below lg a fixed bottom tab bar takes its place. */
+@media (min-width: 1024px) {
+  body[data-shell='expanded'] {
+    padding-left: 15rem;
+  }
+
+  body[data-shell='collapsed'] {
+    padding-left: 4rem;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  body[data-shell] {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+}
