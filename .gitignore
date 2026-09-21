@@ -22,6 +22,7 @@ lerna-debug.log*
 .claude/
 .windsurf/
 skills-lock.json
+.impeccable/
 
 # OS and IDE files
 .DS_Store
