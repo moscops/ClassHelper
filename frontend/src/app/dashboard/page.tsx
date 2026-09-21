@@ -4,10 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Users,
-  BookOpen,
-  CalendarCheck2,
-  CreditCard,
   ShieldCheck,
   Key,
   RefreshCw,
@@ -15,12 +11,44 @@ import {
   ArrowUpRight,
   Code2,
   Loader2,
-  CheckCircle2,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/lib/auth-service';
 import { api } from '@/lib/api';
 import { AppHeader } from '@/components/AppHeader';
+
+// The token and API-tester panels are developer tooling; production builds drop them.
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+const CORE_FEATURES = [
+  {
+    title: '원생 관리',
+    body: '재원생 등록, 학년/상태 필터링 및 학부모 비상 연락처 관리',
+    href: '/students',
+    cta: '원생 관리 바로가기',
+  },
+  {
+    title: '반 & 수강 배정',
+    body: '개설 반 관리, 담당 강사 배정, 수강생 매핑 및 시간표',
+    href: '/classes',
+    cta: '반 & 수강생 관리 바로가기',
+  },
+  {
+    title: '1초 출결 체크',
+    body: '원터치 모바일 출결(출석, 결석, 지각, 조퇴) 및 보강 관리',
+    href: '/attendance',
+    cta: '출결 체크 바로가기',
+  },
+  {
+    title: '수강료 & 수납 관리',
+    body: '매월 자동 청구서 발행, 결제 수단별 수납 및 미납자 관리',
+    href: null,
+    cta: '준비 중',
+  },
+];
+
+const FEATURE_ROW_CLASS =
+  'grid gap-1 sm:grid-cols-[13rem_minmax(0,1fr)_auto] sm:items-center sm:gap-6 py-4 px-3 -mx-3 rounded-lg';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -80,116 +108,49 @@ export default function DashboardPage() {
 
       <main className="flex-1 relative overflow-hidden py-8">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-7 relative z-10">
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs transition-ui">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-800 text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-2.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>학원 관리 시스템 정상 가동 중</span>
-              </div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                안녕하세요, <span className="text-indigo-600 dark:text-indigo-400">{user.name}</span> {user.role === 'OWNER' ? '원장님' : '선생님'}!
-              </h1>
-              <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{academy?.name}</span>의 출결, 수업 진도, 원비 수납 현황을 실시간으로 관리할 수 있습니다.
-              </p>
-            </div>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 relative z-10">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            안녕하세요, <span className="text-indigo-600 dark:text-indigo-400">{user.name}</span> {user.role === 'OWNER' ? '원장님' : '선생님'}!
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            <span className="font-semibold text-slate-800 dark:text-slate-200">{academy?.name}</span>의 출결, 수업 진도, 원비 수납 현황을 실시간으로 관리할 수 있습니다.
+          </p>
         </div>
 
-        <div>
-          <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-1.5">
-            <span>핵심 4대 관리 기능</span>
+        <section aria-labelledby="core-features">
+          <h2 id="core-features" className="text-sm font-bold text-slate-800 dark:text-slate-200">
+            핵심 4대 관리 기능
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <Link
-              href="/students"
-              className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-700/50 hover:shadow-sm transition-ui shadow-xs flex flex-col justify-between"
-            >
-              <div>
-                <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800/60 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3">
-                  <Users className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  원생 관리
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  재원생 등록, 학년/상태 필터링 및 학부모 비상 연락처 관리
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
-                <span>원생 관리 바로가기</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </div>
-            </Link>
+          <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-800 border-y border-slate-200 dark:border-slate-800">
+            {CORE_FEATURES.map((feature) => (
+              <li key={feature.title}>
+                {feature.href ? (
+                  <Link
+                    href={feature.href}
+                    className={`${FEATURE_ROW_CLASS} group transition-ui hover:bg-slate-100 dark:hover:bg-slate-800/60`}
+                  >
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{feature.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{feature.body}</p>
+                    <span className="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                      {feature.cta}
+                      <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </span>
+                  </Link>
+                ) : (
+                  <div className={FEATURE_ROW_CLASS}>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{feature.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{feature.body}</p>
+                    <span className="text-xs font-medium text-slate-400 dark:text-slate-500">{feature.cta}</span>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
 
-            <Link
-              href="/classes"
-              className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/60 hover:shadow-md transition-ui shadow-xs flex flex-col justify-between group cursor-pointer"
-            >
-              <div>
-                <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/60 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-3 group-hover:scale-105 transition-transform">
-                  <BookOpen className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-ui">
-                  반 & 수강 배정
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  개설 반 관리, 담당 강사 배정, 수강생 매핑 및 시간표
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-purple-600 dark:text-purple-400 font-semibold">
-                <span>반 & 수강생 관리 바로가기</span>
-                <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </div>
-            </Link>
-
-            {/* 3. 1초 출결 체크 */}
-            <Link
-              href="/attendance"
-              className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/60 hover:shadow-md transition-ui shadow-xs flex flex-col justify-between group cursor-pointer"
-            >
-              <div>
-                <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3 group-hover:scale-105 transition-transform">
-                  <CalendarCheck2 className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-ui">
-                  1초 출결 체크
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  원터치 모바일 출결(출석, 결석, 지각, 조퇴) 및 보강 관리
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-                <span>출결 체크 바로가기</span>
-                <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </div>
-            </Link>
-
-            {/* 4. 수강료 & 수납 */}
-            <div className="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-amber-200 dark:hover:border-amber-700/50 hover:shadow-sm transition-ui shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-3">
-                  <CreditCard className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  수강료 & 수납 관리
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  매월 자동 청구서 발행, 결제 수단별 수납 및 미납자 관리
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-amber-600 dark:text-amber-400 font-semibold">
-                <span>Phase 5 예정</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Security Status & Interactive API Tester */}
+        {IS_DEV && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* JWT Security Status */}
           <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 transition-ui">
@@ -276,6 +237,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        )}
         </div>
       </main>
     </div>

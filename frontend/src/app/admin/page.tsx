@@ -6,9 +6,6 @@ import { useRouter } from 'next/navigation';
 import {
   GraduationCap,
   Building2,
-  Users,
-  BookOpen,
-  CalendarCheck2,
   MessageSquare,
   ShieldCheck,
   Search,
@@ -153,7 +150,7 @@ export default function AdminPortalPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-ui"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-ui"
             >
               <span>학원 대시보드 미리보기</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -210,102 +207,70 @@ export default function AdminPortalPage() {
             </button>
           </div>
 
-          {/* 1. Platform Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            {/* Stat 1: Total Academies */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-start justify-between">
-              <div>
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  총 입점 학원
+          {/* 1. Platform Stats */}
+          <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-200 dark:bg-slate-800 shadow-xs">
+            <div className="bg-white dark:bg-slate-900 p-5">
+              <dt className="text-xs font-medium text-slate-500 dark:text-slate-400">총 입점 학원</dt>
+              <dd className="mt-1.5 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+                  {stats?.academies.total ?? academies.length}
                 </span>
-                <div className="mt-1.5 flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                    {stats?.academies.total ?? academies.length}
-                  </span>
-                  <span className="text-xs text-slate-400">개 학원</span>
-                </div>
-                <div className="mt-2 flex items-center gap-2 text-[11px]">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                    정상 {stats?.academies.active ?? academies.filter((a) => a.status === 'ACTIVE').length}
-                  </span>
-                  <span className="text-slate-300 dark:text-slate-700">•</span>
-                  <span className="text-rose-600 dark:text-rose-400 font-semibold">
-                    정지 {stats?.academies.suspended ?? academies.filter((a) => a.status === 'SUSPENDED').length}
-                  </span>
-                </div>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                <Building2 className="w-5 h-5" />
+                <span className="text-xs text-slate-400">개 학원</span>
+              </dd>
+              <div className="mt-2 flex items-center gap-2 text-[11px]">
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                  정상 {stats?.academies.active ?? academies.filter((a) => a.status === 'ACTIVE').length}
+                </span>
+                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <span className="text-rose-600 dark:text-rose-400 font-semibold">
+                  정지 {stats?.academies.suspended ?? academies.filter((a) => a.status === 'SUSPENDED').length}
+                </span>
               </div>
             </div>
 
-            {/* Stat 2: Total Students */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-start justify-between">
-              <div>
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  전체 관리 원생
+            <div className="bg-white dark:bg-slate-900 p-5">
+              <dt className="text-xs font-medium text-slate-500 dark:text-slate-400">전체 관리 원생</dt>
+              <dd className="mt-1.5 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+                  {stats?.students.total ?? 0}
                 </span>
-                <div className="mt-1.5 flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                    {stats?.students.total ?? 0}
-                  </span>
-                  <span className="text-xs text-slate-400">명</span>
-                </div>
-                <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                  정규 재원생: <span className="font-semibold text-slate-700 dark:text-slate-300">{stats?.students.active ?? 0}명</span>
-                </div>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                <Users className="w-5 h-5" />
+                <span className="text-xs text-slate-400">명</span>
+              </dd>
+              <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                정규 재원생: <span className="font-semibold text-slate-700 dark:text-slate-300">{stats?.students.active ?? 0}명</span>
               </div>
             </div>
 
-            {/* Stat 3: Total Classes */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-start justify-between">
-              <div>
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  전체 개설 수업 반
+            <div className="bg-white dark:bg-slate-900 p-5">
+              <dt className="text-xs font-medium text-slate-500 dark:text-slate-400">전체 개설 수업 반</dt>
+              <dd className="mt-1.5 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+                  {stats?.classes.total ?? 0}
                 </span>
-                <div className="mt-1.5 flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                    {stats?.classes.total ?? 0}
-                  </span>
-                  <span className="text-xs text-slate-400">개 반</span>
-                </div>
-                <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                  등록 강사/직원: <span className="font-semibold text-slate-700 dark:text-slate-300">{stats?.users.total ?? 0}명</span>
-                </div>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                <BookOpen className="w-5 h-5" />
+                <span className="text-xs text-slate-400">개 반</span>
+              </dd>
+              <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                등록 강사/직원: <span className="font-semibold text-slate-700 dark:text-slate-300">{stats?.users.total ?? 0}명</span>
               </div>
             </div>
 
-            {/* Stat 4: Today Attendance & Alimtalk */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm flex items-start justify-between">
-              <div>
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  오늘 출결 & 알림톡
+            <div className="bg-white dark:bg-slate-900 p-5">
+              <dt className="text-xs font-medium text-slate-500 dark:text-slate-400">오늘 출결 & 알림톡</dt>
+              <dd className="mt-1.5 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+                  {stats?.todayAttendances ?? 0}
                 </span>
-                <div className="mt-1.5 flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                    {stats?.todayAttendances ?? 0}
-                  </span>
-                  <span className="text-xs text-slate-400">건 출결</span>
-                </div>
-                <div className="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium flex items-center gap-1">
-                  <MessageSquare className="w-3 h-3" />
-                  <span>카카오 알림톡 자동 연동</span>
-                </div>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
-                <CalendarCheck2 className="w-5 h-5" />
+                <span className="text-xs text-slate-400">건 출결</span>
+              </dd>
+              <div className="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium flex items-center gap-1">
+                <MessageSquare className="w-3 h-3" />
+                <span>카카오 알림톡 자동 연동</span>
               </div>
             </div>
-          </div>
+          </dl>
 
           {/* 2. Academy Management Table Section */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
             {/* Table Header & Controls */}
             <div className="p-5 sm:p-6 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -375,7 +340,7 @@ export default function AdminPortalPage() {
 
             {/* Table Content */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full min-w-[60rem] text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
                     <th className="py-3.5 px-4 sm:px-6">학원 정보</th>

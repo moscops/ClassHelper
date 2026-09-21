@@ -425,17 +425,13 @@ export default function ClassesPage() {
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-ui duration-200">
       <AppHeader />
 
-      {/* Main Body Section with Dot Vignette Pattern */}
+      {/* Main Body Section */}
       <main className="flex-1 relative overflow-hidden py-8">
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
           {/* Header Title & Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-800 text-xs font-semibold text-indigo-700 dark:text-indigo-300 mb-2">
-                <BookOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>Phase 3-3: Classes & Enrollments</span>
-              </div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                 수업 반 및 수강생 배정 관리
               </h1>
@@ -545,7 +541,7 @@ export default function ClassesPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-4">
                   {/* Subject Filter */}
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-slate-400 mr-1 font-medium text-[11px]">과목 구분:</span>
                     {['ALL', '수학', '영어', '국어', '과학', 'OTHER'].map((subj) => (
                       <button
@@ -564,7 +560,7 @@ export default function ClassesPage() {
                   </div>
 
                   {/* Grade Filter */}
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-slate-400 mr-1 font-medium text-[11px]">대상 학년:</span>
                     {[
                       { id: 'ALL', label: '전체 학년' },

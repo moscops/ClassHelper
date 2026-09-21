@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   BookOpen,
   Users,
-  CalendarCheck2,
   Clock,
   User,
   LogOut,
@@ -17,7 +16,6 @@ import {
   ChevronRight,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
   DoorOpen,
   RefreshCw,
   Search,
@@ -412,10 +410,6 @@ export default function AttendancePage() {
           {/* Header Title & Quick Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-800 text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-2">
-                <CalendarCheck2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>Phase 3-4: 1-Second Attendance & Notification</span>
-              </div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                 1초 출결 체크 및 현황 관리
               </h1>
@@ -674,64 +668,40 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          {/* KPI Stat Cards (4 Columns) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 1. Total Enrolled */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">총 수강 인원</p>
-                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
-                  {roster?.totalStudents || 0}
-                  <span className="text-xs font-normal text-slate-400 ml-1">명</span>
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                <Users className="w-5 h-5" />
-              </div>
+          {/* KPI Stats */}
+          <dl className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-200 dark:bg-slate-800 shadow-xs">
+            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5">
+              <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">총 수강 인원</dt>
+              <dd className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+                {roster?.totalStudents || 0}
+                <span className="text-xs font-normal text-slate-400 ml-1">명</span>
+              </dd>
             </div>
 
-            {/* 2. Attendance Rate */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">당일 출석률</p>
-                <p className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
-                  {attendanceRate}%
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
+            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5">
+              <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">당일 출석률</dt>
+              <dd className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400">
+                {attendanceRate}%
+              </dd>
             </div>
 
-            {/* 3. Present Count */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">출석 완료</p>
-                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
-                  {roster?.presentCount || 0}
-                  <span className="text-xs font-normal text-slate-400 ml-1">명</span>
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                <Clock className="w-5 h-5" />
-              </div>
+            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5">
+              <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">출석 완료</dt>
+              <dd className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">
+                {roster?.presentCount || 0}
+                <span className="text-xs font-normal text-slate-400 ml-1">명</span>
+              </dd>
             </div>
 
-            {/* 4. Absent & Late */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">결석 / 지각</p>
-                <p className="text-xl sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">
-                  {roster?.absentCount || 0}
-                  <span className="text-xs font-normal text-slate-400 mx-1">/</span>
-                  <span className="text-amber-500">{roster?.lateCount || 0}</span>
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-800 flex items-center justify-center text-rose-600 dark:text-rose-400">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
+            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5">
+              <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">결석 / 지각</dt>
+              <dd className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums text-rose-600 dark:text-rose-400">
+                {roster?.absentCount || 0}
+                <span className="text-xs font-normal text-slate-400 mx-1">/</span>
+                <span className="text-amber-500">{roster?.lateCount || 0}</span>
+              </dd>
             </div>
-          </div>
+          </dl>
 
           {/* Main Attendance Roster Board */}
           <div className="space-y-4">
