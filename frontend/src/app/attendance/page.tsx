@@ -133,7 +133,10 @@ export default function AttendancePage() {
       const activeClasses = data.items || [];
       setClasses(activeClasses);
       if (activeClasses.length > 0 && !selectedClassId) {
-        setSelectedClassId(activeClasses[0].id);
+        // The dashboard links here with ?class=<id>; fall back to the first class when it is absent or unknown.
+        const requestedId = Number(new URLSearchParams(window.location.search).get('class'));
+        const requested = activeClasses.find((c) => c.id === requestedId);
+        setSelectedClassId((requested ?? activeClasses[0]).id);
       }
     } catch (err) {
       console.error('Failed to load classes:', err);

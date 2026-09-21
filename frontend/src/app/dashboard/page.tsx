@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
 import {
   ShieldCheck,
   Key,
   RefreshCw,
-  Sparkles,
-  ArrowUpRight,
   Code2,
   Loader2,
 } from 'lucide-react';
@@ -16,39 +15,11 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/lib/auth-service';
 import { api } from '@/lib/api';
 import { AppHeader } from '@/components/AppHeader';
+import { TodayBoard } from '@/components/dashboard/TodayBoard';
+import { ROLE_BADGES } from '@/components/nav-config';
 
 // The token and API-tester panels are developer tooling; production builds drop them.
 const IS_DEV = process.env.NODE_ENV === 'development';
-
-const CORE_FEATURES = [
-  {
-    title: '원생 관리',
-    body: '재원생 등록, 학년/상태 필터링 및 학부모 비상 연락처 관리',
-    href: '/students',
-    cta: '원생 관리 바로가기',
-  },
-  {
-    title: '반 & 수강 배정',
-    body: '개설 반 관리, 담당 강사 배정, 수강생 매핑 및 시간표',
-    href: '/classes',
-    cta: '반 & 수강생 관리 바로가기',
-  },
-  {
-    title: '1초 출결 체크',
-    body: '원터치 모바일 출결(출석, 결석, 지각, 조퇴) 및 보강 관리',
-    href: '/attendance',
-    cta: '출결 체크 바로가기',
-  },
-  {
-    title: '수강료 & 수납 관리',
-    body: '매월 자동 청구서 발행, 결제 수단별 수납 및 미납자 관리',
-    href: null,
-    cta: '준비 중',
-  },
-];
-
-const FEATURE_ROW_CLASS =
-  'grid gap-1 sm:grid-cols-[13rem_minmax(0,1fr)_auto] sm:items-center sm:gap-6 py-4 px-3 -mx-3 rounded-lg';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -75,6 +46,9 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  const todayLabel = format(new Date(), 'M월 d일 EEEE', { locale: ko });
+  const roleLabel = ROLE_BADGES[user.role]?.label ?? user.role;
 
   const testGetMe = async () => {
     setIsApiLoading(true);
@@ -110,45 +84,14 @@ export default function DashboardPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 relative z-10">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            안녕하세요, <span className="text-indigo-600 dark:text-indigo-400">{user.name}</span> {user.role === 'OWNER' ? '원장님' : '선생님'}!
-          </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            <span className="font-semibold text-slate-800 dark:text-slate-200">{academy?.name}</span>의 출결, 수업 진도, 원비 수납 현황을 실시간으로 관리할 수 있습니다.
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">대시보드</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            {todayLabel}
+            {academy ? ` · ${academy.name}` : ''} · {user.name} {roleLabel}
           </p>
         </div>
 
-        <section aria-labelledby="core-features">
-          <h2 id="core-features" className="text-sm font-bold text-slate-800 dark:text-slate-200">
-            핵심 4대 관리 기능
-          </h2>
-
-          <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-800 border-y border-slate-200 dark:border-slate-800">
-            {CORE_FEATURES.map((feature) => (
-              <li key={feature.title}>
-                {feature.href ? (
-                  <Link
-                    href={feature.href}
-                    className={`${FEATURE_ROW_CLASS} group transition-ui hover:bg-slate-100 dark:hover:bg-slate-800/60`}
-                  >
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{feature.title}</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{feature.body}</p>
-                    <span className="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                      {feature.cta}
-                      <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </span>
-                  </Link>
-                ) : (
-                  <div className={FEATURE_ROW_CLASS}>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{feature.title}</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{feature.body}</p>
-                    <span className="text-xs font-medium text-slate-400 dark:text-slate-500">{feature.cta}</span>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
+        <TodayBoard />
 
         {IS_DEV && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

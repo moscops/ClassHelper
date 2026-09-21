@@ -23,6 +23,64 @@
   --foreground: #f8fafc;
 }
 
+/* Attendance status vocabulary: the product's own color language.
+   -status-*        text and icons (AA on the page surface)
+   -status-*-soft   tinted backgrounds
+   -status-*-solid  bar segments and dots (3:1 against the surface; the count is always written out) */
+:root {
+  --status-present: var(--color-emerald-700);
+  --status-present-soft: var(--color-emerald-50);
+  --status-present-solid: var(--color-emerald-600);
+  --status-absent: var(--color-rose-700);
+  --status-absent-soft: var(--color-rose-50);
+  --status-absent-solid: var(--color-rose-600);
+  --status-late: var(--color-amber-700);
+  --status-late-soft: var(--color-amber-50);
+  --status-late-solid: var(--color-amber-600);
+  --status-leave: var(--color-purple-700);
+  --status-leave-soft: var(--color-purple-50);
+  --status-leave-solid: var(--color-purple-600);
+  --status-unmarked: var(--color-slate-600);
+  --status-unmarked-soft: var(--color-slate-100);
+  --status-unmarked-solid: var(--color-slate-300);
+}
+
+.dark {
+  --status-present: var(--color-emerald-400);
+  --status-present-soft: color-mix(in oklab, var(--color-emerald-500) 14%, transparent);
+  --status-present-solid: var(--color-emerald-500);
+  --status-absent: var(--color-rose-400);
+  --status-absent-soft: color-mix(in oklab, var(--color-rose-500) 14%, transparent);
+  --status-absent-solid: var(--color-rose-500);
+  --status-late: var(--color-amber-400);
+  --status-late-soft: color-mix(in oklab, var(--color-amber-500) 14%, transparent);
+  --status-late-solid: var(--color-amber-500);
+  --status-leave: var(--color-purple-400);
+  --status-leave-soft: color-mix(in oklab, var(--color-purple-500) 14%, transparent);
+  --status-leave-solid: var(--color-purple-500);
+  --status-unmarked: var(--color-slate-400);
+  --status-unmarked-soft: var(--color-slate-800);
+  --status-unmarked-solid: var(--color-slate-600);
+}
+
+@theme inline {
+  --color-status-present: var(--status-present);
+  --color-status-present-soft: var(--status-present-soft);
+  --color-status-present-solid: var(--status-present-solid);
+  --color-status-absent: var(--status-absent);
+  --color-status-absent-soft: var(--status-absent-soft);
+  --color-status-absent-solid: var(--status-absent-solid);
+  --color-status-late: var(--status-late);
+  --color-status-late-soft: var(--status-late-soft);
+  --color-status-late-solid: var(--status-late-solid);
+  --color-status-leave: var(--status-leave);
+  --color-status-leave-soft: var(--status-leave-soft);
+  --color-status-leave-solid: var(--status-leave-solid);
+  --color-status-unmarked: var(--status-unmarked);
+  --color-status-unmarked-soft: var(--status-unmarked-soft);
+  --color-status-unmarked-solid: var(--status-unmarked-solid);
+}
+
 /* Explicit properties only (never `all`), short and ease-out. A `duration-*` class still wins. */
 @utility transition-ui {
   transition-property: color, background-color, border-color, box-shadow, transform, translate, scale, opacity;
@@ -41,6 +99,18 @@
 @utility rise {
   animation: rise 480ms var(--ease-out-strong) both;
   animation-delay: var(--rise-delay, 0ms);
+}
+
+/* Data bars unfold left to right once when they appear. clip-path stays off the layout path. */
+@keyframes reveal-x {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@utility reveal-x {
+  animation: reveal-x 480ms var(--ease-out-strong) both;
+  animation-delay: var(--reveal-delay, 0ms);
 }
 
 @layer base {
@@ -103,7 +173,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rise {
+  .rise,
+  .reveal-x {
     animation: none;
   }
 
