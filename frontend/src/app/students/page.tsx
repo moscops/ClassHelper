@@ -371,6 +371,7 @@ export default function StudentsPage() {
             <div className="flex items-center gap-2.5">
               <button
                 type="button"
+                aria-label="새로고침"
                 onClick={loadStudents}
                 disabled={isLoading}
                 className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-2xs transition-ui cursor-pointer"
@@ -393,14 +394,14 @@ export default function StudentsPage() {
           <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-200 dark:bg-slate-800 shadow-xs">
             {[
               { label: '전체 원생', value: totalCount, labelClass: 'text-slate-500 dark:text-slate-400', valueClass: 'text-slate-900 dark:text-white' },
-              { label: '재원생', value: activeCount, labelClass: 'text-emerald-600 dark:text-emerald-400', valueClass: 'text-emerald-600 dark:text-emerald-400' },
-              { label: '휴원생', value: onLeaveCount, labelClass: 'text-amber-600 dark:text-amber-400', valueClass: 'text-amber-600 dark:text-amber-400' },
-              { label: '퇴원생', value: dischargedCount, labelClass: 'text-rose-600 dark:text-rose-400', valueClass: 'text-rose-600 dark:text-rose-400' },
+              { label: '재원생', value: activeCount, labelClass: 'text-emerald-700 dark:text-emerald-400', valueClass: 'text-emerald-700 dark:text-emerald-400' },
+              { label: '휴원생', value: onLeaveCount, labelClass: 'text-amber-700 dark:text-amber-400', valueClass: 'text-amber-700 dark:text-amber-400' },
+              { label: '퇴원생', value: dischargedCount, labelClass: 'text-rose-700 dark:text-rose-400', valueClass: 'text-rose-700 dark:text-rose-400' },
             ].map((stat) => (
               <div key={stat.label} className="bg-white dark:bg-slate-900 p-4 sm:p-5">
                 <dt className={`text-xs font-semibold ${stat.labelClass}`}>{stat.label}</dt>
                 <dd className={`mt-2 text-2xl font-bold tabular-nums ${stat.valueClass}`}>
-                  {stat.value}<span className="text-sm font-normal text-slate-400 ml-1">명</span>
+                  {stat.value}<span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-1">명</span>
                 </dd>
               </div>
             ))}
@@ -411,7 +412,7 @@ export default function StudentsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               {/* Search Bar */}
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="원생 이름, 학부모/학생 연락처, 학교, 학년 검색..."
@@ -422,8 +423,9 @@ export default function StudentsPage() {
                 {searchTerm && (
                   <button
                     type="button"
+                    aria-label="검색어 지우기"
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -448,7 +450,7 @@ export default function StudentsPage() {
                   onClick={() => setStatusFilter('ACTIVE')}
                   className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'ACTIVE'
-                      ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
+                      ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
@@ -459,7 +461,7 @@ export default function StudentsPage() {
                   onClick={() => setStatusFilter('ON_LEAVE')}
                   className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'ON_LEAVE'
-                      ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-2xs font-bold'
+                      ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
@@ -470,7 +472,7 @@ export default function StudentsPage() {
                   onClick={() => setStatusFilter('DISCHARGED')}
                   className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'DISCHARGED'
-                      ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs font-bold'
+                      ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
@@ -484,7 +486,7 @@ export default function StudentsPage() {
               <div className="flex flex-wrap items-center gap-4">
                 {/* School Grade Filter Pills */}
                 <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-slate-400 mr-1 font-medium text-[11px]">학년 구분:</span>
+                  <span className="text-slate-500 dark:text-slate-400 mr-1 font-medium text-[11px]">학년 구분:</span>
                   <button
                     type="button"
                     onClick={() => setGradeFilter('ALL')}
@@ -537,7 +539,7 @@ export default function StudentsPage() {
                   className={`relative inline-block text-xs ${isClassFilterOpen ? 'z-50' : 'z-20'}`}
                 >
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-400 mr-0.5 font-medium text-[11px]">배정 반:</span>
+                    <span className="text-slate-500 dark:text-slate-400 mr-0.5 font-medium text-[11px]">배정 반:</span>
                     <button
                       type="button"
                       onClick={() => setIsClassFilterOpen(!isClassFilterOpen)}
@@ -573,7 +575,7 @@ export default function StudentsPage() {
                         }`}
                       >
                         <span>전체 반</span>
-                        <span className="text-[10px] text-slate-400 font-normal">{students.length}명</span>
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal">{students.length}명</span>
                       </button>
 
                       <button
@@ -589,7 +591,7 @@ export default function StudentsPage() {
                         }`}
                       >
                         <span>미배정 원생</span>
-                        <span className="text-[10px] text-slate-400 font-normal">
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal">
                           {students.filter((s) => !s.enrolledClasses || s.enrolledClasses.length === 0).length}명
                         </span>
                       </button>
@@ -614,9 +616,9 @@ export default function StudentsPage() {
                         >
                           <div className="truncate min-w-0 pr-1">
                             <span className="truncate block font-semibold">{c.name}</span>
-                            {c.subject && <span className="text-[10px] text-slate-400 block">{c.subject}</span>}
+                            {c.subject && <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{c.subject}</span>}
                           </div>
-                          <span className="text-[10px] text-slate-400 shrink-0">{c.enrolledCount}명</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0">{c.enrolledCount}명</span>
                         </button>
                       ))}
                     </div>
@@ -653,8 +655,8 @@ export default function StudentsPage() {
               <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
                 <Users className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">등록된 원생이 없습니다</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">등록된 원생이 없습니다</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 {searchTerm || statusFilter !== 'ALL' || gradeFilter !== 'ALL' || classFilter !== 'ALL'
                   ? '검색 조건과 일치하는 원생이 없습니다. 필터를 초기화해보세요.'
                   : '새로운 원생을 등록하고 학적 및 수강 관리를 시작해보세요.'}
@@ -702,13 +704,13 @@ export default function StudentsPage() {
                               <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                                 <span>{s.name}</span>
                                 {s.gender && (
-                                  <span className="text-[10px] text-slate-400 font-normal">
+                                  <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal">
                                     ({s.gender === 'MALE' ? '남' : '여'})
                                   </span>
                                 )}
                               </div>
                               {s.birthDate && (
-                                <span className="text-[10px] text-slate-400">
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400">
                                   {new Date(s.birthDate).toLocaleDateString('ko-KR')}
                                 </span>
                               )}
@@ -721,7 +723,7 @@ export default function StudentsPage() {
                           <div className="font-semibold text-slate-800 dark:text-slate-200">
                             {s.grade || '-'}
                           </div>
-                          <div className="text-[11px] text-slate-400">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
                             {s.schoolName || '-'}
                           </div>
                         </td>
@@ -740,18 +742,18 @@ export default function StudentsPage() {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-[11px] text-slate-400 italic">미배정</span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 italic">미배정</span>
                           )}
                         </td>
 
                         {/* Parent Phone */}
                         <td className="py-3.5 px-4">
                           <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-slate-400" />
+                            <Phone className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                             <span>{s.parentPhone}</span>
                           </div>
                           {(s.parentName || s.parentRelationship) && (
-                            <div className="text-[10px] text-slate-400">
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400">
                               {s.parentName ? `${s.parentName} ` : ''}
                               ({s.parentRelationship || '보호자'})
                             </div>
@@ -760,7 +762,7 @@ export default function StudentsPage() {
 
                         {/* Student Phone */}
                         <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
-                          {s.studentPhone ? s.studentPhone : <span className="text-slate-400">-</span>}
+                          {s.studentPhone ? s.studentPhone : <span className="text-slate-500 dark:text-slate-400">-</span>}
                         </td>
 
                         {/* Enrolled At */}
@@ -914,6 +916,9 @@ export default function StudentsPage() {
               setIsStatusDropdownOpen(false);
             }
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="student-modal-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         >
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -923,17 +928,18 @@ export default function StudentsPage() {
                 <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center shadow-xs">
                   <Users className="w-4 h-4 text-white" />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                <h2 id="student-modal-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                   {editingStudent ? '원생 정보 수정' : '신규 원생 등록'}
-                </h3>
+                </h2>
               </div>
               <button
                 type="button"
+                aria-label="닫기"
                 onClick={() => {
                   setIsStudentModalOpen(false);
                   setIsStatusDropdownOpen(false);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -970,7 +976,7 @@ export default function StudentsPage() {
                       }`}
                     />
                     {nameError && (
-                      <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1 font-medium">
+                      <p className="mt-1 text-[11px] text-rose-700 dark:text-rose-400 flex items-center gap-1 font-medium">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                         <span>{nameError}</span>
                       </p>
@@ -994,7 +1000,7 @@ export default function StudentsPage() {
                           className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-ui cursor-pointer ${
                             studentFormData.gender === g.value
                               ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
-                              : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                              : 'text-slate-600 hover:text-slate-800 dark:hover:text-slate-200'
                           }`}
                         >
                           {g.label}
@@ -1056,7 +1062,7 @@ export default function StudentsPage() {
                       }`}
                     />
                     {parentPhoneError && (
-                      <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1 font-medium">
+                      <p className="mt-1 text-[11px] text-rose-700 dark:text-rose-400 flex items-center gap-1 font-medium">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                         <span>{parentPhoneError}</span>
                       </p>
@@ -1178,24 +1184,24 @@ export default function StudentsPage() {
                         {studentFormData.status === 'ACTIVE' && (
                           <>
                             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs"></span>
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">재원 (정상)</span>
+                            <span className="font-bold text-emerald-700 dark:text-emerald-400">재원 (정상)</span>
                           </>
                         )}
                         {studentFormData.status === 'ON_LEAVE' && (
                           <>
                             <span className="w-2 h-2 rounded-full bg-amber-500 shadow-xs"></span>
-                            <span className="font-bold text-amber-600 dark:text-amber-400">휴원</span>
+                            <span className="font-bold text-amber-700 dark:text-amber-400">휴원</span>
                           </>
                         )}
                         {studentFormData.status === 'DISCHARGED' && (
                           <>
                             <span className="w-2 h-2 rounded-full bg-rose-500 shadow-xs"></span>
-                            <span className="font-bold text-rose-600 dark:text-rose-400">퇴원</span>
+                            <span className="font-bold text-rose-700 dark:text-rose-400">퇴원</span>
                           </>
                         )}
                       </div>
                       <ChevronDown
-                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                        className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${
                           isStatusDropdownOpen ? 'rotate-180 text-indigo-600 dark:text-indigo-400' : ''
                         }`}
                       />
@@ -1217,7 +1223,7 @@ export default function StudentsPage() {
                           }`}
                         >
                           <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                             <span>재원 (수업 및 출결 가능)</span>
                           </div>
                           {studentFormData.status === 'ACTIVE' && (
@@ -1238,7 +1244,7 @@ export default function StudentsPage() {
                           }`}
                         >
                           <div className="flex items-center gap-2">
-                            <PauseCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                            <PauseCircle className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                             <span>휴원 (일정 기간 수업 보류)</span>
                           </div>
                           {studentFormData.status === 'ON_LEAVE' && (
@@ -1259,7 +1265,7 @@ export default function StudentsPage() {
                           }`}
                         >
                           <div className="flex items-center gap-2">
-                            <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-700 dark:text-rose-400" />
                             <span>퇴원 (학원 종료)</span>
                           </div>
                           {studentFormData.status === 'DISCHARGED' && (
@@ -1320,6 +1326,9 @@ export default function StudentsPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsDetailModalOpen(false);
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="student-detail-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         >
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl h-[85vh] max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
@@ -1330,7 +1339,7 @@ export default function StudentsPage() {
                   <User className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h2 id="student-detail-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>{selectedStudentForDetail?.name || '원생 상세 정보'}</span>
                     {selectedStudentForDetail?.status && (
                       <span
@@ -1349,14 +1358,15 @@ export default function StudentsPage() {
                           : '퇴원'}
                       </span>
                     )}
-                  </h3>
+                  </h2>
                 </div>
               </div>
 
               <button
                 type="button"
+                aria-label="닫기"
                 onClick={() => setIsDetailModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1365,7 +1375,7 @@ export default function StudentsPage() {
             {/* Modal Body */}
             <div className="p-5 sm:p-6 overflow-y-auto space-y-6 text-xs flex-1">
               {isLoadingDetail || !selectedStudentForDetail ? (
-                <div className="py-20 text-center text-slate-400">
+                <div className="py-20 text-center text-slate-500 dark:text-slate-400">
                   <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
                   <span>원생 상세 정보를 불러오는 중...</span>
                 </div>
@@ -1373,38 +1383,38 @@ export default function StudentsPage() {
                 <>
                   {/* Basic Profile Grid */}
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-3">
-                    <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                       <span>기본 인적사항 및 연락처</span>
-                    </h4>
+                    </h3>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                       <div>
-                        <span className="text-slate-400 block text-[11px]">학년 / 학교</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[11px]">학년 / 학교</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                           {selectedStudentForDetail.grade || '-'} ({selectedStudentForDetail.schoolName || '-'})
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-slate-400 block text-[11px]">학부모 연락처</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[11px]">학부모 연락처</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                           {selectedStudentForDetail.parentPhone}{' '}
-                          <span className="text-slate-400 font-normal">
+                          <span className="text-slate-500 dark:text-slate-400 font-normal">
                             ({selectedStudentForDetail.parentRelationship || '보호자'})
                           </span>
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-slate-400 block text-[11px]">학생 연락처</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[11px]">학생 연락처</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                           {selectedStudentForDetail.studentPhone || '-'}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-slate-400 block text-[11px]">생년월일</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[11px]">생년월일</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                           {selectedStudentForDetail.birthDate
                             ? new Date(selectedStudentForDetail.birthDate).toLocaleDateString('ko-KR')
@@ -1413,7 +1423,7 @@ export default function StudentsPage() {
                       </div>
 
                       <div>
-                        <span className="text-slate-400 block text-[11px]">입원일</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[11px]">입원일</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                           {selectedStudentForDetail.enrolledAt
                             ? new Date(selectedStudentForDetail.enrolledAt).toLocaleDateString('ko-KR')
@@ -1422,7 +1432,7 @@ export default function StudentsPage() {
                       </div>
 
                       <div>
-                        <span className="text-slate-400 block text-[11px]">특이사항 메모</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[11px]">특이사항 메모</span>
                         <span className="font-medium text-slate-700 dark:text-slate-300 truncate block">
                           {selectedStudentForDetail.memo || '기록 없음'}
                         </span>
@@ -1433,10 +1443,10 @@ export default function StudentsPage() {
                   {/* Enrolled Classes List */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                         <BookOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                         <span>수강 중인 반 목록 ({selectedStudentForDetail.classes?.length || 0}개)</span>
-                      </h4>
+                      </h3>
 
                       <Link
                         href="/classes"
@@ -1448,7 +1458,7 @@ export default function StudentsPage() {
                     </div>
 
                     {(!selectedStudentForDetail.classes || selectedStudentForDetail.classes.length === 0) ? (
-                      <div className="py-8 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400">
+                      <div className="py-8 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-500 dark:text-slate-400">
                         현재 수강 중인 수업 반이 없습니다.
                       </div>
                     ) : (

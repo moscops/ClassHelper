@@ -172,6 +172,7 @@ export default function AdminPortalPage() {
 
               <button
                 type="button"
+                aria-label="로그아웃"
                 onClick={handleLogout}
                 className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:text-slate-400 dark:hover:text-rose-400 transition-ui cursor-pointer"
               >
@@ -215,17 +216,17 @@ export default function AdminPortalPage() {
                 <span className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
                   {stats?.academies.total ?? academies.length}
                 </span>
-                <span className="text-xs text-slate-400">개 학원</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">개 학원</span>
               </dd>
-              <div className="mt-2 flex items-center gap-2 text-[11px]">
-                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+              <dd className="mt-2 flex items-center gap-2 text-[11px]">
+                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
                   정상 {stats?.academies.active ?? academies.filter((a) => a.status === 'ACTIVE').length}
                 </span>
                 <span className="text-slate-300 dark:text-slate-700">•</span>
-                <span className="text-rose-600 dark:text-rose-400 font-semibold">
+                <span className="text-rose-700 dark:text-rose-400 font-semibold">
                   정지 {stats?.academies.suspended ?? academies.filter((a) => a.status === 'SUSPENDED').length}
                 </span>
-              </div>
+              </dd>
             </div>
 
             <div className="bg-white dark:bg-slate-900 p-5">
@@ -234,11 +235,11 @@ export default function AdminPortalPage() {
                 <span className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
                   {stats?.students.total ?? 0}
                 </span>
-                <span className="text-xs text-slate-400">명</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">명</span>
               </dd>
-              <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+              <dd className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                 정규 재원생: <span className="font-semibold text-slate-700 dark:text-slate-300">{stats?.students.active ?? 0}명</span>
-              </div>
+              </dd>
             </div>
 
             <div className="bg-white dark:bg-slate-900 p-5">
@@ -247,11 +248,11 @@ export default function AdminPortalPage() {
                 <span className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
                   {stats?.classes.total ?? 0}
                 </span>
-                <span className="text-xs text-slate-400">개 반</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">개 반</span>
               </dd>
-              <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+              <dd className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                 등록 강사/직원: <span className="font-semibold text-slate-700 dark:text-slate-300">{stats?.users.total ?? 0}명</span>
-              </div>
+              </dd>
             </div>
 
             <div className="bg-white dark:bg-slate-900 p-5">
@@ -260,12 +261,12 @@ export default function AdminPortalPage() {
                 <span className="text-2xl sm:text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
                   {stats?.todayAttendances ?? 0}
                 </span>
-                <span className="text-xs text-slate-400">건 출결</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">건 출결</span>
               </dd>
-              <div className="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium flex items-center gap-1">
+              <dd className="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium flex items-center gap-1">
                 <MessageSquare className="w-3 h-3" />
                 <span>카카오 알림톡 자동 연동</span>
-              </div>
+              </dd>
             </div>
           </dl>
 
@@ -293,7 +294,7 @@ export default function AdminPortalPage() {
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-ui cursor-pointer ${
                       statusFilter === 'ALL'
                         ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        : 'text-slate-600 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     전체 ({academies.length})
@@ -303,8 +304,8 @@ export default function AdminPortalPage() {
                     onClick={() => setStatusFilter('ACTIVE')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-ui cursor-pointer ${
                       statusFilter === 'ACTIVE'
-                        ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     정상 ({academies.filter((a) => a.status === 'ACTIVE').length})
@@ -314,8 +315,8 @@ export default function AdminPortalPage() {
                     onClick={() => setStatusFilter('SUSPENDED')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-ui cursor-pointer ${
                       statusFilter === 'SUSPENDED'
-                        ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-400 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     정지 ({academies.filter((a) => a.status === 'SUSPENDED').length})
@@ -324,7 +325,7 @@ export default function AdminPortalPage() {
 
                 {/* Search Bar */}
                 <div className="relative w-full sm:w-64">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                     <Search className="w-3.5 h-3.5" />
                   </div>
                   <input
@@ -354,7 +355,7 @@ export default function AdminPortalPage() {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                   {filteredAcademies.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                      <td colSpan={6} className="py-12 text-center text-slate-500 dark:text-slate-400 text-xs">
                         검색 조건에 일치하는 학원이 없습니다.
                       </td>
                     </tr>
@@ -369,7 +370,7 @@ export default function AdminPortalPage() {
                           <div className="font-bold text-slate-900 dark:text-white text-sm">
                             {academy.name}
                           </div>
-                          <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
                             <span>ID: #{academy.id}</span>
                             {academy.phoneNumber && <span>• {academy.phoneNumber}</span>}
                           </div>
@@ -387,17 +388,17 @@ export default function AdminPortalPage() {
                               <div className="font-semibold text-slate-800 dark:text-slate-200">
                                 {academy.owner.name}
                               </div>
-                              <div className="text-[11px] text-slate-400">
+                              <div className="text-[11px] text-slate-500 dark:text-slate-400">
                                 {academy.owner.email}
                               </div>
                               {academy.owner.phone && (
-                                <div className="text-[11px] text-slate-400">
+                                <div className="text-[11px] text-slate-500 dark:text-slate-400">
                                   {academy.owner.phone}
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <span className="text-slate-400 italic">원장 계정 없음</span>
+                            <span className="text-slate-500 dark:text-slate-400 italic">원장 계정 없음</span>
                           )}
                         </td>
 
@@ -406,7 +407,7 @@ export default function AdminPortalPage() {
                           <div className="font-bold text-slate-900 dark:text-white">
                             {academy.stats.studentCount}명
                           </div>
-                          <div className="text-[11px] text-slate-400">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
                             {academy.stats.classCount}개 반
                           </div>
                         </td>
@@ -484,12 +485,12 @@ export default function AdminPortalPage() {
                   최근 관리자 작업 감사 로그
                 </h3>
               </div>
-              <span className="text-xs text-slate-400">보안 감사 추적용</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">보안 감사 추적용</span>
             </div>
 
             <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
               {auditLogs.length === 0 ? (
-                <div className="py-6 text-center text-slate-400 text-xs">
+                <div className="py-6 text-center text-slate-500 dark:text-slate-400 text-xs">
                   최근 기록된 관리자 작업 로그가 없습니다.
                 </div>
               ) : (
@@ -502,12 +503,12 @@ export default function AdminPortalPage() {
                       <span className="font-medium text-slate-800 dark:text-slate-200">
                         {log.adminName}
                       </span>
-                      <span className="text-slate-400">
+                      <span className="text-slate-500 dark:text-slate-400">
                         (대상: {log.targetType} #{log.targetId || '-'})
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 text-slate-400 text-[11px]">
+                    <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 text-[11px]">
                       <span>IP: {log.ipAddress || '127.0.0.1'}</span>
                       <span>•</span>
                       <span>

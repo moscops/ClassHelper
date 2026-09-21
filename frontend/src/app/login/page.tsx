@@ -99,7 +99,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative transition-ui duration-200 overflow-hidden">
 
       {/* Top Floating Controls (Theme Toggle + Home Button) */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2.5 z-20">
+      <header className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2.5 z-20">
         <ThemeToggle />
         <Link
           href="/"
@@ -108,10 +108,10 @@ export default function LoginPage() {
           <Home className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
           <span>홈으로</span>
         </Link>
-      </div>
+      </header>
 
       {/* Clean Single Center Card */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+      <main className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         {/* Brand Logo Header */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
@@ -122,9 +122,9 @@ export default function LoginPage() {
               Class<span className="text-indigo-600 dark:text-indigo-400">Helper</span>
             </span>
           </Link>
-          <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             로그인
-          </h2>
+          </h1>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             원장님, 강사 및 관리자 계정으로 접속하세요.
           </p>
@@ -135,7 +135,7 @@ export default function LoginPage() {
           {/* Error Alert */}
           {errorMessage && (
             <div className="mb-5 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
@@ -147,7 +147,7 @@ export default function LoginPage() {
                 이메일 계정
               </label>
               <div className="relative rounded-xl shadow-xs">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
@@ -163,7 +163,7 @@ export default function LoginPage() {
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.email.message}</p>
+                <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.email.message}</p>
               )}
             </div>
 
@@ -173,7 +173,7 @@ export default function LoginPage() {
                 비밀번호
               </label>
               <div className="relative rounded-xl shadow-xs">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -189,14 +189,15 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.password.message}</p>
+                <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.password.message}</p>
               )}
             </div>
 
@@ -219,7 +220,7 @@ export default function LoginPage() {
 
           {/* Quick Demo Fill Helper */}
           <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-            <div className="text-[11px] font-medium text-slate-400 text-center mb-1">
+            <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 text-center mb-1">
               빠른 테스트용 계정 자동 입력
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -253,7 +254,7 @@ export default function LoginPage() {
             학원 개설 및 원장님 가입
           </Link>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

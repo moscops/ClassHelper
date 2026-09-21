@@ -98,14 +98,14 @@ export default function RegisterPage() {
 
   const getStrengthInfo = () => {
     if (passwordValue.length === 0)
-      return { label: '비밀번호를 입력해주세요', color: 'bg-slate-200 dark:bg-slate-700', text: 'text-slate-400', width: 'w-0' };
+      return { label: '비밀번호를 입력해주세요', color: 'bg-slate-200 dark:bg-slate-700', text: 'text-slate-500 dark:text-slate-400', width: 'w-0' };
     if (strengthScore <= 1)
-      return { label: '매우 취약 (사용 불가)', color: 'bg-rose-500', text: 'text-rose-600 dark:text-rose-400', width: 'w-1/4' };
+      return { label: '매우 취약 (사용 불가)', color: 'bg-rose-500', text: 'text-rose-700 dark:text-rose-400', width: 'w-1/4' };
     if (strengthScore === 2)
       return { label: '취약 (사용 불가)', color: 'bg-orange-500', text: 'text-orange-600 dark:text-orange-400', width: 'w-2/4' };
     if (strengthScore === 3)
-      return { label: '보통 (특수문자/숫자 추가 필요)', color: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400', width: 'w-3/4' };
-    return { label: '안전하고 강력함 (사용 가능)', color: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400', width: 'w-full' };
+      return { label: '보통 (특수문자/숫자 추가 필요)', color: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-400', width: 'w-3/4' };
+    return { label: '안전하고 강력함 (사용 가능)', color: 'bg-emerald-500', text: 'text-emerald-700 dark:text-emerald-400', width: 'w-full' };
   };
 
   const strengthInfo = getStrengthInfo();
@@ -152,7 +152,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative transition-ui duration-200 overflow-hidden">
 
       {/* Top Floating Controls (Theme Toggle + Home Button) */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2.5 z-20">
+      <header className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2.5 z-20">
         <ThemeToggle />
         <Link
           href="/"
@@ -161,10 +161,10 @@ export default function RegisterPage() {
           <Home className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
           <span>홈으로</span>
         </Link>
-      </div>
+      </header>
 
       {/* Clean Single Center Card */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-lg relative z-10">
+      <main className="sm:mx-auto sm:w-full sm:max-w-lg relative z-10">
         {/* Brand Logo Header */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
@@ -175,9 +175,9 @@ export default function RegisterPage() {
               Class<span className="text-indigo-600 dark:text-indigo-400">Helper</span>
             </span>
           </Link>
-          <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             학원 개설 & 원장님 가입
-          </h2>
+          </h1>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             {step === 1 ? '1단계: 학원 기본 정보 입력' : '2단계: 원장님 관리자 계정 생성'}
           </p>
@@ -195,7 +195,7 @@ export default function RegisterPage() {
               >
                 {step === 2 ? <Check className="w-3.5 h-3.5" /> : '1'}
               </span>
-              <span className={`text-xs font-semibold ${step === 1 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+              <span className={`text-xs font-semibold ${step === 1 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`}>
                 학원 정보
               </span>
             </div>
@@ -205,12 +205,12 @@ export default function RegisterPage() {
             <div className="flex items-center gap-1.5">
               <span
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  step === 2 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+                  step === 2 ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                 }`}
               >
                 2
               </span>
-              <span className={`text-xs font-semibold ${step === 2 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+              <span className={`text-xs font-semibold ${step === 2 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`}>
                 원장님 계정
               </span>
             </div>
@@ -219,7 +219,7 @@ export default function RegisterPage() {
           {/* Error Message Alert */}
           {errorMessage && (
             <div className="mb-5 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
@@ -238,10 +238,10 @@ export default function RegisterPage() {
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
                     <span>학원 명칭 <span className="text-rose-500">*</span></span>
-                    <span className="text-[11px] text-slate-400 font-normal">학부모 알림톡 발송처 표기</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">학부모 알림톡 발송처 표기</span>
                   </label>
                   <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                       <Building2 className="w-4 h-4" />
                     </div>
                     <input
@@ -256,7 +256,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   {errors.academyName && (
-                    <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.academyName.message}</p>
+                    <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.academyName.message}</p>
                   )}
                 </div>
 
@@ -266,7 +266,7 @@ export default function RegisterPage() {
                     <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-normal">알림톡 발신번호로 사용</span>
                   </label>
                   <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                       <Phone className="w-4 h-4" />
                     </div>
                     <input
@@ -281,7 +281,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   {errors.academyPhone && (
-                    <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.academyPhone.message}</p>
+                    <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.academyPhone.message}</p>
                   )}
                 </div>
 
@@ -328,7 +328,7 @@ export default function RegisterPage() {
                     원장님 성함 <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                       <User className="w-4 h-4" />
                     </div>
                     <input
@@ -343,7 +343,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   {errors.name && (
-                    <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.name.message}</p>
+                    <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.name.message}</p>
                   )}
                 </div>
 
@@ -353,7 +353,7 @@ export default function RegisterPage() {
                       로그인 이메일 <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative rounded-xl shadow-xs">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                         <Mail className="w-4 h-4" />
                       </div>
                       <input
@@ -368,7 +368,7 @@ export default function RegisterPage() {
                       />
                     </div>
                     {errors.email && (
-                      <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.email.message}</p>
+                      <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.email.message}</p>
                     )}
                   </div>
 
@@ -377,7 +377,7 @@ export default function RegisterPage() {
                       휴대폰 번호 (선택)
                     </label>
                     <div className="relative rounded-xl shadow-xs">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                         <Phone className="w-4 h-4" />
                       </div>
                       <input
@@ -399,7 +399,7 @@ export default function RegisterPage() {
                     </span>
                   </label>
                   <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
@@ -414,8 +414,9 @@ export default function RegisterPage() {
                     />
                     <button
                       type="button"
+                      aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -428,26 +429,26 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="mt-1.5 grid grid-cols-2 gap-1 text-[11px] text-slate-500 dark:text-slate-400">
-                    <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-400 dark:text-slate-600'}`}>
-                      {hasMinLength ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" /> : <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 shrink-0" />}
+                    <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                      {hasMinLength ? <Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" /> : <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 shrink-0" />}
                       <span>8자 이상</span>
                     </div>
-                    <div className={`flex items-center gap-1.5 ${hasLetter ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-400 dark:text-slate-600'}`}>
-                      {hasLetter ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" /> : <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 shrink-0" />}
+                    <div className={`flex items-center gap-1.5 ${hasLetter ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                      {hasLetter ? <Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" /> : <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 shrink-0" />}
                       <span>영문자 포함</span>
                     </div>
-                    <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-400 dark:text-slate-600'}`}>
-                      {hasNumber ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" /> : <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 shrink-0" />}
+                    <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                      {hasNumber ? <Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" /> : <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 shrink-0" />}
                       <span>숫자 포함</span>
                     </div>
-                    <div className={`flex items-center gap-1.5 ${hasSpecial ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-400 dark:text-slate-600'}`}>
-                      {hasSpecial ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" /> : <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 shrink-0" />}
+                    <div className={`flex items-center gap-1.5 ${hasSpecial ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                      {hasSpecial ? <Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" /> : <X className="w-3.5 h-3.5 text-slate-300 dark:text-slate-700 shrink-0" />}
                       <span>특수문자(!@#$%^&*) 포함</span>
                     </div>
                   </div>
 
                   {errors.password && (
-                    <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.password.message}</p>
+                    <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.password.message}</p>
                   )}
                 </div>
 
@@ -457,7 +458,7 @@ export default function RegisterPage() {
                     비밀번호 확인 <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
@@ -472,14 +473,15 @@ export default function RegisterPage() {
                     />
                     <button
                       type="button"
+                      aria-label={showConfirmPassword ? '비밀번호 확인 숨기기' : '비밀번호 확인 표시'}
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.confirmPassword.message}</p>
+                    <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.confirmPassword.message}</p>
                   )}
                 </div>
 
@@ -522,7 +524,7 @@ export default function RegisterPage() {
             로그인하기
           </Link>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

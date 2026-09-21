@@ -172,7 +172,7 @@ export function CustomDatePicker({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="absolute left-2.5 p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
+          className="absolute left-2.5 p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
           aria-label="달력 열기"
         >
           <CalendarIcon className="w-3.5 h-3.5" />
@@ -207,8 +207,9 @@ export function CustomDatePicker({
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
             <button
               type="button"
+              aria-label="이전 달"
               onClick={handlePrevMonth}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -219,8 +220,9 @@ export function CustomDatePicker({
 
             <button
               type="button"
+              aria-label="다음 달"
               onClick={handleNextMonth}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -236,7 +238,7 @@ export function CustomDatePicker({
                     ? 'text-rose-500'
                     : idx === 6
                     ? 'text-indigo-600 dark:text-indigo-400'
-                    : 'text-slate-400'
+                    : 'text-slate-500 dark:text-slate-400'
                 }`}
               >
                 {lbl}
@@ -260,11 +262,11 @@ export function CustomDatePicker({
                     isSelected
                       ? 'bg-indigo-600 text-white font-bold shadow-xs scale-105'
                       : !isCurrentMonth
-                      ? 'text-slate-300 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                      ? 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40'
                       : isToday
                       ? 'ring-1 ring-indigo-500 font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60'
                       : item.isSunday
-                      ? 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                      ? 'text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
                       : item.isSaturday
                       ? 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60'
                       : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -288,7 +290,7 @@ export function CustomDatePicker({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer text-[11px]"
+              className="px-2.5 py-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer text-[11px]"
             >
               닫기
             </button>

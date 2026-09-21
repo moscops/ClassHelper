@@ -86,7 +86,7 @@ export function CustomDropdown({
         onClick={handleToggle}
         className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border flex items-center justify-between gap-1.5 transition-ui cursor-pointer shadow-2xs ${
           disabled
-            ? 'opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400'
+            ? 'opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
             : selectedOption?.activeColor
             ? selectedOption.activeColor
             : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200'
@@ -135,13 +135,13 @@ export function CustomDropdown({
                   <div className="min-w-0 truncate">
                     <span className="truncate block font-medium">{opt.label}</span>
                     {opt.subLabel && (
-                      <span className="text-[10px] text-slate-400 block">{opt.subLabel}</span>
+                      <span className="text-[10px] text-slate-600 dark:text-slate-400 block">{opt.subLabel}</span>
                     )}
                   </div>
                 </div>
 
                 {typeof opt.count === 'number' && (
-                  <span className="text-[10px] text-slate-400 font-normal shrink-0">
+                  <span className="text-[10px] text-slate-600 dark:text-slate-400 font-normal shrink-0">
                     {opt.count}명
                   </span>
                 )}

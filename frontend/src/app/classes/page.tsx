@@ -443,6 +443,7 @@ export default function ClassesPage() {
             <div className="flex items-center gap-2.5">
               <button
                 type="button"
+                aria-label="새로고침"
                 onClick={loadClasses}
                 disabled={isLoading}
                 className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-2xs transition-ui cursor-pointer"
@@ -467,7 +468,7 @@ export default function ClassesPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               {/* Search Bar */}
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="반 명칭, 과목, 학년, 수업 시간표 검색..."
@@ -478,8 +479,9 @@ export default function ClassesPage() {
                 {searchTerm && (
                   <button
                     type="button"
+                    aria-label="검색어 지우기"
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -504,7 +506,7 @@ export default function ClassesPage() {
                   onClick={() => setStatusFilter('ACTIVE')}
                   className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'ACTIVE'
-                      ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
+                      ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
@@ -515,7 +517,7 @@ export default function ClassesPage() {
                   onClick={() => setStatusFilter('INACTIVE')}
                   className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'INACTIVE'
-                      ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-2xs font-bold'
+                      ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
@@ -542,7 +544,7 @@ export default function ClassesPage() {
                 <div className="flex flex-wrap items-center gap-4">
                   {/* Subject Filter */}
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-slate-400 mr-1 font-medium text-[11px]">과목 구분:</span>
+                    <span className="text-slate-500 dark:text-slate-400 mr-1 font-medium text-[11px]">과목 구분:</span>
                     {['ALL', '수학', '영어', '국어', '과학', 'OTHER'].map((subj) => (
                       <button
                         key={subj}
@@ -561,7 +563,7 @@ export default function ClassesPage() {
 
                   {/* Grade Filter */}
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-slate-400 mr-1 font-medium text-[11px]">대상 학년:</span>
+                    <span className="text-slate-500 dark:text-slate-400 mr-1 font-medium text-[11px]">대상 학년:</span>
                     {[
                       { id: 'ALL', label: '전체 학년' },
                       { id: 'ELEMENTARY', label: '초등' },
@@ -604,7 +606,7 @@ export default function ClassesPage() {
 
               {/* Row 2: Day/Schedule Filter */}
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-slate-400 mr-1 font-medium text-[11px]">수업 요일:</span>
+                <span className="text-slate-500 dark:text-slate-400 mr-1 font-medium text-[11px]">수업 요일:</span>
                 {[
                   { id: 'ALL', label: '전체 요일' },
                   { id: 'MON', label: '월' },
@@ -643,9 +645,9 @@ export default function ClassesPage() {
           ) : filteredClasses.length === 0 ? (
             <div className="p-12 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs">
               <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">
                 등록된 수업 반이 없습니다.
-              </h3>
+              </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-5">
                 새로운 수업 반을 개설하고 원생들을 배정해보세요.
               </p>
@@ -697,28 +699,28 @@ export default function ClassesPage() {
                             <span>휴강</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 text-[10px] font-bold">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold">
                             <span>폐강</span>
                           </span>
                         )}
                       </div>
 
                       {/* Class Name */}
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-snug">
+                      <h2 className="text-lg font-bold text-slate-900 dark:text-white leading-snug">
                         {c.name}
-                      </h3>
+                      </h2>
 
                       {/* Class Details */}
                       <div className="mt-4 space-y-2 text-xs text-slate-600 dark:text-slate-300">
                         {c.schedule && (
                           <div className="flex items-center gap-2">
-                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                             <span>{c.schedule}</span>
                           </div>
                         )}
 
                         <div className="flex items-center gap-2">
-                          <CreditCard className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <CreditCard className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                           <span>
                             월 <strong className="text-slate-900 dark:text-white">{c.monthlyFee.toLocaleString()}</strong>원
                           </span>
@@ -734,7 +736,7 @@ export default function ClassesPage() {
                           </span>
                           <span className="font-bold text-slate-900 dark:text-white">
                             {c.enrolledCount} / {capacity}명{' '}
-                            <span className="text-slate-400 font-normal">({percent}%)</span>
+                            <span className="text-slate-500 dark:text-slate-400 font-normal">({percent}%)</span>
                           </span>
                         </div>
 
@@ -767,6 +769,7 @@ export default function ClassesPage() {
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
+                          aria-label="반 수정"
                           onClick={() => handleOpenEditModal(c)}
                           className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:text-white transition-ui cursor-pointer"
                         >
@@ -775,6 +778,7 @@ export default function ClassesPage() {
 
                         <button
                           type="button"
+                          aria-label="반 삭제"
                           onClick={() => handleDeleteClass(c)}
                           className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:text-slate-400 dark:hover:text-rose-400 transition-ui cursor-pointer"
                         >
@@ -801,6 +805,9 @@ export default function ClassesPage() {
               setIsStatusDropdownOpen(false);
             }
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="class-modal-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         >
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -811,18 +818,19 @@ export default function ClassesPage() {
                   <BookOpen className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                  <h2 id="class-modal-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                     {editingClass ? '수업 반 정보 수정' : '신규 수업 반 개설'}
-                  </h3>
+                  </h2>
                 </div>
               </div>
               <button
                 type="button"
+                aria-label="닫기"
                 onClick={() => {
                   setIsClassModalOpen(false);
                   setIsStatusDropdownOpen(false);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -857,7 +865,7 @@ export default function ClassesPage() {
                     }`}
                   />
                   {nameError && (
-                    <p className="mt-1.5 text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1 font-medium animate-in fade-in slide-in-from-top-1 duration-150">
+                    <p className="mt-1.5 text-[11px] text-rose-700 dark:text-rose-400 flex items-center gap-1 font-medium animate-in fade-in slide-in-from-top-1 duration-150">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                       <span>{nameError}</span>
                     </p>
@@ -948,7 +956,7 @@ export default function ClassesPage() {
                       {classFormData.status === 'ACTIVE' && (
                         <>
                           <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs"></span>
-                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          <span className="font-bold text-emerald-700 dark:text-emerald-400">
                             운영중 (정상 개설)
                           </span>
                         </>
@@ -956,7 +964,7 @@ export default function ClassesPage() {
                       {classFormData.status === 'INACTIVE' && (
                         <>
                           <span className="w-2 h-2 rounded-full bg-amber-500 shadow-xs"></span>
-                          <span className="font-bold text-amber-600 dark:text-amber-400">
+                          <span className="font-bold text-amber-700 dark:text-amber-400">
                             임시휴강
                           </span>
                         </>
@@ -964,14 +972,14 @@ export default function ClassesPage() {
                       {classFormData.status === 'CLOSED' && (
                         <>
                           <span className="w-2 h-2 rounded-full bg-rose-500 shadow-xs"></span>
-                          <span className="font-bold text-rose-600 dark:text-rose-400">
+                          <span className="font-bold text-rose-700 dark:text-rose-400">
                             폐강
                           </span>
                         </>
                       )}
                     </div>
                     <ChevronDown
-                      className={`w-4 h-4 text-slate-400 mr-1.5 transition-transform duration-200 ${
+                      className={`w-4 h-4 text-slate-500 dark:text-slate-400 mr-1.5 transition-transform duration-200 ${
                         isStatusDropdownOpen ? 'rotate-180 text-indigo-600 dark:text-indigo-400' : ''
                       }`}
                     />
@@ -993,14 +1001,14 @@ export default function ClassesPage() {
                             : 'hover:bg-white/60 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'
                         }`}
                       >
-                        <div className="mt-0.5 w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <div className="mt-0.5 w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-xs text-slate-900 dark:text-white">운영중 (정상 개설)</span>
                             {classFormData.status === 'ACTIVE' && (
-                              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">선택됨</span>
+                              <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">선택됨</span>
                             )}
                           </div>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1022,14 +1030,14 @@ export default function ClassesPage() {
                             : 'hover:bg-white/60 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'
                         }`}
                       >
-                        <div className="mt-0.5 w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                        <div className="mt-0.5 w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
                           <PauseCircle className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-xs text-slate-900 dark:text-white">임시휴강</span>
                             {classFormData.status === 'INACTIVE' && (
-                              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">선택됨</span>
+                              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">선택됨</span>
                             )}
                           </div>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1051,14 +1059,14 @@ export default function ClassesPage() {
                             : 'hover:bg-white/60 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'
                         }`}
                       >
-                        <div className="mt-0.5 w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                        <div className="mt-0.5 w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-400 flex items-center justify-center shrink-0">
                           <AlertCircle className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-xs text-slate-900 dark:text-white">폐강</span>
                             {classFormData.status === 'CLOSED' && (
-                              <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400">선택됨</span>
+                              <span className="text-[10px] font-bold text-rose-700 dark:text-rose-400">선택됨</span>
                             )}
                           </div>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1108,6 +1116,9 @@ export default function ClassesPage() {
               setIsStudentDropdownOpen(false);
             }
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="enrollment-modal-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         >
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-3xl h-[88vh] max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
@@ -1116,9 +1127,9 @@ export default function ClassesPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h2 id="enrollment-modal-title" className="text-base font-bold text-slate-900 dark:text-white">
                     [{selectedClassForEnrollment.name}] 수강생 배정 관리
-                  </h3>
+                  </h2>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   현재 수강생: <strong className="text-indigo-600 dark:text-indigo-400">{enrollments.filter(e => e.status === 'ENROLLED').length}</strong> / {selectedClassForEnrollment.capacity || 15}명
@@ -1126,11 +1137,12 @@ export default function ClassesPage() {
               </div>
               <button
                 type="button"
+                aria-label="닫기"
                 onClick={() => {
                   setIsEnrollmentModalOpen(false);
                   setIsStudentDropdownOpen(false);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1140,10 +1152,10 @@ export default function ClassesPage() {
             <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs flex-1">
               {/* Quick Enroll Form (Searchable Autocomplete) */}
               <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/60">
-                <h4 className="font-bold text-indigo-950 dark:text-indigo-200 flex items-center gap-1.5 mb-2.5">
+                <h3 className="font-bold text-indigo-950 dark:text-indigo-200 flex items-center gap-1.5 mb-2.5">
                   <UserPlus className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   <span>새로운 원생 수강 등록 (검색 배정)</span>
-                </h4>
+                </h3>
 
                 {enrollError && (
                   <div className="mb-3 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-[11px] flex items-start gap-1.5 animate-in fade-in slide-in-from-top-1">
@@ -1159,7 +1171,7 @@ export default function ClassesPage() {
                     className={`relative flex-1 ${isStudentDropdownOpen ? 'z-50' : 'z-20'}`}
                   >
                     <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type="text"
                         placeholder="원생 이름, 학년, 학교, 연락처 검색..."
@@ -1184,12 +1196,13 @@ export default function ClassesPage() {
                       {studentSearchTerm && (
                         <button
                           type="button"
+                          aria-label="검색어 지우기"
                           onClick={() => {
                             setStudentSearchTerm('');
                             setSelectedStudentIdToEnroll('');
                             setIsStudentDropdownOpen(true);
                           }}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -1212,7 +1225,7 @@ export default function ClassesPage() {
                               (s.grade && s.grade.toLowerCase().includes(term))
                             );
                           }).length === 0 ? (
-                          <div className="py-4 text-center text-slate-400 text-xs">
+                          <div className="py-4 text-center text-slate-500 dark:text-slate-400 text-xs">
                             일치하는 원생이 없습니다.
                           </div>
                         ) : (
@@ -1248,7 +1261,7 @@ export default function ClassesPage() {
                                   }}
                                   className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                                     isAlreadyEnrolled
-                                      ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40 text-slate-400'
+                                      ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400'
                                       : isSelected
                                       ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold border border-indigo-200 dark:border-indigo-800/80'
                                       : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -1264,12 +1277,12 @@ export default function ClassesPage() {
                                           {s.name}
                                         </span>
                                         {(s.grade || s.schoolName) && (
-                                          <span className="text-[10px] text-slate-400 truncate">
+                                          <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
                                             ({s.grade || ''}{s.grade && s.schoolName ? ' • ' : ''}{s.schoolName || ''})
                                           </span>
                                         )}
                                       </div>
-                                      <span className="text-[10px] text-slate-400">
+                                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
                                         {s.parentPhone || s.studentPhone || '연락처 없음'}
                                       </span>
                                     </div>
@@ -1316,17 +1329,17 @@ export default function ClassesPage() {
 
               {/* Enrolled Students Table */}
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-white mb-2.5">
+                <h3 className="font-bold text-slate-900 dark:text-white mb-2.5">
                   수강 중인 학생 목록 ({enrollments.length}명)
-                </h4>
+                </h3>
 
                 {isLoadingEnrollments ? (
-                  <div className="py-8 text-center text-slate-400">
+                  <div className="py-8 text-center text-slate-500 dark:text-slate-400">
                     <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
                     <span>수강생 목록 로딩 중...</span>
                   </div>
                 ) : enrollments.length === 0 ? (
-                  <div className="py-8 text-center text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <div className="py-8 text-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                     현재 이 반에 배정된 학생이 없습니다. 위에서 학생을 배정해주세요.
                   </div>
                 ) : (
@@ -1484,8 +1497,9 @@ export default function ClassesPage() {
                               <td className="py-2.5 px-3 text-right">
                                 <button
                                   type="button"
+                                  aria-label="수강 해제"
                                   onClick={() => handleRemoveEnrollment(item.id, item.student.name)}
-                                  className="p-1 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-ui cursor-pointer"
+                                  className="p-1 rounded-md text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-ui cursor-pointer"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
