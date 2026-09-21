@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { StudentStatus, Gender, EnrollmentStatus } from '@prisma/client';
 import { StudentsService } from './students.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -38,6 +38,7 @@ describe('StudentsService', () => {
         update: jest.fn(),
         delete: jest.fn(),
       },
+      $transaction: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -165,6 +166,117 @@ describe('StudentsService', () => {
 
       expect(result.success).toBe(true);
       expect(prisma.student.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+    });
+  });
+
+  describe('bulkImport', () => {
+    let idCounter: number;
+
+    beforeEach(() => {
+      idCounter = 100;
+      prisma.student.findMany.mockResolvedValue([]);
+      prisma.student.create.mockImplementation(({ data }: any) =>
+        Promise.resolve({ id: idCounter++, ...data }),
+      );
+      prisma.$transaction.mockImplementation((ops: Promise<any>[]) =>
+        Promise.all(ops),
+      );
+    });
+
+    const csv = (rows: string) =>
+      Buffer.from('이름,성별,학부모연락처,재원상태\n' + rows);
+
+    it('전부 유효한 행은 모두 등록됨', async () => {
+      const result = await service.bulkImport(
+        10,
+        csv('홍길동,남,010-1111-2222,재원\n김영희,여,010-3333-4444,재원'),
+      );
+
+      expect(result.totalRows).toBe(2);
+      expect(result.createdCount).toBe(2);
+      expect(result.skippedCount).toBe(0);
+      expect(result.failedCount).toBe(0);
+      expect(prisma.student.create).toHaveBeenCalledTimes(2);
+    });
+
+    it('필수값(학부모 연락처) 누락 행은 실패 목록에 기록되고 나머지는 등록됨', async () => {
+      const result = await service.bulkImport(
+        10,
+        csv('홍길동,남,,재원\n김영희,여,010-3333-4444,재원'),
+      );
+
+      expect(result.createdCount).toBe(1);
+      expect(result.failedCount).toBe(1);
+      expect(result.failed[0].errors).toContain(
+        '학부모 연락처를 입력해주세요.',
+      );
+    });
+
+    it('파일 내 중복 행(이름+학부모 연락처 동일)은 두 번째부터 건너뜀', async () => {
+      const result = await service.bulkImport(
+        10,
+        csv('홍길동,남,010-1111-2222,재원\n홍길동,남,010-1111-2222,재원'),
+      );
+
+      expect(result.createdCount).toBe(1);
+      expect(result.skippedCount).toBe(1);
+      expect(result.skipped[0].reason).toContain('이미 등록');
+    });
+
+    it('DB에 이미 존재하는 원생과 동일한 행은 건너뜀', async () => {
+      prisma.student.findMany.mockResolvedValue([
+        { name: '홍길동', parentPhone: '010-1111-2222' },
+      ]);
+
+      const result = await service.bulkImport(
+        10,
+        csv('홍길동,남,010-1111-2222,재원'),
+      );
+
+      expect(result.createdCount).toBe(0);
+      expect(result.skippedCount).toBe(1);
+      expect(prisma.student.create).not.toHaveBeenCalled();
+    });
+
+    it('한글 재원 상태/성별 값을 Enum으로 변환', async () => {
+      await service.bulkImport(10, csv('홍길동,남,010-1111-2222,휴원'));
+
+      expect(prisma.student.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            gender: Gender.MALE,
+            status: StudentStatus.ON_LEAVE,
+          }),
+        }),
+      );
+    });
+
+    it('인식할 수 없는 재원 상태 값은 실패로 기록', async () => {
+      const result = await service.bulkImport(
+        10,
+        csv('홍길동,남,010-1111-2222,알수없음'),
+      );
+
+      expect(result.failedCount).toBe(1);
+      expect(result.failed[0].errors[0]).toContain('재원 상태');
+    });
+
+    it('빈 CSV는 BadRequestException 발생', async () => {
+      await expect(
+        service.bulkImport(10, Buffer.from('이름,학부모연락처\n')),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('최대 행 수(2000)를 초과하면 BadRequestException 발생', async () => {
+      const header = '이름,학부모연락처\n';
+      const rows = Array.from(
+        { length: 2001 },
+        (_, i) => `학생${i},010-0000-${String(i).padStart(4, '0')}`,
+      ).join('\n');
+
+      await expect(
+        service.bulkImport(10, Buffer.from(header + rows)),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

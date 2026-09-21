@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   BookOpen,
@@ -8,7 +9,6 @@ import {
   Plus,
   Search,
   Clock,
-  User,
   CreditCard,
   Edit3,
   Trash2,
@@ -17,13 +17,13 @@ import {
   X,
   Loader2,
   RefreshCw,
-  Calendar,
   UserPlus,
-  ArrowRight,
-  Sparkles,
-  Phone,
   ChevronDown,
   PauseCircle,
+  FileText,
+  Send,
+  Sparkles,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -34,8 +34,9 @@ import {
   EnrollmentStatus,
 } from '@/lib/classes-service';
 import { studentsService, StudentItem } from '@/lib/students-service';
-import { AppHeader } from '@/components/AppHeader';
+import { reportsService, ClassReportSendResult } from '@/lib/reports-service';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
+import { AppLayout } from '@/components/common/AppLayout';
 
 export default function ClassesPage() {
   const router = useRouter();
@@ -73,6 +74,7 @@ export default function ClassesPage() {
   const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
   const [isLoadingEnrollments, setIsLoadingEnrollments] = useState(false);
   const [selectedStudentIdToEnroll, setSelectedStudentIdToEnroll] = useState<string>('');
+  const [selectedStudentIdsToEnroll, setSelectedStudentIdsToEnroll] = useState<number[]>([]);
   const [studentSearchTerm, setStudentSearchTerm] = useState<string>('');
   const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState<boolean>(false);
   const [activeEnrollmentStatusRowId, setActiveEnrollmentStatusRowId] = useState<number | null>(null);
@@ -83,18 +85,33 @@ export default function ClassesPage() {
   const [isEnrollingStudent, setIsEnrollingStudent] = useState(false);
   const [enrollError, setEnrollError] = useState<string | null>(null);
 
+  // Class Report Bulk Send Modal States
+  const [isClassReportModalOpen, setIsClassReportModalOpen] = useState(false);
+  const [selectedClassForReport, setSelectedClassForReport] = useState<ClassItem | null>(null);
+  const [classReportStart, setClassReportStart] = useState<string>('');
+  const [classReportEnd, setClassReportEnd] = useState<string>('');
+  const [classReportSamplePreview, setClassReportSamplePreview] = useState<any | null>(null);
+  const [classReportCustomNote, setClassReportCustomNote] = useState<string>('');
+  const [isLoadingClassReportPreview, setIsLoadingClassReportPreview] = useState(false);
+  const [isSendingClassReport, setIsSendingClassReport] = useState(false);
+  const [classReportResult, setClassReportResult] = useState<ClassReportSendResult | null>(null);
+  const [classReportError, setClassReportError] = useState<string | null>(null);
+
   // Click Outside Dropdown Refs
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const studentSearchRef = useRef<HTMLDivElement>(null);
   const enrollmentRowStatusRef = useRef<HTMLDivElement>(null);
 
-  // Role Badge calculation
   // Authentication check
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
-      router.replace('/login');
+    if (isHydrated) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      }
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   // Click Outside Listener to Close Dropdowns
   useEffect(() => {
@@ -138,19 +155,26 @@ export default function ClassesPage() {
         setIsClassModalOpen(false);
         setIsEnrollmentModalOpen(false);
         setIsStatusDropdownOpen(false);
+        setIsClassReportModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isStudentDropdownOpen, activeEnrollmentStatusRowId]);
 
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   const loadClasses = async () => {
     setIsLoading(true);
+    setFetchError(null);
     try {
       const response = await classesService.getClasses();
       setClasses(response.items || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch classes:', err);
+      setFetchError(
+        '데이터베이스 또는 서버 연결에 실패하여 수업 반 및 수강생 목록을 불러오지 못했습니다. 알림 관리 센터에 시스템 장애 알림이 기록되었습니다.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -166,11 +190,11 @@ export default function ClassesPage() {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       loadClasses();
       loadStudents();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   const handleOpenCreateModal = () => {
     setEditingClass(null);
@@ -264,6 +288,7 @@ export default function ClassesPage() {
     setIsLoadingEnrollments(true);
     setEnrollError(null);
     setSelectedStudentIdToEnroll('');
+    setSelectedStudentIdsToEnroll([]);
     setStudentSearchTerm('');
     setIsStudentDropdownOpen(false);
 
@@ -277,11 +302,53 @@ export default function ClassesPage() {
     }
   };
 
-  // Add student enrollment
+  // Toggle single student selection in multi-select mode
+  const toggleStudentEnrollSelection = (studentId: number) => {
+    setSelectedStudentIdsToEnroll((prev) => {
+      const isSelected = prev.includes(studentId);
+      const next = isSelected ? prev.filter((id) => id !== studentId) : [...prev, studentId];
+      if (next.length === 1) {
+        setSelectedStudentIdToEnroll(String(next[0]));
+      } else {
+        setSelectedStudentIdToEnroll('');
+      }
+      return next;
+    });
+    setEnrollError(null);
+  };
+
+  // Select or Deselect all currently filtered eligible students
+  const handleToggleSelectAllEligible = (eligibleIds: number[]) => {
+    const isAllSelected = eligibleIds.length > 0 && eligibleIds.every((id) => selectedStudentIdsToEnroll.includes(id));
+    if (isAllSelected) {
+      setSelectedStudentIdsToEnroll((prev) => prev.filter((id) => !eligibleIds.includes(id)));
+      setSelectedStudentIdToEnroll('');
+    } else {
+      const merged = Array.from(new Set([...selectedStudentIdsToEnroll, ...eligibleIds]));
+      setSelectedStudentIdsToEnroll(merged);
+      if (merged.length === 1) {
+        setSelectedStudentIdToEnroll(String(merged[0]));
+      } else {
+        setSelectedStudentIdToEnroll('');
+      }
+    }
+    setEnrollError(null);
+  };
+
+  // Add student enrollment (supports both single and multi-select batch)
   const handleEnrollStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedClassForEnrollment || !selectedStudentIdToEnroll) {
-      setEnrollError('배정할 원생을 검색하여 선택해주세요.');
+    if (!selectedClassForEnrollment) return;
+
+    const targetIds =
+      selectedStudentIdsToEnroll.length > 0
+        ? selectedStudentIdsToEnroll
+        : selectedStudentIdToEnroll
+        ? [Number(selectedStudentIdToEnroll)]
+        : [];
+
+    if (targetIds.length === 0) {
+      setEnrollError('배정할 원생을 검색하여 최소 1명 이상 선택(체크)해주세요.');
       setIsStudentDropdownOpen(true);
       return;
     }
@@ -289,19 +356,36 @@ export default function ClassesPage() {
     setIsEnrollingStudent(true);
     setEnrollError(null);
 
+    const sDate = enrollStartDate.trim() || new Date().toISOString().split('T')[0];
+    let successCount = 0;
+    const errors: string[] = [];
+
     try {
-      await classesService.enrollStudent(selectedClassForEnrollment.id, {
-        studentId: Number(selectedStudentIdToEnroll),
-        startDate: enrollStartDate.trim() || new Date().toISOString().split('T')[0],
-      });
+      for (const sId of targetIds) {
+        try {
+          await classesService.enrollStudent(selectedClassForEnrollment.id, {
+            studentId: sId,
+            startDate: sDate,
+          });
+          successCount++;
+        } catch (subErr: any) {
+          const sObj = allStudents.find((st) => st.id === sId);
+          errors.push(`${sObj ? sObj.name : sId}: ${subErr.response?.data?.message || '실패'}`);
+        }
+      }
 
       // Refresh enrollments & class count
       const updated = await classesService.getEnrolledStudents(selectedClassForEnrollment.id);
       setEnrollments(updated || []);
       setSelectedStudentIdToEnroll('');
+      setSelectedStudentIdsToEnroll([]);
       setStudentSearchTerm('');
       setIsStudentDropdownOpen(false);
       await loadClasses();
+
+      if (errors.length > 0) {
+        setEnrollError(`${successCount}명 배정 완료 (일부 오류: ${errors.join(', ')})`);
+      }
     } catch (err: any) {
       setEnrollError(err.response?.data?.message || '수강 등록 중 오류가 발생했습니다.');
     } finally {
@@ -356,6 +440,94 @@ export default function ClassesPage() {
         return 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
       default:
         return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+    }
+  };
+
+  const fetchClassSamplePreview = async (classId: number, start: string, end: string) => {
+    setIsLoadingClassReportPreview(true);
+    try {
+      const enrollments = await classesService.getEnrolledStudents(classId);
+      if (enrollments && enrollments.length > 0) {
+        const firstStudentId = enrollments[0].student.id;
+        const preview = await reportsService.previewStudentReport(firstStudentId, start, end);
+        setClassReportSamplePreview(preview);
+      } else {
+        setClassReportSamplePreview(null);
+      }
+    } catch (err) {
+      console.error('Failed to load class sample preview:', err);
+    } finally {
+      setIsLoadingClassReportPreview(false);
+    }
+  };
+
+  const handleOpenClassReportModal = (cls: ClassItem) => {
+    setSelectedClassForReport(cls);
+    setIsClassReportModalOpen(true);
+    setClassReportResult(null);
+    setClassReportError(null);
+    setClassReportSamplePreview(null);
+    setClassReportCustomNote('');
+
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startStr = firstDay.toISOString().split('T')[0];
+    const endStr = now.toISOString().split('T')[0];
+    setClassReportStart(startStr);
+    setClassReportEnd(endStr);
+    fetchClassSamplePreview(cls.id, startStr, endStr);
+  };
+
+  const handleApplyClassPreset = (preset: 'THIS_MONTH' | 'LAST_MONTH' | 'LAST_7_DAYS') => {
+    const now = new Date();
+    let startStr = '';
+    let endStr = '';
+
+    if (preset === 'THIS_MONTH') {
+      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      startStr = first.toISOString().split('T')[0];
+      endStr = now.toISOString().split('T')[0];
+    } else if (preset === 'LAST_MONTH') {
+      const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const last = new Date(now.getFullYear(), now.getMonth(), 0);
+      startStr = first.toISOString().split('T')[0];
+      endStr = last.toISOString().split('T')[0];
+    } else if (preset === 'LAST_7_DAYS') {
+      const past7 = new Date();
+      past7.setDate(now.getDate() - 7);
+      startStr = past7.toISOString().split('T')[0];
+      endStr = now.toISOString().split('T')[0];
+    }
+
+    setClassReportStart(startStr);
+    setClassReportEnd(endStr);
+    if (selectedClassForReport) {
+      fetchClassSamplePreview(selectedClassForReport.id, startStr, endStr);
+    }
+  };
+
+  const handleSendClassReport = async () => {
+    if (!selectedClassForReport || !classReportStart || !classReportEnd) return;
+
+    setIsSendingClassReport(true);
+    setClassReportError(null);
+    setClassReportResult(null);
+
+    try {
+      const result = await reportsService.sendClassReports(
+        selectedClassForReport.id,
+        classReportStart,
+        classReportEnd,
+        classReportCustomNote,
+      );
+      setClassReportResult(result);
+    } catch (err: any) {
+      console.error('Failed to send class reports:', err);
+      setClassReportError(
+        err.response?.data?.message || '반 리포트 일괄 발송 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSendingClassReport(false);
     }
   };
 
@@ -422,12 +594,9 @@ export default function ClassesPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-ui duration-200">
-      <AppHeader />
-
+    <AppLayout currentPath="/classes">
       {/* Main Body Section */}
       <main className="flex-1 relative overflow-hidden py-8">
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
           {/* Header Title & Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -474,7 +643,7 @@ export default function ClassesPage() {
                   placeholder="반 명칭, 과목, 학년, 수업 시간표 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-ui"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
                 {searchTerm && (
                   <button
@@ -636,6 +805,45 @@ export default function ClassesPage() {
             </div>
           </div>
 
+          {/* Critical DB / Server Connection Error Banner */}
+          {fetchError && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-rose-950 dark:text-rose-100 flex items-center gap-2">
+                    <span>데이터베이스 연결 및 서버 통신 장애</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200">
+                      알림 관리 센터 등록됨
+                    </span>
+                  </h3>
+                  <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5 leading-relaxed">
+                    {fetchError}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <Link
+                  href="/notifications"
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300 font-bold text-xs hover:bg-rose-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  알림 센터 확인
+                </Link>
+                <button
+                  type="button"
+                  onClick={loadClasses}
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>다시 시도</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Classes Grid */}
           {isLoading ? (
             <div className="py-20 flex flex-col items-center justify-center gap-3">
@@ -769,9 +977,18 @@ export default function ClassesPage() {
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
-                          aria-label="반 수정"
+                          onClick={() => handleOpenClassReportModal(c)}
+                          title="반 전체 카카오 리포트 일괄 발송"
+                          className="p-2 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 dark:text-slate-400 dark:hover:text-purple-400 transition-colors cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
                           onClick={() => handleOpenEditModal(c)}
-                          className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:text-white transition-ui cursor-pointer"
+                          title="반 정보 수정"
+                          className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
@@ -780,7 +997,8 @@ export default function ClassesPage() {
                           type="button"
                           aria-label="반 삭제"
                           onClick={() => handleDeleteClass(c)}
-                          className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:text-slate-400 dark:hover:text-rose-400 transition-ui cursor-pointer"
+                          title="반 삭제"
+                          className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:text-slate-400 dark:hover:text-rose-400 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -795,7 +1013,7 @@ export default function ClassesPage() {
       </main>
 
       {/* ========================================== */}
-      {/* 1. Class Create / Edit Modal (With ESC & Custom Status UI) */}
+      {/* 1. Class Create / Edit Modal */}
       {/* ========================================== */}
       {isClassModalOpen && (
         <div
@@ -805,12 +1023,9 @@ export default function ClassesPage() {
               setIsStatusDropdownOpen(false);
             }
           }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="class-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header (Fixed) */}
             <div className="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -858,10 +1073,10 @@ export default function ClassesPage() {
                       setClassFormData({ ...classFormData, name: e.target.value });
                       if (nameError) setNameError(null);
                     }}
-                    className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-ui ${
+                    className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none transition-all ${
                       nameError
-                        ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
+                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 dark:bg-rose-950/20'
+                        : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'
                     }`}
                   />
                   {nameError && (
@@ -882,7 +1097,7 @@ export default function ClassesPage() {
                       placeholder="예: 수학, 영어, 국어"
                       value={classFormData.subject}
                       onChange={(e) => setClassFormData({ ...classFormData, subject: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                   <div>
@@ -894,7 +1109,7 @@ export default function ClassesPage() {
                       placeholder="예: 초6, 중2, 고1"
                       value={classFormData.targetGrade}
                       onChange={(e) => setClassFormData({ ...classFormData, targetGrade: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                 </div>
@@ -908,7 +1123,7 @@ export default function ClassesPage() {
                     placeholder="예: 월/수/금 17:00-19:00"
                     value={classFormData.schedule}
                     onChange={(e) => setClassFormData({ ...classFormData, schedule: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                 </div>
 
@@ -923,7 +1138,7 @@ export default function ClassesPage() {
                       placeholder="예: 15 (명)"
                       value={classFormData.capacity}
                       onChange={(e) => setClassFormData({ ...classFormData, capacity: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                   <div>
@@ -937,7 +1152,7 @@ export default function ClassesPage() {
                       placeholder="예: 350,000 (원)"
                       value={classFormData.monthlyFee}
                       onChange={(e) => setClassFormData({ ...classFormData, monthlyFee: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                 </div>
@@ -1116,12 +1331,9 @@ export default function ClassesPage() {
               setIsStudentDropdownOpen(false);
             }
           }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="enrollment-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-3xl h-[88vh] max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-3xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div>
@@ -1165,7 +1377,7 @@ export default function ClassesPage() {
                 )}
 
                 <form onSubmit={handleEnrollStudent} noValidate className="flex flex-col sm:flex-row gap-2.5">
-                  {/* Searchable Student Autocomplete Combobox */}
+                  {/* Searchable Student Multi-select Autocomplete Combobox */}
                   <div
                     ref={studentSearchRef}
                     className={`relative flex-1 ${isStudentDropdownOpen ? 'z-50' : 'z-20'}`}
@@ -1174,135 +1386,180 @@ export default function ClassesPage() {
                       <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type="text"
-                        placeholder="원생 이름, 학년, 학교, 연락처 검색..."
+                        placeholder={
+                          selectedStudentIdsToEnroll.length > 0
+                            ? `${selectedStudentIdsToEnroll.length}명 선택됨 (추가 검색하여 선택 가능)...`
+                            : "원생 이름, 학년, 학교, 연락처 검색 (다중 선택 지원)..."
+                        }
                         value={studentSearchTerm}
                         onChange={(e) => {
                           setStudentSearchTerm(e.target.value);
                           setIsStudentDropdownOpen(true);
                           if (enrollError) setEnrollError(null);
-                          if (selectedStudentIdToEnroll) {
-                            setSelectedStudentIdToEnroll('');
-                          }
                         }}
                         onFocus={() => setIsStudentDropdownOpen(true)}
-                        className={`w-full pl-9 pr-8 py-2.5 bg-white dark:bg-slate-900 border rounded-xl text-slate-900 dark:text-white text-xs placeholder-slate-400 focus:outline-none transition-ui ${
-                          enrollError && !selectedStudentIdToEnroll
-                            ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                            : selectedStudentIdToEnroll
-                            ? 'border-indigo-500 ring-1 ring-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/20 font-semibold'
-                            : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
+                        className={`w-full pl-9 pr-16 py-2.5 bg-white dark:bg-slate-900 border rounded-2xl text-slate-900 dark:text-white text-xs placeholder:text-slate-400 focus:outline-none transition-all ${
+                          enrollError && selectedStudentIdsToEnroll.length === 0
+                            ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 dark:bg-rose-950/20'
+                            : selectedStudentIdsToEnroll.length > 0
+                            ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/10 dark:bg-indigo-950/20 font-semibold'
+                            : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'
                         }`}
                       />
-                      {studentSearchTerm && (
-                        <button
-                          type="button"
-                          aria-label="검색어 지우기"
-                          onClick={() => {
-                            setStudentSearchTerm('');
-                            setSelectedStudentIdToEnroll('');
-                            setIsStudentDropdownOpen(true);
-                          }}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
 
-                    {/* Autocomplete Dropdown List */}
-                    {isStudentDropdownOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-1.5 z-[60] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-1.5 max-h-56 overflow-y-auto space-y-1 animate-in fade-in zoom-in-95 duration-100">
-                        {allStudents
-                          .filter((s) => s.status === 'ACTIVE')
-                          .filter((s) => {
-                            if (!studentSearchTerm.trim()) return true;
-                            const term = studentSearchTerm.toLowerCase();
-                            return (
-                              s.name.toLowerCase().includes(term) ||
-                              (s.parentPhone && s.parentPhone.includes(term)) ||
-                              (s.studentPhone && s.studentPhone.includes(term)) ||
-                              (s.schoolName && s.schoolName.toLowerCase().includes(term)) ||
-                              (s.grade && s.grade.toLowerCase().includes(term))
-                            );
-                          }).length === 0 ? (
-                          <div className="py-4 text-center text-slate-500 dark:text-slate-400 text-xs">
-                            일치하는 원생이 없습니다.
-                          </div>
-                        ) : (
-                          allStudents
-                            .filter((s) => s.status === 'ACTIVE')
-                            .filter((s) => {
-                              if (!studentSearchTerm.trim()) return true;
-                              const term = studentSearchTerm.toLowerCase();
-                              return (
-                                s.name.toLowerCase().includes(term) ||
-                                (s.parentPhone && s.parentPhone.includes(term)) ||
-                                (s.studentPhone && s.studentPhone.includes(term)) ||
-                                (s.schoolName && s.schoolName.toLowerCase().includes(term)) ||
-                                (s.grade && s.grade.toLowerCase().includes(term))
-                              );
-                            })
-                            .map((s) => {
-                              const isAlreadyEnrolled = enrollments.some(
-                                (e) => e.studentId === s.id && e.status === 'ENROLLED',
-                              );
-                              const isSelected = selectedStudentIdToEnroll === String(s.id);
-
-                              return (
-                                <button
-                                  key={s.id}
-                                  type="button"
-                                  disabled={isAlreadyEnrolled}
-                                  onClick={() => {
-                                    setSelectedStudentIdToEnroll(String(s.id));
-                                    setStudentSearchTerm(`${s.name} (${s.grade || '학년미기재'}, ${s.schoolName || '학교미기재'})`);
-                                    setIsStudentDropdownOpen(false);
-                                    setEnrollError(null);
-                                  }}
-                                  className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-ui cursor-pointer ${
-                                    isAlreadyEnrolled
-                                      ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400'
-                                      : isSelected
-                                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold border border-indigo-200 dark:border-indigo-800/80'
-                                      : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[11px] font-bold text-indigo-600 dark:text-indigo-400 shrink-0">
-                                      {s.name.slice(0, 1)}
-                                    </div>
-                                    <div className="min-w-0 truncate">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="font-semibold text-slate-900 dark:text-white truncate">
-                                          {s.name}
-                                        </span>
-                                        {(s.grade || s.schoolName) && (
-                                          <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                                            ({s.grade || ''}{s.grade && s.schoolName ? ' • ' : ''}{s.schoolName || ''})
-                                          </span>
-                                        )}
-                                      </div>
-                                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                                        {s.parentPhone || s.studentPhone || '연락처 없음'}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    {isAlreadyEnrolled ? (
-                                      <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal">
-                                        수강중
-                                      </span>
-                                    ) : isSelected ? (
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                                    ) : null}
-                                  </div>
-                                </button>
-                              );
-                            })
+                      {/* Right indicator: count badge & clear */}
+                      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                        {selectedStudentIdsToEnroll.length > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold shadow-2xs">
+                            {selectedStudentIdsToEnroll.length}명
+                          </span>
+                        )}
+                        {(studentSearchTerm || selectedStudentIdsToEnroll.length > 0) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setStudentSearchTerm('');
+                              setSelectedStudentIdsToEnroll([]);
+                              setSelectedStudentIdToEnroll('');
+                              setIsStudentDropdownOpen(true);
+                            }}
+                            className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            title="선택 초기화"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
                         )}
                       </div>
-                    )}
+                    </div>
+
+                    {/* Autocomplete Dropdown List with Checkboxes */}
+                    {isStudentDropdownOpen && (() => {
+                      const filtered = allStudents
+                        .filter((s) => s.status === 'ACTIVE')
+                        .filter((s) => {
+                          if (!studentSearchTerm.trim()) return true;
+                          const term = studentSearchTerm.toLowerCase();
+                          return (
+                            s.name.toLowerCase().includes(term) ||
+                            (s.parentPhone && s.parentPhone.includes(term)) ||
+                            (s.studentPhone && s.studentPhone.includes(term)) ||
+                            (s.schoolName && s.schoolName.toLowerCase().includes(term)) ||
+                            (s.grade && s.grade.toLowerCase().includes(term))
+                          );
+                        });
+
+                      const eligibleStudents = filtered.filter(
+                        (s) => !enrollments.some((e) => e.studentId === s.id && e.status === 'ENROLLED')
+                      );
+                      const eligibleIds = eligibleStudents.map((s) => s.id);
+                      const isAllEligibleSelected =
+                        eligibleIds.length > 0 &&
+                        eligibleIds.every((id) => selectedStudentIdsToEnroll.includes(id));
+
+                      return (
+                        <div className="absolute top-full left-0 right-0 mt-1.5 z-[60] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2 max-h-72 flex flex-col animate-in fade-in zoom-in-95 duration-100">
+                          {/* Dropdown Header: Batch Selection Controls */}
+                          <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-100 dark:border-slate-800 shrink-0 px-1">
+                            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                              배정 대상 원생 ({eligibleStudents.length}명)
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {eligibleIds.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleSelectAllEligible(eligibleIds)}
+                                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 cursor-pointer transition-colors"
+                                >
+                                  {isAllEligibleSelected ? '선택 해제' : '검색 목록 전체 선택'}
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setIsStudentDropdownOpen(false)}
+                                className="px-2 py-0.5 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                              >
+                                닫기
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Student Items List */}
+                          <div className="overflow-y-auto space-y-1 flex-1 pr-0.5">
+                            {filtered.length === 0 ? (
+                              <div className="py-6 text-center text-slate-400 text-xs">
+                                일치하는 원생이 없습니다.
+                              </div>
+                            ) : (
+                              filtered.map((s) => {
+                                const isAlreadyEnrolled = enrollments.some(
+                                  (e) => e.studentId === s.id && e.status === 'ENROLLED',
+                                );
+                                const isChecked = selectedStudentIdsToEnroll.includes(s.id);
+
+                                return (
+                                  <div
+                                    key={s.id}
+                                    onClick={() => {
+                                      if (!isAlreadyEnrolled) {
+                                        toggleStudentEnrollSelection(s.id);
+                                      }
+                                    }}
+                                    className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all select-none ${
+                                      isAlreadyEnrolled
+                                        ? 'opacity-40 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40 text-slate-400'
+                                        : isChecked
+                                        ? 'bg-indigo-50/90 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-200 font-bold border border-indigo-200 dark:border-indigo-800/80 cursor-pointer'
+                                        : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                      {/* Checkbox */}
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        disabled={isAlreadyEnrolled}
+                                        onChange={() => {}} // handled by parent onClick
+                                        className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 pointer-events-none shrink-0"
+                                      />
+
+                                      <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[11px] font-bold text-indigo-600 dark:text-indigo-400 shrink-0">
+                                        {s.name.slice(0, 1)}
+                                      </div>
+
+                                      <div className="min-w-0 truncate">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="font-semibold text-slate-900 dark:text-white truncate">
+                                            {s.name}
+                                          </span>
+                                          {(s.grade || s.schoolName) && (
+                                            <span className="text-[10px] text-slate-400 truncate">
+                                              ({s.grade || ''}{s.grade && s.schoolName ? ' • ' : ''}{s.schoolName || ''})
+                                            </span>
+                                          )}
+                                        </div>
+                                        <span className="text-[10px] text-slate-400">
+                                          {s.parentPhone || s.studentPhone || '연락처 없음'}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      {isAlreadyEnrolled ? (
+                                        <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal">
+                                          수강중
+                                        </span>
+                                      ) : isChecked ? (
+                                        <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Custom Floating Date Picker with Direct Keyboard Editing */}
@@ -1314,15 +1571,19 @@ export default function ClassesPage() {
 
                   <button
                     type="submit"
-                    disabled={isEnrollingStudent || !selectedStudentIdToEnroll}
-                    className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-xs"
+                    disabled={isEnrollingStudent || (selectedStudentIdsToEnroll.length === 0 && !selectedStudentIdToEnroll)}
+                    className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-xs transition-all"
                   >
                     {isEnrollingStudent ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
                       <Plus className="w-3.5 h-3.5" />
                     )}
-                    <span>배정 등록</span>
+                    <span>
+                      {selectedStudentIdsToEnroll.length > 1
+                        ? `${selectedStudentIdsToEnroll.length}명 일괄 배정`
+                        : '수강 배정'}
+                    </span>
                   </button>
                 </form>
               </div>
@@ -1526,6 +1787,228 @@ export default function ClassesPage() {
           </div>
         </div>
       )}
-    </div>
+
+      {/* ========================================== */}
+      {/* 3. Class Reports Bulk Send Modal          */}
+      {/* ========================================== */}
+      {isClassReportModalOpen && selectedClassForReport && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSendingClassReport) {
+              setIsClassReportModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+        >
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold border border-purple-200 dark:border-purple-800/80">
+                  <FileText className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>반 전체 학습 리포트 일괄 발송</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold">
+                      {selectedClassForReport.name}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    반에 재원 중인 원생 전원에게 개인별 출결/과제 리포트를 생성하여 카카오로 발송합니다.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsClassReportModalOpen(false)}
+                disabled={isSendingClassReport}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs flex-1">
+              {/* 1. Period Selection */}
+              <div className="space-y-2">
+                <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <span>리포트 대상 기간 설정</span>
+                  <span className="text-[11px] text-slate-400 font-normal">프리셋 버튼으로 빠른 설정</span>
+                </label>
+
+                {/* Presets */}
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleApplyClassPreset('THIS_MONTH')}
+                    className="py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-center"
+                  >
+                    이번 달
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyClassPreset('LAST_MONTH')}
+                    className="py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-center"
+                  >
+                    지난 달
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyClassPreset('LAST_7_DAYS')}
+                    className="py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-center"
+                  >
+                    최근 7일
+                  </button>
+                </div>
+
+                {/* Date Inputs */}
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="date"
+                    value={classReportStart}
+                    onChange={(e) => setClassReportStart(e.target.value)}
+                    className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  />
+                  <span className="text-slate-400 font-bold">~</span>
+                  <input
+                    type="date"
+                    value={classReportEnd}
+                    onChange={(e) => setClassReportEnd(e.target.value)}
+                    className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Additional Custom Note Input */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Edit3 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span>선생님 추가 전달사항 / 당부의 말씀 (공통 첨부)</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={classReportCustomNote}
+                  onChange={(e) => setClassReportCustomNote(e.target.value)}
+                  placeholder="예: 다음 주부터 중간고사 대비 모의고사가 진행됩니다. 학생들의 적극적인 참여 부탁드립니다."
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 leading-relaxed transition-all resize-none"
+                />
+              </div>
+
+              {/* 3. Sample Kakao Bubble Preview */}
+              {isLoadingClassReportPreview ? (
+                <div className="py-6 text-center text-slate-400">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1 text-purple-600" />
+                  <span>대표 학생 알림톡 미리보기 로드 중...</span>
+                </div>
+              ) : classReportSamplePreview ? (
+                <div className="space-y-1.5">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <span>실제 전송될 알림톡 메시지 샘플 ({classReportSamplePreview.studentName} 학생 기준)</span>
+                  </span>
+                  <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-48 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-xs">
+                    {classReportSamplePreview.message}
+                    {classReportCustomNote && `\n\n📌 선생님 전달사항:\n${classReportCustomNote}`}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Error Alert */}
+              {classReportError && (
+                <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2.5 animate-in fade-in">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-xs">발송 실패</p>
+                    <p className="text-[11px] mt-0.5">{classReportError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Result Report */}
+              {classReportResult && (
+                <div className="space-y-4 animate-in fade-in">
+                  {/* Summary Metric Card */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+                    <h4 className="font-bold text-slate-900 dark:text-white flex items-center justify-between mb-2">
+                      <span>발송 처리 결과 요약</span>
+                      <span className="text-[11px] text-slate-400 font-normal">
+                        총 {classReportResult.totalStudents}명 대상
+                      </span>
+                    </h4>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800">
+                        <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">발송 성공</span>
+                        <div className="text-lg font-extrabold text-emerald-800 dark:text-emerald-200">
+                          {classReportResult.sentCount}건
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <span className="text-[10px] text-slate-500 font-semibold">제외 / 실패</span>
+                        <div className="text-lg font-extrabold text-slate-700 dark:text-slate-300">
+                          {classReportResult.failedCount}건
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Failure / Skipped List if any */}
+                  {classReportResult.failed && classReportResult.failed.length > 0 && (
+                    <div className="space-y-1.5">
+                      <span className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">
+                        발송 제외 또는 실패 내역
+                      </span>
+                      <div className="max-h-36 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-800">
+                        {classReportResult.failed.map((f, idx) => (
+                          <div key={idx} className="p-2 flex items-center justify-between text-[11px]">
+                            <span className="font-bold text-slate-800 dark:text-slate-200">{f.studentName}</span>
+                            <span className="text-rose-600 dark:text-rose-400">{f.reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+              <button
+                type="button"
+                onClick={() => setIsClassReportModalOpen(false)}
+                disabled={isSendingClassReport}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer text-xs"
+              >
+                닫기
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSendClassReport}
+                disabled={isSendingClassReport || !classReportStart || !classReportEnd}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm shadow-purple-600/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSendingClassReport ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>전체 발송 처리 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>반 재원생 전원 발송하기</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </AppLayout>
   );
 }

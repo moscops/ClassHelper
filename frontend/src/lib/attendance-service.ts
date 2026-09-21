@@ -17,6 +17,7 @@ export interface AttendanceClassSummary {
   name: string;
   subject?: string | null;
   schedule?: string | null;
+  room?: string | null;
 }
 
 export interface AttendanceItem {
@@ -244,4 +245,105 @@ export const attendanceService = {
     const response = await api.delete<{ success: boolean; message: string }>(`/attendance/${attendanceId}`);
     return response.data;
   },
+
+  /**
+   * 오늘 미등원 학생 감지 및 경고 상태 조회 (출결 버튼 신호 연동)
+   */
+  async getUnattendedStatus(date?: string): Promise<UnattendedStatusResponse> {
+    const query = date ? `?date=${date}` : '';
+    const response = await api.get<UnattendedStatusResponse>(`/attendance/unattended-status${query}`);
+    return response.data;
+  },
+
+  /**
+   * 미등원 학생 학부모 대상 카카오 안심 알림톡 일괄 자동 발송
+   */
+  async triggerUnattendedAlerts(date?: string): Promise<{ sentCount: number; message: string; results: any[] }> {
+    const query = date ? `?date=${date}` : '';
+    const response = await api.post<{ sentCount: number; message: string; results: any[] }>(
+      `/attendance/trigger-unattended-alerts${query}`,
+      {},
+    );
+    return response.data;
+  },
+
+  /**
+   * [스태프] 출석 키오스크 접속 토큰 신규 발급 / 재발급 (SUPER_ADMIN, OWNER, ADMIN)
+   * POST 응답은 항상 실제 토큰 문자열을 반환한다(null 없음) — 조회(GET)만 null일 수 있다.
+   */
+  async generateKioskToken(): Promise<{ kioskToken: string }> {
+    const response = await api.post<{ kioskToken: string }>('/attendance/kiosk-token');
+    return response.data;
+  },
+
+  /**
+   * [스태프] 현재 발급된 출석 키오스크 접속 토큰 조회 (재발급 없음, SUPER_ADMIN, OWNER, ADMIN)
+   */
+  async getKioskToken(): Promise<KioskTokenResponse> {
+    const response = await api.get<KioskTokenResponse>('/attendance/kiosk-token');
+    return response.data;
+  },
+
+  /**
+   * [키오스크/비인증] 전화번호 뒷자리 4자리로 원생 및 오늘 수업 목록 조회
+   */
+  async kioskLookup(dto: { kioskToken: string; phoneLast4: string }): Promise<KioskLookupResponse> {
+    const response = await api.post<KioskLookupResponse>('/attendance/kiosk/lookup', dto);
+    return response.data;
+  },
+
+  /**
+   * [키오스크/비인증] 원생 등원(CHECK_IN) / 하원(CHECK_OUT) 1초 체크
+   */
+  async kioskCheckIn(dto: KioskCheckInRequest): Promise<AttendanceItem> {
+    const response = await api.post<AttendanceItem>('/attendance/kiosk/check-in', dto);
+    return response.data;
+  },
 };
+
+export interface KioskClassOption {
+  id: number;
+  name: string;
+}
+
+export interface KioskStudentMatch {
+  studentId: number;
+  studentName: string;
+  classes: KioskClassOption[];
+}
+
+export interface KioskLookupResponse {
+  matches: KioskStudentMatch[];
+}
+
+export interface KioskCheckInRequest {
+  kioskToken: string;
+  phoneLast4: string;
+  studentId: number;
+  classId: number;
+  type: QuickCheckType;
+}
+
+export interface KioskTokenResponse {
+  kioskToken: string | null;
+}
+
+export interface UnattendedStudent {
+  studentId: number;
+  studentName: string;
+  grade?: string | null;
+  parentPhone: string;
+  studentPhone?: string | null;
+  classId: number;
+  className: string;
+  schedule?: string | null;
+  isAlertSent: boolean;
+  alertSentAt?: string | null;
+}
+
+export interface UnattendedStatusResponse {
+  isUnattendedAlertActive: boolean;
+  unattendedCount: number;
+  unattendedStudents: UnattendedStudent[];
+}
+

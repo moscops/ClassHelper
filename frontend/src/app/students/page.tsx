@@ -8,7 +8,9 @@ import {
   Plus,
   Search,
   Phone,
-  Calendar,
+  UserCheck,
+  UserMinus,
+  UserX,
   Edit3,
   Trash2,
   BookOpen,
@@ -19,9 +21,17 @@ import {
   RefreshCw,
   ChevronDown,
   PauseCircle,
-  Eye,
   User,
   ArrowRight,
+  UploadCloud,
+  FileSpreadsheet,
+  Download,
+  AlertTriangle,
+  FileText,
+  CheckCircle,
+  Send,
+  Sparkles,
+  RotateCcw,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
@@ -30,10 +40,12 @@ import {
   StudentDetailItem,
   StudentStatus,
   Gender,
+  BulkImportResult,
 } from '@/lib/students-service';
+import { reportsService, StudentReport } from '@/lib/reports-service';
 import { classesService, ClassItem } from '@/lib/classes-service';
-import { AppHeader } from '@/components/AppHeader';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
+import { AppLayout } from '@/components/common/AppLayout';
 
 export default function StudentsPage() {
   const router = useRouter();
@@ -82,19 +94,43 @@ export default function StudentsPage() {
   const [activeStatusRowId, setActiveStatusRowId] = useState<number | null>(null);
   const [statusDropdownDirection, setStatusDropdownDirection] = useState<'down' | 'up'>('down');
 
+  // CSV Bulk Import States
+  const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
+  const [selectedCsvFile, setSelectedCsvFile] = useState<File | null>(null);
+  const [isUploadingCsv, setIsUploadingCsv] = useState(false);
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
+  const [bulkImportResult, setBulkImportResult] = useState<BulkImportResult | null>(null);
+  const [bulkImportError, setBulkImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Student Report Modal States
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedStudentForReport, setSelectedStudentForReport] = useState<StudentItem | null>(null);
+  const [reportPeriodStart, setReportPeriodStart] = useState<string>('');
+  const [reportPeriodEnd, setReportPeriodEnd] = useState<string>('');
+  const [reportPreview, setReportPreview] = useState<StudentReport | null>(null);
+  const [editableReportMessage, setEditableReportMessage] = useState<string>('');
+  const [isLoadingReportPreview, setIsLoadingReportPreview] = useState(false);
+  const [isSendingReport, setIsSendingReport] = useState(false);
+  const [reportSuccessMessage, setReportSuccessMessage] = useState<string | null>(null);
+  const [reportErrorMessage, setReportErrorMessage] = useState<string | null>(null);
+
   // Click outside ref
   const modalStatusRef = useRef<HTMLDivElement>(null);
   const rowStatusRef = useRef<HTMLDivElement>(null);
   const classFilterRef = useRef<HTMLDivElement>(null);
   const parentRelRef = useRef<HTMLDivElement>(null);
 
-  // Role Badge calculation
   // Authentication check
   useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
-      router.replace('/login');
+    if (isHydrated) {
+      if (!isAuthenticated) {
+        router.replace('/login');
+      } else if (user?.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      }
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, user, router]);
 
   // Click outside to close dropdowns
   useEffect(() => {
@@ -135,14 +171,19 @@ export default function StudentsPage() {
         setIsStudentModalOpen(false);
         setIsDetailModalOpen(false);
         setIsStatusDropdownOpen(false);
+        setIsBulkImportModalOpen(false);
+        setIsReportModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isClassFilterOpen, isParentRelOpen, activeStatusRowId]);
 
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   const loadStudents = async () => {
     setIsLoading(true);
+    setFetchError(null);
     try {
       const [studentsRes, classesRes] = await Promise.all([
         studentsService.getStudents({ limit: 100 }),
@@ -150,18 +191,21 @@ export default function StudentsPage() {
       ]);
       setStudents(studentsRes.items || []);
       setAvailableClasses(classesRes.items || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch students:', err);
+      setFetchError(
+        '데이터베이스 또는 서버 연결에 실패하여 원생 및 수업 반 목록을 불러오지 못했습니다. 알림 관리 센터에 시스템 장애 알림이 기록되었습니다.',
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.role !== 'SUPER_ADMIN') {
       loadStudents();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   const handleOpenCreateModal = () => {
     setEditingStudent(null);
@@ -265,6 +309,80 @@ export default function StudentsPage() {
     }
   };
 
+  // CSV Bulk Import Handlers
+  const handleOpenBulkImportModal = () => {
+    setIsBulkImportModalOpen(true);
+    setSelectedCsvFile(null);
+    setBulkImportResult(null);
+    setBulkImportError(null);
+  };
+
+  const handleDownloadTemplate = () => {
+    setIsDownloadingTemplate(true);
+    try {
+      // UTF-8 BOM (\uFEFF) ensures Korean characters open correctly in MS Excel without broken encoding
+      const bom = '\uFEFF';
+      const csvContent =
+        bom +
+        '이름,성별,생년월일,학교명,학년,학생연락처,학부모연락처,학부모이름,학부모관계,재원상태,등록일,메모\n' +
+        '김민준,남,2013-05-14,대치중학교,중2,010-1111-2222,010-1234-5678,김영희,모,재원,2026-03-02,형제 할인 대상\n' +
+        '이서아,여,2012-08-21,역삼중학교,중3,010-3333-4444,010-8765-4321,이철수,부,재원,2026-03-02,수학 심화반 희망\n';
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '원생_대량등록_표준양식_ClassHelper.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.message || '템플릿 다운로드에 실패했습니다.');
+    } finally {
+      setIsDownloadingTemplate(false);
+    }
+  };
+
+  const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        setBulkImportError('CSV 파일(.csv)만 업로드할 수 있습니다.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setBulkImportError('파일 크기는 최대 5MB까지 업로드 가능합니다.');
+        return;
+      }
+      setSelectedCsvFile(file);
+      setBulkImportError(null);
+      setBulkImportResult(null);
+    }
+  };
+
+  const handleBulkImportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCsvFile) {
+      setBulkImportError('업로드할 CSV 파일을 선택해 주세요.');
+      return;
+    }
+
+    setIsUploadingCsv(true);
+    setBulkImportError(null);
+    try {
+      const result = await studentsService.bulkImportStudents(selectedCsvFile);
+      setBulkImportResult(result);
+      await loadStudents();
+    } catch (err: any) {
+      setBulkImportError(
+        err.response?.data?.message || err.message || 'CSV 일괄 등록 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsUploadingCsv(false);
+    }
+  };
+
   const handleQuickStatusChange = async (studentId: number, newStatus: StudentStatus) => {
     try {
       await studentsService.updateStudentStatus(studentId, { status: newStatus });
@@ -298,6 +416,97 @@ export default function StudentsPage() {
       console.error('Failed to load student detail:', err);
     } finally {
       setIsLoadingDetail(false);
+    }
+  };
+
+  const handleOpenReportModal = async (student: StudentItem | StudentDetailItem) => {
+    setSelectedStudentForReport(student as StudentItem);
+    setIsReportModalOpen(true);
+    setReportSuccessMessage(null);
+    setReportErrorMessage(null);
+    setReportPreview(null);
+
+    // Default to current month: from 1st of this month to today
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startStr = firstDay.toISOString().split('T')[0];
+    const endStr = now.toISOString().split('T')[0];
+
+    setReportPeriodStart(startStr);
+    setReportPeriodEnd(endStr);
+
+    // Automatically load preview
+    fetchReportPreview(student.id, startStr, endStr);
+  };
+
+  const fetchReportPreview = async (studentId: number, start: string, end: string) => {
+    setIsLoadingReportPreview(true);
+    setReportErrorMessage(null);
+    try {
+      const data = await reportsService.previewStudentReport(studentId, start, end);
+      setReportPreview(data);
+      setEditableReportMessage(data.message);
+    } catch (err: any) {
+      console.error('Failed to load report preview:', err);
+      setReportErrorMessage(
+        err.response?.data?.message || '리포트 미리보기를 생성하지 못했습니다.',
+      );
+    } finally {
+      setIsLoadingReportPreview(false);
+    }
+  };
+
+  const handleApplyPresetPeriod = (preset: 'THIS_MONTH' | 'LAST_MONTH' | 'LAST_7_DAYS') => {
+    if (!selectedStudentForReport) return;
+    const now = new Date();
+    let startStr = '';
+    let endStr = '';
+
+    if (preset === 'THIS_MONTH') {
+      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      startStr = first.toISOString().split('T')[0];
+      endStr = now.toISOString().split('T')[0];
+    } else if (preset === 'LAST_MONTH') {
+      const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const last = new Date(now.getFullYear(), now.getMonth(), 0);
+      startStr = first.toISOString().split('T')[0];
+      endStr = last.toISOString().split('T')[0];
+    } else if (preset === 'LAST_7_DAYS') {
+      const past7 = new Date();
+      past7.setDate(now.getDate() - 7);
+      startStr = past7.toISOString().split('T')[0];
+      endStr = now.toISOString().split('T')[0];
+    }
+
+    setReportPeriodStart(startStr);
+    setReportPeriodEnd(endStr);
+    fetchReportPreview(selectedStudentForReport.id, startStr, endStr);
+  };
+
+  const handleSendStudentReport = async () => {
+    if (!selectedStudentForReport || !reportPeriodStart || !reportPeriodEnd) return;
+
+    setIsSendingReport(true);
+    setReportErrorMessage(null);
+    setReportSuccessMessage(null);
+
+    try {
+      const result = await reportsService.sendStudentReport(
+        selectedStudentForReport.id,
+        reportPeriodStart,
+        reportPeriodEnd,
+        editableReportMessage,
+      );
+      setReportSuccessMessage(
+        `학부모(${result.sentTo})님께 카카오 알림톡 리포트가 성공적으로 발송되었습니다!`,
+      );
+    } catch (err: any) {
+      console.error('Failed to send report:', err);
+      setReportErrorMessage(
+        err.response?.data?.message || '리포트 발송 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsSendingReport(false);
     }
   };
 
@@ -350,12 +559,9 @@ export default function StudentsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-ui duration-200">
-      <AppHeader />
-
+    <AppLayout currentPath="/students">
       {/* Main Body Section */}
       <main className="flex-1 relative overflow-hidden py-8">
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
           {/* Header Title & Action Buttons */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -378,6 +584,18 @@ export default function StudentsPage() {
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
+
+              {/* CSV Bulk Import Button (SUPER_ADMIN, OWNER, ADMIN) */}
+              {(user.role === 'SUPER_ADMIN' || user.role === 'OWNER' || user.role === 'ADMIN') && (
+                <button
+                  type="button"
+                  onClick={handleOpenBulkImportModal}
+                  className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold shadow-2xs transition-all cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>CSV 일괄 등록</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -418,7 +636,7 @@ export default function StudentsPage() {
                   placeholder="원생 이름, 학부모/학생 연락처, 학교, 학년 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-ui"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
                 {searchTerm && (
                   <button
@@ -643,6 +861,45 @@ export default function StudentsPage() {
               )}
             </div>
           </div>
+
+          {/* Critical DB / Server Connection Error Banner */}
+          {fetchError && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-rose-950 dark:text-rose-100 flex items-center gap-2">
+                    <span>데이터베이스 연결 및 서버 통신 장애</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200">
+                      알림 관리 센터 등록됨
+                    </span>
+                  </h3>
+                  <p className="text-xs text-rose-700 dark:text-rose-300 mt-0.5 leading-relaxed">
+                    {fetchError}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <Link
+                  href="/notifications"
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300 font-bold text-xs hover:bg-rose-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  알림 센터 확인
+                </Link>
+                <button
+                  type="button"
+                  onClick={loadStudents}
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>다시 시도</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Student Table */}
           {isLoading ? (
@@ -869,8 +1126,19 @@ export default function StudentsPage() {
                           <div className="flex items-center justify-end gap-1">
                             <button
                               type="button"
+                              onClick={() => handleOpenReportModal(s)}
+                              title="학습/출결 리포트 발송"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors cursor-pointer"
+                              aria-label="학습/출결 리포트 발송"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => handleOpenDetailModal(s.id)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-ui cursor-pointer"
+                              title="수강 반 상세"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
                               aria-label="수강 반 조회"
                             >
                               <BookOpen className="w-3.5 h-3.5" />
@@ -879,7 +1147,8 @@ export default function StudentsPage() {
                             <button
                               type="button"
                               onClick={() => handleOpenEditModal(s)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
+                              title="원생 정보 수정"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                               aria-label="원생 정보 수정"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
@@ -888,7 +1157,8 @@ export default function StudentsPage() {
                             <button
                               type="button"
                               onClick={() => handleDeleteStudent(s)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-ui cursor-pointer"
+                              title="원생 삭제"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                               aria-label="원생 삭제"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -916,12 +1186,9 @@ export default function StudentsPage() {
               setIsStatusDropdownOpen(false);
             }
           }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="student-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -969,10 +1236,10 @@ export default function StudentsPage() {
                         setStudentFormData({ ...studentFormData, name: e.target.value });
                         if (nameError) setNameError(null);
                       }}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-ui ${
+                      className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none transition-all ${
                         nameError
-                          ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                          : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
+                          ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 dark:bg-rose-950/20'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'
                       }`}
                     />
                     {nameError && (
@@ -987,7 +1254,7 @@ export default function StudentsPage() {
                     <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       성별
                     </label>
-                    <div className="flex p-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl h-[42px] items-center">
+                    <div className="flex p-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl h-[42px] items-center">
                       {[
                         { value: '', label: '미지정' },
                         { value: 'MALE', label: '남' },
@@ -997,7 +1264,7 @@ export default function StudentsPage() {
                           key={g.value}
                           type="button"
                           onClick={() => setStudentFormData({ ...studentFormData, gender: g.value as Gender })}
-                          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-ui cursor-pointer ${
+                          className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                             studentFormData.gender === g.value
                               ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
                               : 'text-slate-600 hover:text-slate-800 dark:hover:text-slate-200'
@@ -1021,7 +1288,7 @@ export default function StudentsPage() {
                       placeholder="예: 초6, 중2, 고1"
                       value={studentFormData.grade}
                       onChange={(e) => setStudentFormData({ ...studentFormData, grade: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
 
@@ -1036,7 +1303,7 @@ export default function StudentsPage() {
                       onChange={(e) =>
                         setStudentFormData({ ...studentFormData, schoolName: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
                 </div>
@@ -1055,10 +1322,10 @@ export default function StudentsPage() {
                         setStudentFormData({ ...studentFormData, parentPhone: e.target.value });
                         if (parentPhoneError) setParentPhoneError(null);
                       }}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-ui ${
+                      className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none transition-all ${
                         parentPhoneError
-                          ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                          : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
+                          ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20 dark:bg-rose-950/20'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500'
                       }`}
                     />
                     {parentPhoneError && (
@@ -1081,7 +1348,7 @@ export default function StudentsPage() {
                         onChange={(e) =>
                           setStudentFormData({ ...studentFormData, parentName: e.target.value })
                         }
-                        className="min-w-0 flex-1 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                       />
                       <div
                         ref={parentRelRef}
@@ -1139,7 +1406,7 @@ export default function StudentsPage() {
                       onChange={(e) =>
                         setStudentFormData({ ...studentFormData, studentPhone: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     />
                   </div>
 
@@ -1152,6 +1419,8 @@ export default function StudentsPage() {
                       onChange={(val) => setStudentFormData({ ...studentFormData, birthDate: val })}
                       placeholder="YYYY-MM-DD"
                       showTodayShortcut={false}
+                      align="right"
+                      className="w-full"
                     />
                   </div>
                 </div>
@@ -1167,6 +1436,7 @@ export default function StudentsPage() {
                       onChange={(val) => setStudentFormData({ ...studentFormData, enrolledAt: val })}
                       placeholder="YYYY-MM-DD"
                       showTodayShortcut={true}
+                      className="w-full"
                     />
                   </div>
 
@@ -1178,7 +1448,7 @@ export default function StudentsPage() {
                     <button
                       type="button"
                       onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                      className="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-ui cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white text-xs hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                     >
                       <div className="flex items-center gap-2">
                         {studentFormData.status === 'ACTIVE' && (
@@ -1287,7 +1557,7 @@ export default function StudentsPage() {
                     placeholder="원생의 학습 성향, 희망 진도, 특이사항 등을 기록하세요."
                     value={studentFormData.memo}
                     onChange={(e) => setStudentFormData({ ...studentFormData, memo: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
                   />
                 </div>
               </div>
@@ -1326,12 +1596,9 @@ export default function StudentsPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsDetailModalOpen(false);
           }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="student-detail-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl h-[85vh] max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
@@ -1519,7 +1786,21 @@ export default function StudentsPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedStudentForDetail) {
+                    setIsDetailModalOpen(false);
+                    handleOpenReportModal(selectedStudentForDetail);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800/80 cursor-pointer text-xs transition-colors"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>카카오 학습 리포트 발송</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setIsDetailModalOpen(false)}
@@ -1531,6 +1812,572 @@ export default function StudentsPage() {
           </div>
         </div>
       )}
-    </div>
+
+      {/* 4. CSV Bulk Import Modal */}
+      {isBulkImportModalOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isUploadingCsv) {
+              setIsBulkImportModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
+        >
+          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] animate-in zoom-in-95 duration-150 my-auto">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    원생 CSV 대량 일괄 등록
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    엑셀/CSV 파일로 수백 명의 원생을 한 번에 안전하게 등록하세요.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsBulkImportModalOpen(false)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              {bulkImportError && (
+                <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">업로드 실패: </span>
+                    <span>{bulkImportError}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* View 1: Upload Form & Guide (when no result yet) */}
+              {!bulkImportResult ? (
+                <div className="space-y-5">
+                  {/* Template Download Section */}
+                  <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-900 dark:text-indigo-200">
+                        <FileText className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <span>표준 CSV 양식 템플릿 다운로드</span>
+                      </div>
+                      <p className="text-[11px] text-indigo-700/80 dark:text-indigo-300/80">
+                        헤더 컬럼 규격과 예시 데이터가 포함된 표준 CSV 파일을 먼저 받아보세요.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleDownloadTemplate}
+                      disabled={isDownloadingTemplate}
+                      className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 text-xs font-bold shadow-2xs transition-all cursor-pointer shrink-0"
+                    >
+                      {isDownloadingTemplate ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Download className="w-3.5 h-3.5" />
+                      )}
+                      <span>양식 템플릿 다운로드</span>
+                    </button>
+                  </div>
+
+                  {/* Drag & Drop / File Input Box */}
+                  <form onSubmit={handleBulkImportSubmit} className="space-y-4">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      onChange={handleCsvFileChange}
+                      className="hidden"
+                    />
+
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`p-8 border-2 border-dashed rounded-3xl text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
+                        selectedCsvFile
+                          ? 'border-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/20'
+                          : 'border-slate-300 dark:border-slate-700 hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <div
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                          selectedCsvFile
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        {selectedCsvFile ? (
+                          <FileSpreadsheet className="w-6 h-6" />
+                        ) : (
+                          <UploadCloud className="w-6 h-6" />
+                        )}
+                      </div>
+
+                      {selectedCsvFile ? (
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">
+                            {selectedCsvFile.name}
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            {(selectedCsvFile.size / 1024).toFixed(1)} KB • 클릭하여 다른 파일 선택
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            이곳을 클릭하거나 CSV 파일을 드래그하여 업로드하세요
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-1">
+                            최대 5MB, 최대 2,000행까지 지원됩니다 (.csv 파일만 가능)
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Column Guide Help */}
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-600 dark:text-slate-300 space-y-2">
+                      <p className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                        <span>CSV 작성 필수 규격 안내</span>
+                      </p>
+                      <ul className="list-disc list-inside space-y-1.5 text-slate-500 dark:text-slate-400">
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">필수 항목:</strong> 이름, 학부모연락처 (예: 010-1234-5678)
+                        </li>
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">성별 표기:</strong> <span className="font-bold text-indigo-600 dark:text-indigo-400">남</span> 또는 <span className="font-bold text-indigo-600 dark:text-indigo-400">여</span> (MALE / FEMALE 도 가능)
+                        </li>
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">재원상태 표기:</strong> <span className="font-bold text-emerald-600 dark:text-emerald-400">재원</span>, <span className="font-bold text-amber-600 dark:text-amber-400">휴원</span>, <span className="font-bold text-rose-600 dark:text-rose-400">퇴원</span> (미입력 시 자동으로 &apos;재원&apos;으로 등록)
+                        </li>
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">날짜 형식:</strong> 생년월일 및 등록일은 <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">YYYY-MM-DD</span> (예: 2013-05-14) 형식 준수
+                        </li>
+                        <li>
+                          <strong className="text-slate-700 dark:text-slate-300">중복 방지:</strong> 이미 등록된 원생(동일 이름 & 학부모연락처)은 중복 생성되지 않고 안전하게 건너뜁니다.
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="pt-2 flex justify-end gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsBulkImportModalOpen(false)}
+                        className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer text-xs"
+                      >
+                        취소
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={!selectedCsvFile || isUploadingCsv}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                      >
+                        {isUploadingCsv ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>데이터 검증 및 등록 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-4 h-4" />
+                            <span>원생 데이터 일괄 등록 시작</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                /* View 2: Result Report */
+                <div className="space-y-6">
+                  {/* Summary KPI Badges */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-semibold">총 데이터 행</span>
+                      <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5 block">
+                        {bulkImportResult.totalRows}건
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-center">
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-semibold">신규 등록 성공</span>
+                      <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                        {bulkImportResult.createdCount}건
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-center">
+                      <span className="text-[11px] text-amber-600 dark:text-amber-400 block font-semibold">중복 건너뜀</span>
+                      <span className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 block">
+                        {bulkImportResult.skippedCount}건
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-center">
+                      <span className="text-[11px] text-rose-600 dark:text-rose-400 block font-semibold">검증 실패</span>
+                      <span className="text-xl font-extrabold text-rose-600 dark:text-rose-400 mt-0.5 block">
+                        {bulkImportResult.failedCount}건
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Skipped Details Table (if any) */}
+                  {bulkImportResult.skipped.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        <span>중복 건너뜀 상세 내역 ({bulkImportResult.skipped.length}건)</span>
+                      </h4>
+                      <div className="max-h-36 overflow-y-auto rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50/40 dark:bg-amber-950/20 text-xs">
+                        <table className="w-full text-left">
+                          <thead className="bg-amber-100/60 dark:bg-amber-900/40 text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                            <tr>
+                              <th className="py-2 px-3">행</th>
+                              <th className="py-2 px-3">원생명</th>
+                              <th className="py-2 px-3">사유</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-amber-100 dark:divide-amber-900/40 text-[11px] text-amber-950 dark:text-amber-200">
+                            {bulkImportResult.skipped.map((s, idx) => (
+                              <tr key={idx}>
+                                <td className="py-1.5 px-3 font-semibold">{s.row}행</td>
+                                <td className="py-1.5 px-3 font-bold">{s.name}</td>
+                                <td className="py-1.5 px-3">{s.reason}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Failed Details Table (if any) */}
+                  {bulkImportResult.failed.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>검증 실패 상세 내역 ({bulkImportResult.failed.length}건)</span>
+                      </h4>
+                      <div className="max-h-36 overflow-y-auto rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50/40 dark:bg-rose-950/20 text-xs">
+                        <table className="w-full text-left">
+                          <thead className="bg-rose-100/60 dark:bg-rose-900/40 text-[11px] font-bold text-rose-900 dark:text-rose-200">
+                            <tr>
+                              <th className="py-2 px-3">행</th>
+                              <th className="py-2 px-3">원생명</th>
+                              <th className="py-2 px-3">오류 내용</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-rose-100 dark:divide-rose-900/40 text-[11px] text-rose-950 dark:text-rose-200">
+                            {bulkImportResult.failed.map((f, idx) => (
+                              <tr key={idx}>
+                                <td className="py-1.5 px-3 font-semibold">{f.row}행</td>
+                                <td className="py-1.5 px-3 font-bold">{f.name || '(이름 누락)'}</td>
+                                <td className="py-1.5 px-3 text-rose-600 dark:text-rose-400">
+                                  {f.errors.join(', ')}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Modal Action Buttons */}
+                  <div className="pt-2 flex justify-end gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBulkImportResult(null);
+                        setSelectedCsvFile(null);
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer text-xs"
+                    >
+                      다른 파일 추가 등록
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsBulkImportModalOpen(false)}
+                      className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      <span>완료 및 원생 목록 닫기</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* 4. Student Report (Kakao) Modal           */}
+      {/* ========================================== */}
+      {isReportModalOpen && selectedStudentForReport && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSendingReport) {
+              setIsReportModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+        >
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold border border-purple-200 dark:border-purple-800/80">
+                  <FileText className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>학습 & 출결 리포트 발송</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold">
+                      {selectedStudentForReport.name} 학생
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    학부모({selectedStudentForReport.parentPhone || '연락처 없음'})님께 카카오 알림톡으로 전송합니다.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsReportModalOpen(false)}
+                disabled={isSendingReport}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs flex-1">
+              {/* 1. Period Selection */}
+              <div className="space-y-2">
+                <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <span>조회 및 리포트 대상 기간</span>
+                  <span className="text-[11px] text-slate-400 font-normal">프리셋을 클릭하면 즉시 적용됩니다</span>
+                </label>
+
+                {/* Preset Buttons */}
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPresetPeriod('THIS_MONTH')}
+                    className="py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-center"
+                  >
+                    이번 달
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPresetPeriod('LAST_MONTH')}
+                    className="py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-center"
+                  >
+                    지난 달
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPresetPeriod('LAST_7_DAYS')}
+                    className="py-1.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-center"
+                  >
+                    최근 7일
+                  </button>
+                </div>
+
+                {/* Date Inputs */}
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="date"
+                    value={reportPeriodStart}
+                    onChange={(e) => setReportPeriodStart(e.target.value)}
+                    className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  />
+                  <span className="text-slate-400 font-bold">~</span>
+                  <input
+                    type="date"
+                    value={reportPeriodEnd}
+                    onChange={(e) => setReportPeriodEnd(e.target.value)}
+                    className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedStudentForReport && reportPeriodStart && reportPeriodEnd) {
+                        fetchReportPreview(selectedStudentForReport.id, reportPeriodStart, reportPeriodEnd);
+                      }
+                    }}
+                    className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer shrink-0 transition-colors"
+                  >
+                    새로고침
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Success or Error Message Alert */}
+              {reportSuccessMessage && (
+                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 flex items-start gap-2.5 animate-in fade-in">
+                  <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-xs">발송 완료</p>
+                    <p className="text-[11px] mt-0.5">{reportSuccessMessage}</p>
+                  </div>
+                </div>
+              )}
+
+              {reportErrorMessage && (
+                <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2.5 animate-in fade-in">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-xs">발송 불가 또는 오류</p>
+                    <p className="text-[11px] mt-0.5">{reportErrorMessage}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Report Live Preview */}
+              <div className="space-y-2">
+                <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span>카카오 발송 내용 실시간 미리보기</span>
+                </label>
+
+                {isLoadingReportPreview ? (
+                  <div className="py-12 text-center text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-purple-600" />
+                    <span>출결 및 과제 데이터를 집계하여 리포트를 생성하는 중...</span>
+                  </div>
+                ) : reportPreview ? (
+                  <div className="space-y-3">
+                    {/* Summary Stat Chips */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+                        <span className="text-[10px] text-slate-400 font-medium">출석률</span>
+                        <div className="flex items-baseline justify-between mt-0.5">
+                          <span className="text-base font-extrabold text-slate-900 dark:text-white">
+                            {reportPreview.attendance.attendanceRate}%
+                          </span>
+                          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                            출석 {reportPreview.attendance.presentCount}/{reportPreview.attendance.totalDays}일
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-1 flex gap-1.5">
+                          <span>지각: {reportPreview.attendance.lateCount}</span>
+                          <span>•</span>
+                          <span>결석: {reportPreview.attendance.absentCount}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+                        <span className="text-[10px] text-slate-400 font-medium">과제 이행률</span>
+                        <div className="flex items-baseline justify-between mt-0.5">
+                          <span className="text-base font-extrabold text-slate-900 dark:text-white">
+                            {reportPreview.homework.completionRate}%
+                          </span>
+                          <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                            완료 {reportPreview.homework.completedAssignments}/{reportPreview.homework.totalAssignments}건
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-1">
+                          평균 점수: {reportPreview.homework.averageScore ? `${reportPreview.homework.averageScore}점` : '평가 없음'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Live Message Edit + Kakao Bubble Preview */}
+                    <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center justify-between">
+                        <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <Edit3 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                          <span>카카오 알림톡 발송 메시지 직접 수정</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setEditableReportMessage(reportPreview.message)}
+                          className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 font-semibold cursor-pointer"
+                          title="자동 계산된 기본 텍스트로 초기화"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>기본 문구로 초기화</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Editor */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-slate-400 font-medium block">메시지 내용 편집</span>
+                          <textarea
+                            rows={7}
+                            value={editableReportMessage}
+                            onChange={(e) => setEditableReportMessage(e.target.value)}
+                            placeholder="발송할 알림톡 본문을 확인하고 수정하세요..."
+                            className="w-full p-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 leading-relaxed transition-all resize-none"
+                          />
+                        </div>
+
+                        {/* Kakao Preview Bubble */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-slate-400 font-medium block">실제 학부모 수신 화면</span>
+                          <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-44 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-xs">
+                            {editableReportMessage || '메시지 본문이 여기에 표시됩니다.'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                    기간을 선택한 후 리포트를 조회해주세요.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+              <button
+                type="button"
+                onClick={() => setIsReportModalOpen(false)}
+                disabled={isSendingReport}
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer text-xs"
+              >
+                닫기
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSendStudentReport}
+                disabled={isSendingReport || !reportPreview || isLoadingReportPreview}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm shadow-purple-600/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSendingReport ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>카카오 발송 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>카카오 알림톡으로 발송</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </AppLayout>
   );
 }

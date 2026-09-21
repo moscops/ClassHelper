@@ -18,7 +18,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PermissionModule } from '@prisma/client';
 import { AttendanceService } from './attendance.service';
 import { RecordAttendanceDto } from './dto/record-attendance.dto';
 import { BatchAttendanceDto } from './dto/batch-attendance.dto';
@@ -27,20 +27,24 @@ import { QueryAttendanceDto } from './dto/query-attendance.dto';
 import { AttendanceRosterQueryDto } from './dto/attendance-roster-query.dto';
 import { AttendanceStatsQueryDto } from './dto/attendance-stats-query.dto';
 import { UpdateMakeupDto } from './dto/update-makeup.dto';
+import { KioskTokenResponseDto } from './dto/kiosk-token-response.dto';
 import {
   AttendanceResponseDto,
   PaginatedAttendanceResponseDto,
   ClassDailyRosterResponseDto,
+  UnattendedStatusResponseDto,
 } from './dto/attendance-response.dto';
 import { AttendanceStatsResponseDto } from './dto/attendance-stats-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('03. 출결 관리 (Attendance)')
 @Controller('attendance')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth('access-token')
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
@@ -53,6 +57,7 @@ export class AttendanceController {
     UserRole.TEACHER,
     UserRole.STAFF,
   )
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '단일 학생 출결 등록 및 수정 (Upsert)',
     description:
@@ -78,6 +83,7 @@ export class AttendanceController {
     UserRole.TEACHER,
     UserRole.STAFF,
   )
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '반 전체 1초 일괄 출결 체크 (Batch Upsert)',
     description:
@@ -103,6 +109,7 @@ export class AttendanceController {
     UserRole.TEACHER,
     UserRole.STAFF,
   )
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '1초 빠른 원터치 등원/하원 체크',
     description:
@@ -118,6 +125,37 @@ export class AttendanceController {
     @Body() dto: QuickCheckDto,
   ): Promise<AttendanceResponseDto> {
     return this.attendanceService.quickCheck(academyId, dto);
+  }
+
+  @Post('kiosk-token')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({
+    summary: '출석 키오스크 접속 토큰 발급/재발급',
+    description:
+      '학원 로비 키오스크(전화번호 뒷자리 출석 체크) 접속용 토큰을 새로 발급한다. ' +
+      '재발급 시 기존 토큰은 즉시 무효화되어 이전에 설정한 키오스크 기기는 다시 설정해야 한다.',
+  })
+  @ApiResponse({ status: HttpStatus.CREATED, type: KioskTokenResponseDto })
+  async generateKioskToken(
+    @CurrentUser('academyId') academyId: number,
+  ): Promise<KioskTokenResponseDto> {
+    return this.attendanceService.generateKioskToken(academyId);
+  }
+
+  @Get('kiosk-token')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({
+    summary: '현재 발급된 출석 키오스크 접속 토큰 조회',
+    description:
+      '재발급 없이 현재 유효한 키오스크 토큰을 반환한다(아직 발급된 적이 없으면 null). ' +
+      '토큰은 학원당 1개만 존재하므로, 여러 기기에서 키오스크 설정 화면을 열 때 ' +
+      '로컬에 캐시된 값 대신 이 값을 신뢰해야 한다.',
+  })
+  @ApiResponse({ status: HttpStatus.OK, type: KioskTokenResponseDto })
+  async getKioskToken(
+    @CurrentUser('academyId') academyId: number,
+  ): Promise<KioskTokenResponseDto> {
+    return this.attendanceService.getKioskToken(academyId);
   }
 
   @Get('roster')
@@ -191,6 +229,7 @@ export class AttendanceController {
 
   @Patch(':id/makeup')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '보강 수업(Makeup) 대상 지정 및 완료 처리',
     description:
@@ -212,6 +251,7 @@ export class AttendanceController {
 
   @Delete(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.ATTENDANCE)
   @ApiOperation({
     summary: '출결 기록 삭제',
     description: '특정 출결 기록을 삭제합니다. (원장, 실장 전용)',
@@ -226,5 +266,55 @@ export class AttendanceController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ success: boolean; message: string }> {
     return this.attendanceService.deleteAttendance(academyId, id);
+  }
+
+  @Get('unattended-status')
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
+  @ApiOperation({
+    summary: '오늘 미등원 수강생 감지 및 경고 상태 조회 (출결 버튼 신호 연동)',
+    description:
+      '수업 시간이 경과하였으나 출결 체크가 안 된 수강생 목록과 출결 버튼 경고 신호(펄스 효과) 활성화 여부를 반환합니다.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '미등원 상태 조회 성공',
+    type: UnattendedStatusResponseDto,
+  })
+  async getUnattendedStatus(
+    @CurrentUser('academyId') academyId: number,
+    @Query('date') date?: string,
+  ): Promise<UnattendedStatusResponseDto> {
+    return this.attendanceService.getUnattendedStatus(academyId, date);
+  }
+
+  @Post('trigger-unattended-alerts')
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
+  @RequirePermission(PermissionModule.ATTENDANCE)
+  @ApiOperation({
+    summary: '미등원 학생 학부모 카카오 안심 알림톡 일괄 자동 발송',
+    description:
+      '오늘 미등원 상태인 수강생들의 학부모 연락처로 카카오 안심 알림톡을 일괄 전송하고 알림 이력을 기록합니다.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '카카오 안심 알림톡 일괄 발송 성공',
+  })
+  async triggerUnattendedAlerts(
+    @CurrentUser('academyId') academyId: number,
+    @Query('date') date?: string,
+  ): Promise<{ sentCount: number; message: string; results: any[] }> {
+    return this.attendanceService.triggerUnattendedAlerts(academyId, date);
   }
 }

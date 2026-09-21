@@ -7,18 +7,26 @@ import {
   Param,
   Delete,
   Query,
+  Res,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   ParseIntPipe,
+  BadRequestException,
   HttpStatus,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import { UserRole, PermissionModule } from '@prisma/client';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -29,20 +37,24 @@ import {
   StudentDetailResponseDto,
   PaginatedStudentResponseDto,
 } from './dto/student-response.dto';
+import { BulkImportResultDto } from './dto/bulk-import-result.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Students (원생 관리)')
 @Controller('students')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth()
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Post()
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER, UserRole.STAFF)
+  @RequirePermission(PermissionModule.STUDENTS)
   @ApiOperation({
     summary: '원생 신규 등록',
     description:
@@ -103,6 +115,7 @@ export class StudentsController {
 
   @Patch(':id')
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.STUDENTS)
   @ApiParam({ name: 'id', description: '원생 ID', example: 1 })
   @ApiOperation({
     summary: '원생 정보 수정',
@@ -127,6 +140,7 @@ export class StudentsController {
 
   @Patch(':id/status')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.STUDENTS)
   @ApiParam({ name: 'id', description: '원생 ID', example: 1 })
   @ApiOperation({
     summary: '원생 재원 상태 변경 (재원/휴원/퇴원)',
@@ -152,6 +166,7 @@ export class StudentsController {
 
   @Delete(':id')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.STUDENTS)
   @ApiParam({ name: 'id', description: '원생 ID', example: 1 })
   @ApiOperation({
     summary: '원생 삭제 (원장/실장 전용)',
@@ -170,5 +185,61 @@ export class StudentsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ success: boolean; message: string }> {
     return this.studentsService.remove(academyId, id);
+  }
+
+  @Get('bulk-import/template')
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({
+    summary: '원생 CSV 일괄 등록 템플릿 다운로드',
+    description: '헤더 및 예시 1행이 포함된 CSV 템플릿 파일을 반환합니다.',
+  })
+  @ApiResponse({ status: HttpStatus.OK, description: '템플릿 CSV 다운로드' })
+  downloadBulkImportTemplate(@Res() res: Response): void {
+    const buffer = this.studentsService.getBulkImportTemplate();
+    res.set({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition':
+        'attachment; filename="students_import_template.csv"',
+    });
+    res.send(buffer);
+  }
+
+  @Post('bulk-import')
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.STUDENTS)
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiOperation({
+    summary: '원생 CSV 일괄 등록',
+    description:
+      'CSV 파일을 업로드하여 여러 원생을 한 번에 등록합니다. 검증 실패 행은 건너뛰고, ' +
+      '이미 등록된(이름+학부모 연락처 동일) 원생은 중복 생성하지 않습니다. (원장/실장 전용)',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: '일괄 등록 처리 결과 (성공/건너뜀/실패 상세 포함)',
+    type: BulkImportResultDto,
+  })
+  async bulkImport(
+    @CurrentUser('academyId') academyId: number,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<BulkImportResultDto> {
+    if (!file) {
+      throw new BadRequestException('업로드할 CSV 파일을 선택해주세요.');
+    }
+    const isCsv =
+      file.mimetype === 'text/csv' ||
+      file.mimetype === 'application/vnd.ms-excel' ||
+      file.originalname.toLowerCase().endsWith('.csv');
+    if (!isCsv) {
+      throw new BadRequestException('CSV 파일만 업로드할 수 있습니다.');
+    }
+    return this.studentsService.bulkImport(academyId, file.buffer);
   }
 }

@@ -34,6 +34,25 @@
 
 ---
 
+### 2) `Notification` (알림 및 카카오톡/SMS 발송 기록)
+* **역할**: 미등원/지각 경고, 등원/하원 완료 알림, 수강료 납부 안내, 시스템 공지 및 발송 채널별(인앱/카카오/SMS) 이력 보관.
+* **알림 유형 (`NotificationType`)**:
+  * `UNATTENDED_ALERT`: 수업 시작 시간 경과 미등원/지각 경고 알림
+  * `ATTENDANCE_CHECKIN`: 등원 완료 알림
+  * `ATTENDANCE_CHECKOUT`: 하원 완료 알림
+  * `TUITION_DUE`: 수강료 납부 안내
+  * `SYSTEM_NOTICE`: 시스템 공지
+* **발송 채널 (`NotificationChannel`)**: `IN_APP` (웹 인앱 알림), `KAKAO` (카카오 알림톡), `SMS` (대체 문자)
+* **발송 상태 (`NotificationStatus`)**: `SENT` (발송 완료), `DELIVERED` (수신 확인), `FAILED` (발송 실패)
+* **주요 필드**:
+  * `id`: 고유 ID (`Int`)
+  * `academyId`: 소속 학원 ID (멀티테넌시 격리)
+  * `studentId`: 대상 학생 ID
+  * `classId`: 대상 수업 반 ID
+  * `type`, `channel`, `status`, `title`, `message`, `targetPhone`, `isRead`, `readAt`, `metadata`
+
+---
+
 ## 👥 2. 역할별 권한 매트릭스 (Role Permissions Matrix)
 
 | 기능 / 작업 | SUPER_ADMIN | OWNER | ADMIN | TEACHER | STAFF |
@@ -43,24 +62,32 @@
 | **1초 원터치 등/하원 체크 (`POST /attendance/quick-check`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **반 일별 출결 현황판 조회 (`GET /attendance/roster`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **출결 내역 검색/목록 (`GET /attendance`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **미등원 감지 및 경고 상태 조회 (`GET /attendance/unattended-status`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **미등원 카카오 안심 알림톡 발송 (`POST /attendance/trigger-unattended-alerts`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **보강(Makeup) 대상자 지정 및 완료 처리 (`PATCH /attendance/:id/makeup`)** | ✅ | ✅ | ✅ | ✅ | ❌ |
 | **학원 출결 통계 및 요약 분석 (`GET /attendance/stats`)** | ✅ | ✅ | ✅ | ✅ | ❌ |
 | **출결 기록 삭제 (`DELETE /attendance/:id`)** | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **알림 목록 조회 (`GET /notifications`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **안 읽은 알림 수 조회 (`GET /notifications/unread-count`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **알림 읽음 처리 (`PATCH /notifications/:id/read`, `PATCH /notifications/read-all`)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **알림 삭제 (`DELETE /notifications/:id`)** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **알림 재전송 (`POST /notifications/:id/retry`)** | ✅ | ✅ | ✅ | ❌ | ❌ |
 
 ---
 
-## 📱 3. 1초 출결 체크 및 알림톡 발송 흐름
+## 📱 3. 1초 출결 체크 & 미등원 감지 자동 알림 흐름
 
 ```text
-[ 교실/데스크 (선생님) ]
-       │
-       │─── 1. [김민준] 원터치 "등원" 터치 ───┐
-       ▼                                     ▼
-[ NestJS 출결 엔진 (Backend) ]        [ 카카오 알림톡 API (BizMSG) ]
-       │                                     │
-       ├── 2. 출결 DB 저장 (PRESENT, 17:30)  │── 4. 학부모 카카오톡 메시지 수신
-       │                                     │     "안녕하세요, [김민준] 학생이
-       └── 3. 알림톡 템플릿 렌더링 ──────────┘      17시 30분에 안전하게 등원했습니다."
+[ 1. 미등원 감지 & 자동 신호 (Unattended Alert) ]
+  - 수업 시작 시간(예: 17:00) 경과 후 아직 출결 미입력 학생 감지
+  - 학부모 카카오 안심 알림톡 발송 ("김민준 학생이 수업 시작 시각까지 미등원 상태입니다.")
+  - 대시보드 및 상단 내비의 '1초 출결 체크' 버튼에 🚨 붉은 펄스 애니메이션(긴급 신호) 활성화
+  - 헤더 우측 상단 '종 아이콘(Bell)'에 미확인 알림 뱃지 팝업
+
+[ 2. 출결 체크 완료 시 자동 복귀 ]
+  - 선생님이 학생 카드에서 [출석] 또는 [지각] 원터치 터치
+  - 출결 DB Upsert 반영과 동시에 해당 학생의 미등원 경고 알림 자동 읽음/해결 처리
+  - '1초 출결 체크' 버튼의 펄스 애니메이션이 정지되고 기본 스타일로 즉시 복귀
 ```
 
 ---
@@ -111,46 +138,115 @@
   }
   ```
 
-### 4.4. 반 일별 전체 수강생 출결 현황판 (Daily Roster)
-* **엔드포인트**: `GET /attendance/roster?classId=1&date=2026-08-27`
-* **Response Body (`ClassDailyRosterResponseDto`)**:
+### 4.4. 오늘 미등원 학생 감지 및 경고 상태 조회
+* **엔드포인트**: `GET /attendance/unattended-status?date=2026-08-30`
+* **Response Body (`UnattendedStatusResponseDto`)**:
   ```json
   {
-    "class": { "id": 1, "name": "중등 수학 심화반", "schedule": "월/수/금 17:00-19:00" },
-    "date": "2026-08-27",
-    "totalStudents": 15,
-    "presentCount": 13,
-    "absentCount": 1,
-    "lateCount": 1,
-    "earlyLeaveCount": 0,
-    "unmarkedCount": 0,
-    "students": [
+    "isUnattendedAlertActive": true,
+    "unattendedCount": 1,
+    "unattendedStudents": [
       {
         "studentId": 1,
         "studentName": "김민준",
         "grade": "중2",
-        "studentPhone": "010-1234-5678",
-        "parentPhone": "010-9876-5432",
-        "attendance": { "id": 101, "status": "PRESENT", "checkInTime": "2026-08-27T17:30:00.000Z" }
+        "parentPhone": "010-1234-5678",
+        "classId": 1,
+        "className": "중등 수학 심화반",
+        "schedule": "월/수/금 17:00-19:00",
+        "isAlertSent": true,
+        "alertSentAt": "2026-08-30T17:05:00.000Z"
       }
     ]
   }
   ```
 
-### 4.5. 출결 통계 및 요약 분석
-* **엔드포인트**: `GET /attendance/stats?classId=1&startDate=2026-08-01&endDate=2026-08-27`
-* **Response Body (`AttendanceStatsResponseDto`)**:
-  - `totalRecords`, `totalPresent`, `totalAbsent`, `totalLate`, `averageAttendanceRate` (%)
-  - `makeupNeededCount`, `makeupCompletedCount`
-  - `dailyStats`: 일자별 출결 집계 및 출석률 추이 배열
-
-### 4.6. 보강(Makeup) 대상 지정 및 완료 처리
-* **엔드포인트**: `PATCH /attendance/:id/makeup`
-* **Request Body (`UpdateMakeupDto`)**:
+### 4.5. 미등원 학생 대상 카카오 안심 알림톡 일괄 발송
+* **엔드포인트**: `POST /attendance/trigger-unattended-alerts?date=2026-08-30`
+* **Response Body**:
   ```json
   {
-    "isMakeupNeeded": true,
-    "isMakeupCompleted": false,
-    "memo": "8월 29일 금요일 18:00 개별 보강 예정"
+    "sentCount": 1,
+    "message": "1명의 미등원 학생 학부모님께 카카오 안심 알림톡이 성공적으로 발송되었습니다."
   }
   ```
+
+### 4.6. 알림 목록 조회 & 안 읽은 알림 수 집계
+* **엔드포인트**: `GET /notifications?type=UNATTENDED_ALERT&isRead=false&page=1&limit=20`
+* **엔드포인트**: `GET /notifications/unread-count`
+* **Response Body (`UnreadCountResponseDto`)**:
+  ```json
+  {
+    "unreadCount": 3,
+    "unattendedAlertCount": 1,
+    "hasUnattendedAlert": true
+  }
+  ```
+
+### 4.7. 알림 읽음 처리 & 삭제 & 재발송
+* `PATCH /notifications/:id/read` : 특정 알림 읽음
+* `PATCH /notifications/read-all` : 전체 알림 일괄 읽음
+* `DELETE /notifications/:id` : 알림 삭제
+* `POST /notifications/:id/retry` : 실패한 카카오 알림톡/SMS 재발송
+
+### 4.8. 출석 키오스크 (전화번호 뒷자리 셀프 체크인) — 2026-09-06 신규
+학원 로비에 비치한 태블릿/폰에서 학생이 스스로 전화번호 뒷자리를 입력해 등/하원을 체크하는 기능.
+`/attendance/quick-check`(4.3)와 달리 **로그인 없이** 학원별 `kioskToken`으로만 학원을 식별한다.
+
+* **식별 규칙**: 학생 본인 번호(`studentPhone`)가 있으면 그 번호 뒷자리, 없으면 보호자 번호(`parentPhone`) 뒷자리로 대체.
+* **수업 자동 매칭**: `Class.schedule` 자유 텍스트(예: `"월/수/금 17:00-19:00"`)에서 오늘 요일 글자(월화수목금토일)를 포함하는 수업만 후보로 반환. 하나도 없으면(스케줄 미기재 등) 등록된 전체 수업을 반환해 키오스크가 막히지 않게 함.
+* **브루트포스 방지**: `/auth/login`과 동일하게 IP당 60초 5회(lookup)/10회(check-in)로 제한 (`@Throttle`).
+* **보안 모델**: JWT 대신 추측 불가능한 kioskToken(32바이트 hex, URL에 포함)으로 학원을 식별. 물리적으로 학원 내부에 있는 기기에서만 쓰는 걸 전제로 하며, 인터넷 어디서나 URL 자체는 도달 가능하다는 한계가 있음(토큰 노출 시 재발급으로 즉시 무효화 가능).
+
+#### 토큰 발급 (스태프, 인증 필요)
+* **엔드포인트**: `POST /attendance/kiosk-token` (SUPER_ADMIN/OWNER/ADMIN)
+* **Response (`KioskTokenResponseDto`)**: `{ "kioskToken": "a1b2c3..." }` — 재발급 시 기존 토큰 즉시 무효화.
+
+#### 토큰 조회 (스태프, 인증 필요) — 2026-09-07 버그 수정으로 신규
+* **엔드포인트**: `GET /attendance/kiosk-token` (SUPER_ADMIN/OWNER/ADMIN)
+* **Response (`KioskTokenResponseDto`)**: `{ "kioskToken": "a1b2c3..." | null }` — 재발급 없이 현재 값만 반환, 한 번도 발급된 적이 없으면 `null`.
+* **추가 배경**: 토큰은 학원당 1개뿐이라 어느 기기에서든 재발급하면 기존 토큰은 즉시 무효화된다. 프론트가 이 조회 없이 로컬(`localStorage`) 캐시만 믿고 URL을 보여주면, 다른 기기/브라우저에서 이미 재발급된 뒤에도 무효화된 옛 토큰 URL을 계속 보여줄 수 있다 — 이 경우 실제 원인은 "잘못된 토큰"인데 `kioskLookup`이 학원 자체를 못 찾아 404를 던지므로, 프론트에는 "일치하는 학생을 찾을 수 없음"으로 오인되어 표시된다. 관리자 페이지의 키오스크 설정 모달은 이제 열릴 때마다 이 엔드포인트로 서버의 현재 값을 다시 확인한다(토큰이 없을 때만 발급).
+
+#### 학생 조회 (비인증)
+* **엔드포인트**: `POST /attendance/kiosk/lookup`
+* **Request (`KioskLookupDto`)**:
+  ```json
+  { "kioskToken": "a1b2c3...", "phoneLast4": "1234" }
+  ```
+* **Response (`KioskLookupResponseDto`)**:
+  ```json
+  {
+    "matches": [
+      { "studentId": 1, "studentName": "김민준", "classes": [{ "id": 1, "name": "중2 수학 A반" }] }
+    ]
+  }
+  ```
+  형제/자매처럼 뒷자리가 겹치면 `matches`에 여러 명이 반환된다 — 프론트는 이름으로 본인 확인 후 선택하게 한다.
+
+#### 체크인 (비인증)
+* **엔드포인트**: `POST /attendance/kiosk/check-in`
+* **Request (`KioskCheckInDto`)**: `{ "kioskToken": "...", "phoneLast4": "1234", "studentId": 1, "classId": 1, "type": "CHECK_IN" }`
+  * `phoneLast4`는 `studentId`를 그대로 신뢰하지 않기 위한 재검증용이다 — `studentId`는 추측 가능한 순차 정수라, 이게 없으면 kioskToken만 알아내면 전화번호 확인 없이 임의 학생의 출석을 조작할 수 있다. 서버는 `studentId`가 가리키는 학생의 실제 번호 뒷자리와 일치하는지 다시 검사한다.
+* **Response**: `AttendanceResponseDto` (4.3과 동일한 upsert 로직 재사용)
+
+---
+
+## 🎨 5. UI/UX 구현 명세 (출결 관리 화면)
+
+### 5.1. 시간대별 등원 예정 원생 타임라인 뷰 (Time-Slot Timeline View)
+1. **타임라인 자동 그룹화**: 오늘 개설된 활성 수업 반의 시간표(`schedule`, 예: `14:00 - 15:30`, `17:00 - 19:00`, `19:00 - 21:00`)를 실시간 파싱하여 시간대별 블록으로 자동 그룹화.
+2. **진행 상태 실시간 감지**:
+   - `🔥 현재 진행 중인 수업 (Active Now)`: 현재 시각이 해당 수업 시간 범위에 속할 경우 펄스 링 및 전용 뱃지로 강조 표시.
+   - `⏳ 등원 예정 (Upcoming)`: 예정된 시작 시각 이전의 등원 대기 상태.
+   - `✓ 수업 진행됨 (Past)`: 이미 시작되었거나 종료된 시간대.
+3. **시간대별 원터치 일괄 출석 (`[해당 시간 전원 출석]`)**: 해당 시간대의 모든 원생을 일괄 출석 처리.
+
+### 5.2. 출결 체크보드 보기 방식 & 크기 조절 옵션 (View Layout Options)
+1. **큰 리스트 형태 (`LARGE_LIST`)**:
+   - 태블릿 및 대형 터치 모니터에 최적화된 넓은 단일 열 카드 레이아웃.
+   - 원생 대형 아바타, 학년, 학부모 연락처, 반 명칭 및 시간표 뱃지, 실시간 등/하원 시각 및 보강 상태를 한눈에 식별.
+   - 대형 터치 친화적 1초 액션 버튼: `[✓ 출석]`, `[⏰ 지각]`, `[✕ 결석]`, `[🚪 조퇴]`, `[🏠 하원]`, `[✏️ 상세 수정]`.
+2. **카드 그리드 뷰 (`CARD`)**:
+   - 반응형 2열 컴팩트 카드 레이아웃 지원.
+
+

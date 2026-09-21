@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
 import { StudentStatus, Gender } from '@prisma/client';
 import { StudentsController } from './students.controller';
 import { StudentsService } from './students.service';
+import { PermissionsService } from '../permissions/permissions.service';
 
 describe('StudentsController', () => {
   let controller: StudentsController;
@@ -32,11 +34,27 @@ describe('StudentsController', () => {
         success: true,
         message: '원생 정보가 성공적으로 삭제되었습니다.',
       }),
+      bulkImport: jest.fn().mockResolvedValue({
+        totalRows: 1,
+        createdCount: 1,
+        skippedCount: 0,
+        failedCount: 0,
+        created: [mockStudent],
+        skipped: [],
+        failed: [],
+      }),
+      getBulkImportTemplate: jest.fn().mockReturnValue(Buffer.from('csv')),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StudentsController],
-      providers: [{ provide: StudentsService, useValue: service }],
+      providers: [
+        { provide: StudentsService, useValue: service },
+        {
+          provide: PermissionsService,
+          useValue: { canEdit: jest.fn().mockResolvedValue(true) },
+        },
+      ],
     }).compile();
 
     controller = module.get<StudentsController>(StudentsController);
@@ -80,5 +98,55 @@ describe('StudentsController', () => {
     const result = await controller.remove(10, 1);
     expect(service.remove).toHaveBeenCalledWith(10, 1);
     expect(result.success).toBe(true);
+  });
+
+  describe('bulkImport', () => {
+    const csvFile = {
+      buffer: Buffer.from('이름,학부모연락처\n홍길동,010-1111-2222'),
+      mimetype: 'text/csv',
+      originalname: 'students.csv',
+    } as Express.Multer.File;
+
+    it('CSV 파일 업로드 시 서비스로 버퍼 전달', async () => {
+      const result = await controller.bulkImport(10, csvFile);
+      expect(service.bulkImport).toHaveBeenCalledWith(10, csvFile.buffer);
+      expect(result.createdCount).toBe(1);
+    });
+
+    it('파일이 없으면 BadRequestException 발생', async () => {
+      await expect(
+        controller.bulkImport(10, undefined as unknown as Express.Multer.File),
+      ).rejects.toThrow(BadRequestException);
+      expect(service.bulkImport).not.toHaveBeenCalled();
+    });
+
+    it('CSV가 아닌 파일이면 BadRequestException 발생', async () => {
+      const badFile = {
+        buffer: Buffer.from('not a csv'),
+        mimetype: 'application/pdf',
+        originalname: 'students.pdf',
+      } as Express.Multer.File;
+
+      await expect(controller.bulkImport(10, badFile)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(service.bulkImport).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('downloadBulkImportTemplate', () => {
+    it('CSV 템플릿을 응답으로 전송', () => {
+      const res = { set: jest.fn(), send: jest.fn() } as any;
+
+      controller.downloadBulkImportTemplate(res);
+
+      expect(service.getBulkImportTemplate).toHaveBeenCalled();
+      expect(res.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'Content-Type': expect.stringContaining('text/csv'),
+        }),
+      );
+      expect(res.send).toHaveBeenCalledWith(Buffer.from('csv'));
+    });
   });
 });

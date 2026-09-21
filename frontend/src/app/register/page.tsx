@@ -13,11 +13,7 @@ import {
   Mail,
   Lock,
   Phone,
-  MapPin,
-  FileText,
   Loader2,
-  ArrowRight,
-  ArrowLeft,
   AlertCircle,
   Check,
   X,
@@ -149,7 +145,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative transition-ui duration-200 overflow-hidden">
+    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative transition-colors duration-200 overflow-hidden bg-ambient-mesh bg-tech-grid">
+      {/* Atmospheric Ambient Glowing Orbs */}
+      <div className="absolute -top-32 -left-20 w-[32rem] h-[32rem] rounded-full bg-gradient-to-br from-indigo-500/15 to-transparent blur-[100px] pointer-events-none -z-10" />
+      <div className="absolute -bottom-32 -right-20 w-[32rem] h-[32rem] rounded-full bg-gradient-to-tl from-purple-500/15 to-transparent blur-[100px] pointer-events-none -z-10" />
 
       {/* Top Floating Controls (Theme Toggle + Home Button) */}
       <header className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2.5 z-20">
@@ -240,8 +239,8 @@ export default function RegisterPage() {
                     <span>학원 명칭 <span className="text-rose-500">*</span></span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">학부모 알림톡 발송처 표기</span>
                   </label>
-                  <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
+                  <div className="relative rounded-2xl shadow-xs">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                       <Building2 className="w-4 h-4" />
                     </div>
                     <input
@@ -249,9 +248,9 @@ export default function RegisterPage() {
                       placeholder="예: 클래스헬퍼 어학원 대치본원"
                       className={`block w-full pl-9 pr-3.5 py-2.5 bg-white dark:bg-slate-900 border ${
                         errors.academyName
-                          ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
-                          : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
+                          ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                          : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20'
+                      } rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none transition-all`}
                       {...register('academyName')}
                     />
                   </div>
@@ -265,8 +264,8 @@ export default function RegisterPage() {
                     <span>학원 대표 전화번호 <span className="text-rose-500">*</span></span>
                     <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-normal">알림톡 발신번호로 사용</span>
                   </label>
-                  <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
+                  <div className="relative rounded-2xl shadow-xs">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                       <Phone className="w-4 h-4" />
                     </div>
                     <input
@@ -274,9 +273,9 @@ export default function RegisterPage() {
                       placeholder="02-1234-5678 또는 010-1234-5678"
                       className={`block w-full pl-9 pr-3.5 py-2.5 bg-white dark:bg-slate-900 border ${
                         errors.academyPhone
-                          ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
-                          : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
+                          ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                          : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20'
+                      } rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none transition-all`}
                       {...register('academyPhone')}
                     />
                   </div>
@@ -293,7 +292,7 @@ export default function RegisterPage() {
                     <input
                       type="text"
                       placeholder="123-45-67890"
-                      className="block w-full pl-3.5 pr-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm"
+                      className="block w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                       {...register('businessNumber')}
                     />
                   </div>
@@ -304,7 +303,7 @@ export default function RegisterPage() {
                     <input
                       type="text"
                       placeholder="서울시 강남구 테헤란로 123"
-                      className="block w-full pl-3.5 pr-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm"
+                      className="block w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                       {...register('address')}
                     />
                   </div>
@@ -352,8 +351,8 @@ export default function RegisterPage() {
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       로그인 이메일 <span className="text-rose-500">*</span>
                     </label>
-                    <div className="relative rounded-xl shadow-xs">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
+                    <div className="relative rounded-2xl shadow-xs">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <Mail className="w-4 h-4" />
                       </div>
                       <input
@@ -361,9 +360,9 @@ export default function RegisterPage() {
                         placeholder="owner@academy.kr"
                         className={`block w-full pl-9 pr-3.5 py-2.5 bg-white dark:bg-slate-900 border ${
                           errors.email
-                            ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
-                            : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                        } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
+                            ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                            : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20'
+                        } rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none transition-all`}
                         {...register('email')}
                       />
                     </div>
@@ -376,14 +375,14 @@ export default function RegisterPage() {
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       휴대폰 번호 (선택)
                     </label>
-                    <div className="relative rounded-xl shadow-xs">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
+                    <div className="relative rounded-2xl shadow-xs">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <Phone className="w-4 h-4" />
                       </div>
                       <input
                         type="text"
                         placeholder="010-1234-5678"
-                        className="block w-full pl-9 pr-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none"
+                        className="block w-full pl-9 pr-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                         {...register('phone')}
                       />
                     </div>
@@ -398,8 +397,8 @@ export default function RegisterPage() {
                       {strengthInfo.label}
                     </span>
                   </label>
-                  <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
+                  <div className="relative rounded-2xl shadow-xs">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
@@ -407,9 +406,9 @@ export default function RegisterPage() {
                       placeholder="8자 이상, 영문/숫자/특수문자 조합"
                       className={`block w-full pl-9 pr-10 py-2.5 bg-white dark:bg-slate-900 border ${
                         errors.password
-                          ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
-                          : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
+                          ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                          : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20'
+                      } rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none transition-all`}
                       {...register('password')}
                     />
                     <button

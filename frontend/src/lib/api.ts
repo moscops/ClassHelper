@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useSystemAlertStore } from '@/stores/useSystemAlertStore';
 import { TokensResponse } from '@/types/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -44,7 +45,19 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // If a request succeeds, automatically clear any lingering system communication error
+    if (typeof window !== 'undefined') {
+      try {
+        if (useSystemAlertStore.getState().hasError) {
+          useSystemAlertStore.getState().clearError();
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
@@ -78,6 +91,7 @@ api.interceptors.response.use(
       if (!refreshToken) {
         useAuthStore.getState().logout();
         if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          /* eslint-disable-next-line @next/next/no-location-assign-relative-destination */
           window.location.href = '/login';
         }
         return Promise.reject(error);
@@ -104,11 +118,25 @@ api.interceptors.response.use(
         processQueue(refreshError as Error, null);
         useAuthStore.getState().logout();
         if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          /* eslint-disable-next-line @next/next/no-location-assign-relative-destination */
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
+      }
+    }
+
+    // Handle Network / DB Connection / 5xx Server Errors
+    const status = error.response?.status;
+    const isNetworkError = !error.response || error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED';
+    const isServerError = status && status >= 500;
+
+    if (typeof window !== 'undefined' && (isNetworkError || isServerError)) {
+      try {
+        useSystemAlertStore.getState().setSystemError();
+      } catch {
+        // ignore in SSR
       }
     }
 

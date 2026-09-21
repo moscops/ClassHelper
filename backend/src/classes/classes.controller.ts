@@ -19,7 +19,7 @@ import {
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
-import { EnrollmentStatus, UserRole } from '@prisma/client';
+import { EnrollmentStatus, UserRole, PermissionModule } from '@prisma/client';
 import { ClassesService } from './classes.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
@@ -33,12 +33,14 @@ import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { EnrollmentResponseDto } from './dto/enrollment-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionGuard } from '../common/guards/permission.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Classes & Enrollments (반 개설 및 수강생 관리)')
 @Controller('classes')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionGuard)
 @ApiBearerAuth('access-token')
 export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
@@ -49,6 +51,7 @@ export class ClassesController {
 
   @Post()
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.CLASSES)
   @ApiOperation({
     summary: '수업 반 신규 개설',
     description:
@@ -104,6 +107,7 @@ export class ClassesController {
 
   @Patch(':id')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.CLASSES)
   @ApiOperation({
     summary: '수업 반 정보 수정',
     description:
@@ -125,6 +129,7 @@ export class ClassesController {
 
   @Delete(':id')
   @Roles(UserRole.OWNER)
+  @RequirePermission(PermissionModule.CLASSES)
   @ApiOperation({
     summary: '수업 반 삭제',
     description: '수업 반을 완전히 삭제합니다. (원장님 전용)',
@@ -143,6 +148,7 @@ export class ClassesController {
 
   @Post(':classId/enrollments')
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.TEACHER)
+  @RequirePermission(PermissionModule.CLASSES)
   @ApiOperation({
     summary: '특정 반에 원생 수강 등록 (반 배정)',
     description:
@@ -190,6 +196,7 @@ export class ClassesController {
 
   @Patch('enrollments/:enrollmentId')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.CLASSES)
   @ApiOperation({
     summary: '수강생 수강 상태 변경 (종강, 중도하차/퇴반, 일시정지)',
   })
@@ -204,6 +211,7 @@ export class ClassesController {
 
   @Delete('enrollments/:enrollmentId')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @RequirePermission(PermissionModule.CLASSES)
   @ApiOperation({
     summary: '수강 등록 취소/삭제',
   })

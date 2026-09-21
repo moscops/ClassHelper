@@ -201,20 +201,53 @@
   height: 0 !important;
 }
 
-/* App shell: AppHeader sets data-shell on <body>. From lg up the sidebar is fixed on the left
-   (expanded or collapsed to an icon rail); below lg a fixed bottom tab bar takes its place. */
-@media (min-width: 1024px) {
-  body[data-shell='expanded'] {
-    padding-left: 15rem;
-  }
 
-  body[data-shell='collapsed'] {
-    padding-left: 4rem;
-  }
+
+/* Modern Ambient Background Mesh & Tech Grid */
+.bg-ambient-mesh {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.09) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.07) 0px, transparent 55%),
+    radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.06) 0px, transparent 55%);
 }
 
-@media (max-width: 1023.98px) {
-  body[data-shell] {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
-  }
+.dark .bg-ambient-mesh {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.16) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.13) 0px, transparent 55%),
+    radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.09) 0px, transparent 55%);
+}
+
+.bg-tech-grid {
+  background-size: 36px 36px;
+  background-image: 
+    linear-gradient(to right, rgba(100, 116, 139, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(100, 116, 139, 0.07) 1px, transparent 1px);
+}
+
+.dark .bg-tech-grid {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+}
+
+/* Modern Glassmorphism & UI Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.interactive-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
 }

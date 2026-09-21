@@ -1,0 +1,166 @@
+# dev 브랜치에 push되면, 먼저 lint/test/build 게이트(backend-ci/frontend-ci)를 통과해야만
+# backend/frontend Docker 이미지를 빌드해 ghcr.io(GitHub Container Registry)에 올립니다.
+#
+# workflow_run(다른 워크플로 파일 완료를 트리거로 쓰는 방식) 대신 한 파일 안에서 needs:로
+# 의존시키는 이유: workflow_run은 트리거하는 워크플로 파일이 저장소 "기본 브랜치"에도 있어야
+# 실제로 발동하는데, 이 저장소는 기본 브랜치가 아직 main(dev보다 53커밋 뒤처짐)이라 docker-publish.yml이
+# dev에만 있는 한 workflow_run이 절대 발동하지 않는 문제가 있었음(실제로 겪음 — 전환 후 실행 0건).
+# 같은 파일 안에서 needs:로 게이트를 걸면 이 제약과 무관하게 항상 정상 동작함.
+# lint/test는 ci.yml에도 있어 약간 중복되지만(ci.yml은 빠른 피드백용, hotfix PR에서도 여전히 씀),
+# 배포 게이트 자체는 이 파일이 자체적으로 보장하는 편이 훨씬 안정적임.
+#
+# EC2에서는 이미지를 빌드하지 않고 watchtower가 자동으로 pull만 합니다(docker-compose.prod.yml 참고).
+# 빌드 자체는 GitHub의 클라우드 러너에서 돌기 때문에, EC2(t3.small) 메모리 부족으로 next build가
+# 죽던 문제(OOM)도 함께 해결됩니다.
+name: CD Pipeline
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+# Claude(backend)/Gemini(frontend)가 거의 동시에 push하면 두 워크플로 실행이 동시에 돌 수 있는데,
+# 순서 보장이 없으면 더 오래된 커밋의 빌드가 나중에 끝나서 :latest 태그를 덮어써버릴 수 있음
+# (watchtower는 :latest만 보고 pull하므로 잠깐 옛날 버전이 배포되는 문제로 이어짐).
+# cancel-in-progress: false로 취소 대신 줄 세워서, push된 순서대로 순차 실행되도록 보장.
+concurrency:
+  group: docker-publish-dev
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  # 하드코딩하지 않고 실제 저장소 소유자를 그대로 씀 — repo가 JoshyWoshy1212 -> moscops로
+  # 옮겨진 적이 있어서(리다이렉트만 되고 실제 소유자는 moscops), 하드코딩하면 GITHUB_TOKEN의
+  # 패키지 푸시 권한과 어긋나 "permission_denied: The requested installation does not exist"가 남.
+  IMAGE_OWNER: ${{ github.repository_owner }}
+
+jobs:
+  backend-ci:
+    name: Backend CI Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: 'backend/yarn.lock'
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: yarn install --prefer-offline --ignore-engines
+
+      - name: Generate Prisma Client
+        working-directory: backend
+        run: yarn prisma:generate
+
+      - name: Lint Backend Code
+        working-directory: backend
+        run: yarn lint
+
+      - name: Run Backend Unit Tests
+        working-directory: backend
+        run: yarn test --passWithNoTests
+
+      - name: Build Backend Application
+        working-directory: backend
+        run: yarn build
+
+  frontend-ci:
+    name: Frontend CI Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: 'frontend/yarn.lock'
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: yarn install --prefer-offline --ignore-engines
+
+      - name: Lint Frontend Code
+        working-directory: frontend
+        run: yarn lint
+
+      - name: Build Frontend Application
+        working-directory: frontend
+        run: yarn build
+
+  build-backend:
+    name: Build & Push Backend Image
+    needs: [backend-ci, frontend-ci]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-backend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-backend:${{ github.sha }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+  build-frontend:
+    name: Build & Push Frontend Image
+    needs: [backend-ci, frontend-ci]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # NEXT_PUBLIC_*는 브라우저 번들에 빌드 시점에 박히는 값이라 build-arg로 넘겨야 함
+      # (frontend/Dockerfile 참고). repo Settings > Secrets and variables > Actions > Variables 탭에서
+      # NEXT_PUBLIC_API_URL을 설정해야 함 — 아직 안 만들었으면 우선 http://3.38.4.169:3000으로 두고
+      # 나중에 도메인(https://api.classhelper.co.kr)이 살아나면 값만 바꿔서 재배포하면 됨.
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-frontend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/classhelper-frontend:${{ github.sha }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
