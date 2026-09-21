@@ -84,7 +84,7 @@ export function CustomDropdown({
         type="button"
         disabled={disabled}
         onClick={handleToggle}
-        className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border flex items-center justify-between gap-1.5 transition-all cursor-pointer shadow-2xs ${
+        className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border flex items-center justify-between gap-1.5 transition-ui cursor-pointer shadow-2xs ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400'
             : selectedOption?.activeColor
@@ -124,7 +124,7 @@ export function CustomDropdown({
                   onChange(opt.value);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                   isSelected
                     ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold'
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'

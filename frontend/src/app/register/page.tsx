@@ -149,16 +149,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative transition-colors duration-200 overflow-hidden">
-      {/* Vignette Dot Pattern */}
-      <div className="absolute inset-0 bg-dot-vignette pointer-events-none z-0" />
+    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative transition-ui duration-200 overflow-hidden">
 
       {/* Top Floating Controls (Theme Toggle + Home Button) */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2.5 z-20">
         <ThemeToggle />
         <Link
           href="/"
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-ui shadow-2xs"
         >
           <Home className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
           <span>홈으로</span>
@@ -170,7 +168,7 @@ export default function RegisterPage() {
         {/* Brand Logo Header */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm group-hover:bg-indigo-700 transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-sm group-hover:bg-indigo-700 transition-ui">
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -186,7 +184,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Form Box */}
-        <div className="bg-white dark:bg-slate-900 shadow-xl border border-slate-200/90 dark:border-slate-800 rounded-3xl p-7 sm:p-9">
+        <div className="bg-white dark:bg-slate-900 shadow-md border border-slate-200/90 dark:border-slate-800 rounded-2xl p-7 sm:p-9">
           {/* Step Indicator Pills */}
           <div className="mb-5 flex items-center justify-center gap-2">
             <div className="flex items-center gap-1.5">
@@ -253,7 +251,7 @@ export default function RegisterPage() {
                         errors.academyName
                           ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
                           : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-all`}
+                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
                       {...register('academyName')}
                     />
                   </div>
@@ -278,7 +276,7 @@ export default function RegisterPage() {
                         errors.academyPhone
                           ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
                           : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-all`}
+                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
                       {...register('academyPhone')}
                     />
                   </div>
@@ -315,7 +313,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  className="w-full mt-3 flex justify-center items-center py-3 px-4 rounded-xl shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-3 focus:ring-indigo-100 dark:focus:ring-indigo-950 transition-all cursor-pointer"
+                  className="w-full mt-3 flex justify-center items-center py-3 px-4 rounded-xl shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-3 focus:ring-indigo-100 dark:focus:ring-indigo-950 transition-ui cursor-pointer"
                 >
                   <span>다음: 원장님 계정 설정</span>
                 </button>
@@ -340,7 +338,7 @@ export default function RegisterPage() {
                         errors.name
                           ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
                           : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-all`}
+                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
                       {...register('name')}
                     />
                   </div>
@@ -365,7 +363,7 @@ export default function RegisterPage() {
                           errors.email
                             ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
                             : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                        } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-all`}
+                        } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
                         {...register('email')}
                       />
                     </div>
@@ -411,13 +409,13 @@ export default function RegisterPage() {
                         errors.password
                           ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
                           : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-all`}
+                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
                       {...register('password')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -425,7 +423,7 @@ export default function RegisterPage() {
 
                   <div className="mt-1.5 w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${strengthInfo.color} ${strengthInfo.width} transition-all duration-300 rounded-full`}
+                      className={`h-full ${strengthInfo.color} ${strengthInfo.width} transition-[width] duration-300 rounded-full`}
                     ></div>
                   </div>
 
@@ -469,13 +467,13 @@ export default function RegisterPage() {
                         errors.confirmPassword
                           ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-100 dark:focus:ring-rose-950'
                           : 'border-slate-300 dark:border-slate-700 focus:border-indigo-600 dark:focus:border-indigo-400 focus:ring-indigo-100 dark:focus:ring-indigo-950'
-                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-all`}
+                      } rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-3 transition-ui`}
                       {...register('confirmPassword')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -489,7 +487,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="w-1/3 flex justify-center items-center py-3 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
+                    className="w-1/3 flex justify-center items-center py-3 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 transition-ui cursor-pointer"
                   >
                     <span>이전</span>
                   </button>
@@ -497,7 +495,7 @@ export default function RegisterPage() {
                   <button
                     type="submit"
                     disabled={isLoading || strengthScore < 4}
-                    className="w-2/3 flex justify-center items-center py-3 px-4 rounded-xl shadow-sm text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-3 focus:ring-indigo-100 dark:focus:ring-indigo-950 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-2/3 flex justify-center items-center py-3 px-4 rounded-xl shadow-sm text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-3 focus:ring-indigo-100 dark:focus:ring-indigo-950 transition-ui disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isLoading ? (
                       <>
@@ -519,7 +517,7 @@ export default function RegisterPage() {
           이미 등록된 계정이 있으신가요?{' '}
           <Link
             href="/login"
-            className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline underline-offset-4 transition-colors"
+            className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline underline-offset-4 transition-ui"
           >
             로그인하기
           </Link>

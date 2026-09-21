@@ -473,9 +473,9 @@ export default function ClassesPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-ui duration-200">
       {/* Top Header - Exact 100% Mirror of Dashboard Header */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30 transition-colors shadow-2xs">
+      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30 transition-ui shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3.5">
             <Link href="/dashboard" className="flex items-center gap-2.5">
@@ -498,25 +498,25 @@ export default function ClassesPage() {
             <nav className="hidden md:flex items-center gap-1 ml-2">
               <Link
                 href="/dashboard"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui"
               >
                 대시보드
               </Link>
               <Link
                 href="/students"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui"
               >
                 원생 관리
               </Link>
               <Link
                 href="/classes"
-                className="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 transition-ui"
               >
                 반 & 수강생 관리
               </Link>
               <Link
                 href="/attendance"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui"
               >
                 1초 출결 체크
               </Link>
@@ -528,7 +528,7 @@ export default function ClassesPage() {
             {user.role === 'SUPER_ADMIN' && (
               <Link
                 href="/admin"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs shadow-purple-600/20 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-ui cursor-pointer"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-white" />
                 <span>관리자 포털로 돌아가기</span>
@@ -553,7 +553,7 @@ export default function ClassesPage() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-ui cursor-pointer shadow-2xs"
             >
               <LogOut className="w-3.5 h-3.5 text-slate-400" />
               <span>로그아웃</span>
@@ -564,7 +564,6 @@ export default function ClassesPage() {
 
       {/* Main Body Section with Dot Vignette Pattern */}
       <main className="flex-1 relative overflow-hidden py-8">
-        <div className="absolute inset-0 bg-dot-vignette pointer-events-none z-0" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
           {/* Header Title & Actions */}
@@ -587,7 +586,7 @@ export default function ClassesPage() {
                 type="button"
                 onClick={loadClasses}
                 disabled={isLoading}
-                className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-2xs transition-all cursor-pointer"
+                className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-2xs transition-ui cursor-pointer"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
@@ -595,7 +594,7 @@ export default function ClassesPage() {
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-ui cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>신규 반 개설</span>
@@ -604,7 +603,7 @@ export default function ClassesPage() {
           </div>
 
           {/* Search & Filters Card */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-4">
             {/* Top Row: Search & Status Tabs */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               {/* Search Bar */}
@@ -615,7 +614,7 @@ export default function ClassesPage() {
                   placeholder="반 명칭, 과목, 학년, 수업 시간표 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-ui"
                 />
                 {searchTerm && (
                   <button
@@ -633,7 +632,7 @@ export default function ClassesPage() {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('ALL')}
-                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'ALL'
                       ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -644,7 +643,7 @@ export default function ClassesPage() {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('ACTIVE')}
-                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'ACTIVE'
                       ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -655,7 +654,7 @@ export default function ClassesPage() {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('INACTIVE')}
-                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'INACTIVE'
                       ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -666,7 +665,7 @@ export default function ClassesPage() {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('CLOSED')}
-                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'CLOSED'
                       ? 'bg-white dark:bg-slate-900 text-slate-500 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -690,7 +689,7 @@ export default function ClassesPage() {
                         key={subj}
                         type="button"
                         onClick={() => setSubjectFilter(subj)}
-                        className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer text-xs font-semibold ${
+                        className={`px-2.5 py-1 rounded-lg transition-ui cursor-pointer text-xs font-semibold ${
                           subjectFilter === subj
                             ? 'bg-indigo-600 text-white shadow-2xs'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -714,7 +713,7 @@ export default function ClassesPage() {
                         key={g.id}
                         type="button"
                         onClick={() => setGradeFilter(g.id)}
-                        className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer text-xs font-semibold ${
+                        className={`px-2.5 py-1 rounded-lg transition-ui cursor-pointer text-xs font-semibold ${
                           gradeFilter === g.id
                             ? 'bg-indigo-600 text-white shadow-2xs'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -763,7 +762,7 @@ export default function ClassesPage() {
                     key={d.id}
                     type="button"
                     onClick={() => setDayFilter(d.id)}
-                    className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer text-[11px] font-semibold ${
+                    className={`px-2 py-0.5 rounded-lg transition-ui cursor-pointer text-[11px] font-semibold ${
                       dayFilter === d.id
                         ? 'bg-purple-600 text-white shadow-2xs'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -783,7 +782,7 @@ export default function ClassesPage() {
               <p className="text-xs text-slate-500">수업 반 목록을 불러오는 중입니다...</p>
             </div>
           ) : filteredClasses.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs">
+            <div className="p-12 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs">
               <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 등록된 수업 반이 없습니다.
@@ -794,7 +793,7 @@ export default function ClassesPage() {
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-ui"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>첫 번째 반 개설하기</span>
@@ -809,7 +808,7 @@ export default function ClassesPage() {
                 return (
                   <div
                     key={c.id}
-                    className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                    className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 shadow-sm hover:shadow-md transition-ui flex flex-col justify-between"
                   >
                     <div>
                       {/* Top Badges */}
@@ -882,7 +881,7 @@ export default function ClassesPage() {
 
                         <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all duration-300 ${
+                            className={`h-full rounded-full transition-[width] duration-300 ${
                               percent >= 100
                                 ? 'bg-rose-500'
                                 : percent >= 80
@@ -900,7 +899,7 @@ export default function ClassesPage() {
                       <button
                         type="button"
                         onClick={() => handleOpenEnrollmentModal(c)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold border border-indigo-200 dark:border-indigo-800/80 transition-all cursor-pointer"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold border border-indigo-200 dark:border-indigo-800/80 transition-ui cursor-pointer"
                       >
                         <Users className="w-3.5 h-3.5" />
                         <span>수강생 관리 ({c.enrolledCount})</span>
@@ -910,7 +909,7 @@ export default function ClassesPage() {
                         <button
                           type="button"
                           onClick={() => handleOpenEditModal(c)}
-                          className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+                          className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 dark:hover:text-white transition-ui cursor-pointer"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
@@ -918,7 +917,7 @@ export default function ClassesPage() {
                         <button
                           type="button"
                           onClick={() => handleDeleteClass(c)}
-                          className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:text-slate-400 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                          className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:text-slate-400 dark:hover:text-rose-400 transition-ui cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -945,7 +944,7 @@ export default function ClassesPage() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header (Fixed) */}
             <div className="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -964,7 +963,7 @@ export default function ClassesPage() {
                   setIsClassModalOpen(false);
                   setIsStatusDropdownOpen(false);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -992,7 +991,7 @@ export default function ClassesPage() {
                       setClassFormData({ ...classFormData, name: e.target.value });
                       if (nameError) setNameError(null);
                     }}
-                    className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-all ${
+                    className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-ui ${
                       nameError
                         ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
                         : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
@@ -1084,7 +1083,7 @@ export default function ClassesPage() {
                   <button
                     type="button"
                     onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                    className="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-ui cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <div className="flex items-center gap-2">
                       {classFormData.status === 'ACTIVE' && (
@@ -1129,7 +1128,7 @@ export default function ClassesPage() {
                           setClassFormData({ ...classFormData, status: 'ACTIVE' });
                           setIsStatusDropdownOpen(false);
                         }}
-                        className={`w-full flex items-start gap-2.5 p-2.5 rounded-xl text-left transition-all cursor-pointer ${
+                        className={`w-full flex items-start gap-2.5 p-2.5 rounded-xl text-left transition-ui cursor-pointer ${
                           classFormData.status === 'ACTIVE'
                             ? 'bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700/80 text-emerald-950 dark:text-emerald-200 shadow-xs'
                             : 'hover:bg-white/60 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'
@@ -1158,7 +1157,7 @@ export default function ClassesPage() {
                           setClassFormData({ ...classFormData, status: 'INACTIVE' });
                           setIsStatusDropdownOpen(false);
                         }}
-                        className={`w-full flex items-start gap-2.5 p-2.5 rounded-xl text-left transition-all cursor-pointer ${
+                        className={`w-full flex items-start gap-2.5 p-2.5 rounded-xl text-left transition-ui cursor-pointer ${
                           classFormData.status === 'INACTIVE'
                             ? 'bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700/80 text-amber-950 dark:text-amber-200 shadow-xs'
                             : 'hover:bg-white/60 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'
@@ -1187,7 +1186,7 @@ export default function ClassesPage() {
                           setClassFormData({ ...classFormData, status: 'CLOSED' });
                           setIsStatusDropdownOpen(false);
                         }}
-                        className={`w-full flex items-start gap-2.5 p-2.5 rounded-xl text-left transition-all cursor-pointer ${
+                        className={`w-full flex items-start gap-2.5 p-2.5 rounded-xl text-left transition-ui cursor-pointer ${
                           classFormData.status === 'CLOSED'
                             ? 'bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-700/80 text-rose-950 dark:text-rose-200 shadow-xs'
                             : 'hover:bg-white/60 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'
@@ -1228,7 +1227,7 @@ export default function ClassesPage() {
                 <button
                   type="submit"
                   disabled={isSubmittingClass}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm shadow-indigo-600/20 text-xs"
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm text-xs"
                 >
                   {isSubmittingClass && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{editingClass ? '수정 완료' : '반 개설하기'}</span>
@@ -1252,7 +1251,7 @@ export default function ClassesPage() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-3xl h-[88vh] max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-3xl h-[88vh] max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div>
@@ -1272,7 +1271,7 @@ export default function ClassesPage() {
                   setIsEnrollmentModalOpen(false);
                   setIsStudentDropdownOpen(false);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1315,7 +1314,7 @@ export default function ClassesPage() {
                           }
                         }}
                         onFocus={() => setIsStudentDropdownOpen(true)}
-                        className={`w-full pl-9 pr-8 py-2.5 bg-white dark:bg-slate-900 border rounded-xl text-slate-900 dark:text-white text-xs placeholder-slate-400 focus:outline-none transition-all ${
+                        className={`w-full pl-9 pr-8 py-2.5 bg-white dark:bg-slate-900 border rounded-xl text-slate-900 dark:text-white text-xs placeholder-slate-400 focus:outline-none transition-ui ${
                           enrollError && !selectedStudentIdToEnroll
                             ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
                             : selectedStudentIdToEnroll
@@ -1388,7 +1387,7 @@ export default function ClassesPage() {
                                     setIsStudentDropdownOpen(false);
                                     setEnrollError(null);
                                   }}
-                                  className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all cursor-pointer ${
+                                  className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                                     isAlreadyEnrolled
                                       ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40 text-slate-400'
                                       : isSelected
@@ -1529,7 +1528,7 @@ export default function ClassesPage() {
                                       setActiveEnrollmentStatusRowId(item.id);
                                     }
                                   }}
-                                  className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
+                                  className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold border flex items-center gap-1.5 transition-ui cursor-pointer ${
                                     item.status === 'ENROLLED'
                                       ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/60'
                                       : item.status === 'COMPLETED'
@@ -1609,7 +1608,7 @@ export default function ClassesPage() {
                                             );
                                             setActiveEnrollmentStatusRowId(null);
                                           }}
-                                          className={`w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                                          className={`w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                                             item.status === opt.id
                                               ? `${opt.activeClass} font-bold`
                                               : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -1627,7 +1626,7 @@ export default function ClassesPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveEnrollment(item.id, item.student.name)}
-                                  className="p-1 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                                  className="p-1 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-ui cursor-pointer"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>

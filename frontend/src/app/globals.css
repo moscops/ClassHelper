@@ -1,23 +1,121 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Built-in CSS easings are too weak; these have the punch UI motion needs. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Same values as the slate-50 / slate-950 surfaces the pages paint. */
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
 }
 
 .dark {
-  --background: #090d16;
+  --background: #020617;
   --foreground: #f8fafc;
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Explicit properties only (never `all`), short and ease-out. A `duration-*` class still wins. */
+@utility transition-ui {
+  transition-property: color, background-color, border-color, box-shadow, transform, translate, scale, opacity;
+  transition-timing-function: var(--tw-ease, var(--ease-out-strong));
+  transition-duration: var(--tw-duration, 160ms);
+}
+
+/* The one authored entrance on the landing page: a short rise from an already-visible offset. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@utility rise {
+  animation: rise 480ms var(--ease-out-strong) both;
+  animation-delay: var(--rise-delay, 0ms);
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  td, th, time {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Browser surfaces the design still owns: selection, caret, focus, underlines. */
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-indigo-500) 30%, transparent);
+  }
+
+  input, textarea {
+    caret-color: var(--color-indigo-600);
+  }
+
+  .dark input, .dark textarea {
+    caret-color: var(--color-indigo-400);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-indigo-500);
+    outline-offset: 2px;
+  }
+
+  a {
+    text-underline-offset: 3px;
+  }
+
+  /* Every button acknowledges the press. */
+  button, [role="button"] {
+    touch-action: manipulation;
+  }
+
+  button:not(:disabled) {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-timing-function: var(--ease-out-strong);
+    transition-duration: 160ms;
+  }
+
+  button:not(:disabled):active {
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+
+  .animate-in {
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-enter-scale: 1 !important;
+  }
+
+  button:not(:disabled):active {
+    transform: none;
+  }
 }
 
 /* Hide scrollbars universally across all browsers while retaining full smooth scroll functionality */
@@ -30,19 +128,4 @@ body {
   display: none !important; /* Chrome, Safari, Opera */
   width: 0 !important;
   height: 0 !important;
-}
-
-/* Vignette Surround Dot Pattern: Elegant smaller dots (1.8px) */
-.bg-dot-vignette {
-  background-image: radial-gradient(circle, rgba(71, 85, 105, 0.42) 1.8px, transparent 1.8px);
-  background-size: 24px 24px;
-  mask-image: radial-gradient(circle at 50% 50%, transparent 15%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 1) 80%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 15%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 1) 80%);
-}
-
-.dark .bg-dot-vignette {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.35) 1.8px, transparent 1.8px);
-  background-size: 24px 24px;
-  mask-image: radial-gradient(circle at 50% 50%, transparent 15%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 1) 80%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 15%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 1) 80%);
 }

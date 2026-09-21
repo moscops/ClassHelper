@@ -406,9 +406,9 @@ export default function StudentsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-ui duration-200">
       {/* Top Header - Exact 100% Mirror of Dashboard & Classes Header */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30 transition-colors shadow-2xs">
+      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30 transition-ui shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3.5">
             <Link href="/dashboard" className="flex items-center gap-2.5">
@@ -431,25 +431,25 @@ export default function StudentsPage() {
             <nav className="hidden md:flex items-center gap-1 ml-2">
               <Link
                 href="/dashboard"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui"
               >
                 대시보드
               </Link>
               <Link
                 href="/students"
-                className="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 transition-ui"
               >
                 원생 관리
               </Link>
               <Link
                 href="/classes"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui"
               >
                 반 & 수강생 관리
               </Link>
               <Link
                 href="/attendance"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui"
               >
                 1초 출결 체크
               </Link>
@@ -461,7 +461,7 @@ export default function StudentsPage() {
             {user.role === 'SUPER_ADMIN' && (
               <Link
                 href="/admin"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs shadow-purple-600/20 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-ui cursor-pointer"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-white" />
                 <span>관리자 포털로 돌아가기</span>
@@ -486,7 +486,7 @@ export default function StudentsPage() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-ui cursor-pointer shadow-2xs"
             >
               <LogOut className="w-3.5 h-3.5 text-slate-400" />
               <span>로그아웃</span>
@@ -497,7 +497,6 @@ export default function StudentsPage() {
 
       {/* Main Body Section */}
       <main className="flex-1 relative overflow-hidden py-8">
-        <div className="absolute inset-0 bg-dot-vignette pointer-events-none z-0" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
           {/* Header Title & Action Buttons */}
@@ -520,7 +519,7 @@ export default function StudentsPage() {
                 type="button"
                 onClick={loadStudents}
                 disabled={isLoading}
-                className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-2xs transition-all cursor-pointer"
+                className="p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-2xs transition-ui cursor-pointer"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
@@ -528,7 +527,7 @@ export default function StudentsPage() {
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-indigo-600/20 transition-all cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-ui cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>신규 원생 등록</span>
@@ -538,7 +537,7 @@ export default function StudentsPage() {
 
           {/* Metrics Summary Banner */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">전체 원생</span>
                 <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
@@ -550,7 +549,7 @@ export default function StudentsPage() {
               </div>
             </div>
 
-            <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">재원생</span>
                 <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -562,7 +561,7 @@ export default function StudentsPage() {
               </div>
             </div>
 
-            <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">휴원생</span>
                 <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -574,7 +573,7 @@ export default function StudentsPage() {
               </div>
             </div>
 
-            <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">퇴원생</span>
                 <div className="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
@@ -588,7 +587,7 @@ export default function StudentsPage() {
           </div>
 
           {/* Search & Filters */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               {/* Search Bar */}
               <div className="relative flex-1">
@@ -598,7 +597,7 @@ export default function StudentsPage() {
                   placeholder="원생 이름, 학부모/학생 연락처, 학교, 학년 검색..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-ui"
                 />
                 {searchTerm && (
                   <button
@@ -616,7 +615,7 @@ export default function StudentsPage() {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('ALL')}
-                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'ALL'
                       ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -627,7 +626,7 @@ export default function StudentsPage() {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('ACTIVE')}
-                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'ACTIVE'
                       ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -638,7 +637,7 @@ export default function StudentsPage() {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('ON_LEAVE')}
-                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'ON_LEAVE'
                       ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -649,7 +648,7 @@ export default function StudentsPage() {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('DISCHARGED')}
-                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl transition-ui cursor-pointer ${
                     statusFilter === 'DISCHARGED'
                       ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -669,7 +668,7 @@ export default function StudentsPage() {
                   <button
                     type="button"
                     onClick={() => setGradeFilter('ALL')}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer text-xs font-semibold ${
+                    className={`px-2.5 py-1 rounded-lg transition-ui cursor-pointer text-xs font-semibold ${
                       gradeFilter === 'ALL'
                         ? 'bg-indigo-600 text-white shadow-2xs'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -680,7 +679,7 @@ export default function StudentsPage() {
                   <button
                     type="button"
                     onClick={() => setGradeFilter('ELEMENTARY')}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer text-xs font-semibold ${
+                    className={`px-2.5 py-1 rounded-lg transition-ui cursor-pointer text-xs font-semibold ${
                       gradeFilter === 'ELEMENTARY'
                         ? 'bg-indigo-600 text-white shadow-2xs'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -691,7 +690,7 @@ export default function StudentsPage() {
                   <button
                     type="button"
                     onClick={() => setGradeFilter('MIDDLE')}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer text-xs font-semibold ${
+                    className={`px-2.5 py-1 rounded-lg transition-ui cursor-pointer text-xs font-semibold ${
                       gradeFilter === 'MIDDLE'
                         ? 'bg-indigo-600 text-white shadow-2xs'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -702,7 +701,7 @@ export default function StudentsPage() {
                   <button
                     type="button"
                     onClick={() => setGradeFilter('HIGH')}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer text-xs font-semibold ${
+                    className={`px-2.5 py-1 rounded-lg transition-ui cursor-pointer text-xs font-semibold ${
                       gradeFilter === 'HIGH'
                         ? 'bg-indigo-600 text-white shadow-2xs'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -722,7 +721,7 @@ export default function StudentsPage() {
                     <button
                       type="button"
                       onClick={() => setIsClassFilterOpen(!isClassFilterOpen)}
-                      className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                      className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-xs font-semibold flex items-center gap-1.5 transition-ui cursor-pointer shadow-2xs"
                     >
                       <span className="truncate max-w-[150px]">
                         {classFilter === 'ALL'
@@ -747,7 +746,7 @@ export default function StudentsPage() {
                           setClassFilter('ALL');
                           setIsClassFilterOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                           classFilter === 'ALL'
                             ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold'
                             : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -763,7 +762,7 @@ export default function StudentsPage() {
                           setClassFilter('UNASSIGNED');
                           setIsClassFilterOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                           classFilter === 'UNASSIGNED'
                             ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold'
                             : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -787,7 +786,7 @@ export default function StudentsPage() {
                             setClassFilter(String(c.id));
                             setIsClassFilterOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                             classFilter === String(c.id)
                               ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold'
                               : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -825,12 +824,12 @@ export default function StudentsPage() {
 
           {/* Student Table */}
           {isLoading ? (
-            <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
               <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400 mx-auto mb-3" />
               <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">원생 목록을 불러오는 중입니다...</p>
             </div>
           ) : filteredStudents.length === 0 ? (
-            <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
+            <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
                 <Users className="w-6 h-6" />
               </div>
@@ -844,7 +843,7 @@ export default function StudentsPage() {
                 <button
                   type="button"
                   onClick={handleOpenCreateModal}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-ui cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>첫 원생 등록하기</span>
@@ -852,7 +851,7 @@ export default function StudentsPage() {
               )}
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
@@ -871,7 +870,7 @@ export default function StudentsPage() {
                     {filteredStudents.map((s) => (
                       <tr
                         key={s.id}
-                        className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                        className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-ui"
                       >
                         {/* Student Name */}
                         <td className="py-3.5 px-4">
@@ -967,7 +966,7 @@ export default function StudentsPage() {
                                   setActiveStatusRowId(s.id);
                                 }
                               }}
-                              className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
+                              className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold border flex items-center gap-1.5 transition-ui cursor-pointer ${
                                 s.status === 'ACTIVE'
                                   ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100'
                                   : s.status === 'ON_LEAVE'
@@ -1005,7 +1004,7 @@ export default function StudentsPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleQuickStatusChange(s.id, 'ACTIVE')}
-                                  className={`w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                                  className={`w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                                     s.status === 'ACTIVE'
                                       ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold'
                                       : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -1017,7 +1016,7 @@ export default function StudentsPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleQuickStatusChange(s.id, 'ON_LEAVE')}
-                                  className={`w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                                  className={`w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                                     s.status === 'ON_LEAVE'
                                       ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold'
                                       : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -1029,7 +1028,7 @@ export default function StudentsPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleQuickStatusChange(s.id, 'DISCHARGED')}
-                                  className={`w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                                  className={`w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                                     s.status === 'DISCHARGED'
                                       ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-bold'
                                       : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -1049,7 +1048,7 @@ export default function StudentsPage() {
                             <button
                               type="button"
                               onClick={() => handleOpenDetailModal(s.id)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-ui cursor-pointer"
                               aria-label="수강 반 조회"
                             >
                               <BookOpen className="w-3.5 h-3.5" />
@@ -1058,7 +1057,7 @@ export default function StudentsPage() {
                             <button
                               type="button"
                               onClick={() => handleOpenEditModal(s)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
                               aria-label="원생 정보 수정"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
@@ -1067,7 +1066,7 @@ export default function StudentsPage() {
                             <button
                               type="button"
                               onClick={() => handleDeleteStudent(s)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-ui cursor-pointer"
                               aria-label="원생 삭제"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1097,7 +1096,7 @@ export default function StudentsPage() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -1114,7 +1113,7 @@ export default function StudentsPage() {
                   setIsStudentModalOpen(false);
                   setIsStatusDropdownOpen(false);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1144,7 +1143,7 @@ export default function StudentsPage() {
                         setStudentFormData({ ...studentFormData, name: e.target.value });
                         if (nameError) setNameError(null);
                       }}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-all ${
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-ui ${
                         nameError
                           ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
@@ -1172,7 +1171,7 @@ export default function StudentsPage() {
                           key={g.value}
                           type="button"
                           onClick={() => setStudentFormData({ ...studentFormData, gender: g.value as Gender })}
-                          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-ui cursor-pointer ${
                             studentFormData.gender === g.value
                               ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
                               : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -1230,7 +1229,7 @@ export default function StudentsPage() {
                         setStudentFormData({ ...studentFormData, parentPhone: e.target.value });
                         if (parentPhoneError) setParentPhoneError(null);
                       }}
-                      className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-all ${
+                      className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none transition-ui ${
                         parentPhoneError
                           ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500'
@@ -1265,7 +1264,7 @@ export default function StudentsPage() {
                         <button
                           type="button"
                           onClick={() => setIsParentRelOpen(!isParentRelOpen)}
-                          className="w-20 px-2.5 py-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs font-semibold flex items-center justify-between transition-all cursor-pointer shadow-2xs"
+                          className="w-20 px-2.5 py-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs font-semibold flex items-center justify-between transition-ui cursor-pointer shadow-2xs"
                         >
                           <span>{studentFormData.parentRelationship || '모'}</span>
                           <ChevronDown
@@ -1285,7 +1284,7 @@ export default function StudentsPage() {
                                   setStudentFormData({ ...studentFormData, parentRelationship: rel });
                                   setIsParentRelOpen(false);
                                 }}
-                                className={`w-full px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                                className={`w-full px-2.5 py-1.5 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                                   studentFormData.parentRelationship === rel
                                     ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-200 font-bold'
                                     : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -1353,7 +1352,7 @@ export default function StudentsPage() {
                     <button
                       type="button"
                       onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                      className="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-ui cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <div className="flex items-center gap-2">
                         {studentFormData.status === 'ACTIVE' && (
@@ -1391,7 +1390,7 @@ export default function StudentsPage() {
                             setStudentFormData({ ...studentFormData, status: 'ACTIVE' });
                             setIsStatusDropdownOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all cursor-pointer ${
+                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                             studentFormData.status === 'ACTIVE'
                               ? 'bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700/80 text-emerald-950 dark:text-emerald-200 font-bold shadow-xs'
                               : 'hover:bg-white/60 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'
@@ -1412,7 +1411,7 @@ export default function StudentsPage() {
                             setStudentFormData({ ...studentFormData, status: 'ON_LEAVE' });
                             setIsStatusDropdownOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all cursor-pointer ${
+                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                             studentFormData.status === 'ON_LEAVE'
                               ? 'bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700/80 text-amber-950 dark:text-amber-200 font-bold shadow-xs'
                               : 'hover:bg-white/60 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'
@@ -1433,7 +1432,7 @@ export default function StudentsPage() {
                             setStudentFormData({ ...studentFormData, status: 'DISCHARGED' });
                             setIsStatusDropdownOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all cursor-pointer ${
+                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-ui cursor-pointer ${
                             studentFormData.status === 'DISCHARGED'
                               ? 'bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-700/80 text-rose-950 dark:text-rose-200 font-bold shadow-xs'
                               : 'hover:bg-white/60 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'
@@ -1482,7 +1481,7 @@ export default function StudentsPage() {
                 <button
                   type="submit"
                   disabled={isSubmittingStudent}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm shadow-indigo-600/20 text-xs"
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm text-xs"
                 >
                   {isSubmittingStudent && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{editingStudent ? '수정 완료' : '원생 등록하기'}</span>
@@ -1503,7 +1502,7 @@ export default function StudentsPage() {
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl h-[85vh] max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl h-[85vh] max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
@@ -1537,7 +1536,7 @@ export default function StudentsPage() {
               <button
                 type="button"
                 onClick={() => setIsDetailModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-ui cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>

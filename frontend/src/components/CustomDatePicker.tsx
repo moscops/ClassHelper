@@ -172,7 +172,7 @@ export function CustomDatePicker({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="absolute left-2.5 p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          className="absolute left-2.5 p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
           aria-label="달력 열기"
         >
           <CalendarIcon className="w-3.5 h-3.5" />
@@ -185,7 +185,7 @@ export function CustomDatePicker({
           value={value}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => setIsOpen(true)}
-          className="w-32 pl-8 pr-2.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 text-center tracking-wide focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+          className="w-32 pl-8 pr-2.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-xs font-medium placeholder-slate-400 text-center tracking-wide focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-ui"
         />
       </div>
 
@@ -194,7 +194,7 @@ export function CustomDatePicker({
         <button
           type="button"
           onClick={handleSelectToday}
-          className="px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer shadow-2xs shrink-0"
+          className="px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-ui cursor-pointer shadow-2xs shrink-0"
         >
           오늘
         </button>
@@ -202,13 +202,13 @@ export function CustomDatePicker({
 
       {/* Floating Custom Calendar Popup (Positioned exactly underneath) */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 z-[60] w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-150 select-none">
+        <div className="absolute top-full left-0 mt-2 z-[60] w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-150 select-none">
           {/* Calendar Header: Month/Year & Navigation */}
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -220,7 +220,7 @@ export function CustomDatePicker({
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -256,9 +256,9 @@ export function CustomDatePicker({
                   key={`${item.dateStr}-${idx}`}
                   type="button"
                   onClick={() => handleSelectDay(item.dateStr)}
-                  className={`h-8 w-8 mx-auto rounded-xl flex items-center justify-center font-medium transition-all cursor-pointer text-xs ${
+                  className={`h-8 w-8 mx-auto rounded-xl flex items-center justify-center font-medium transition-ui cursor-pointer text-xs ${
                     isSelected
-                      ? 'bg-indigo-600 text-white font-bold shadow-xs shadow-indigo-600/30 scale-105'
+                      ? 'bg-indigo-600 text-white font-bold shadow-xs scale-105'
                       : !isCurrentMonth
                       ? 'text-slate-300 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/40'
                       : isToday
@@ -288,7 +288,7 @@ export function CustomDatePicker({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-[11px]"
+              className="px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-ui cursor-pointer text-[11px]"
             >
               닫기
             </button>
