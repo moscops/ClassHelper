@@ -7,11 +7,9 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  CalendarCheck2,
   Users,
   CreditCard,
   BookOpen,
-  Bell,
   CheckCircle2,
   TrendingUp,
   Check,
@@ -144,41 +142,9 @@ export default function HomePage() {
       </header>
 
       {/* 2. Hero Section */}
-      <main className="flex-1 relative overflow-hidden flex flex-col items-center justify-center bg-ambient-mesh bg-tech-grid">
-        {/* Atmospheric Ambient Glowing Orbs */}
-        <div className="absolute -top-32 -left-20 w-[40rem] h-[40rem] rounded-full bg-gradient-to-br from-indigo-500/15 via-purple-500/10 to-transparent blur-[120px] pointer-events-none -z-10" />
-        <div className="absolute top-1/3 -right-20 w-[40rem] h-[40rem] rounded-full bg-gradient-to-bl from-purple-500/12 via-pink-500/6 to-transparent blur-[120px] pointer-events-none -z-10" />
-        <div className="absolute -bottom-32 left-1/4 w-[40rem] h-[40rem] rounded-full bg-gradient-to-tr from-sky-400/10 via-cyan-400/5 to-transparent blur-[120px] pointer-events-none -z-10" />
-
+      <main className="flex-1 relative overflow-hidden flex flex-col items-center justify-center">
         {/* Hero Container */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 flex flex-col items-center text-center justify-center relative z-10 w-full">
-          {/* Floating Stat Badges (Left & Right) */}
-          <div className="hidden lg:flex items-center gap-2 absolute top-20 left-4 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-lg text-xs text-left animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-700 dark:text-emerald-400">
-              <Bell className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-900 dark:text-white">김민준 학생 등원 완료</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">카카오 알림톡 학부모 즉시 전송</p>
-            </div>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-2 absolute top-28 right-4 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-lg text-xs text-left animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-900 dark:text-white">이번 달 원비 수납률 98.4%</p>
-              <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">자동 청구서 & 복합 수납 연동</p>
-            </div>
-          </div>
-
-          {/* Subtle Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50/90 dark:bg-indigo-950/70 border border-indigo-100 dark:border-indigo-800/80 text-xs font-semibold text-indigo-700 dark:text-indigo-300 mb-6 shadow-xs backdrop-blur-xs">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>학원 원장님과 선생님을 위한 스마트 올인원 SaaS</span>
-          </div>
-
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white max-w-4xl leading-tight sm:leading-tight">
             학원 관리의 모든 것, <br />
@@ -312,149 +278,125 @@ export default function HomePage() {
       </main>
 
       {/* 3. Core Feature Showcase Section */}
-      <section id="features" className="py-20 bg-white dark:bg-slate-900 border-y border-slate-200/80 dark:border-slate-800">
+      <section id="features" aria-labelledby="features-title" className="py-20 bg-white dark:bg-slate-900 border-y border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-2">
-              ALL-IN-ONE SOLUTION
-            </h2>
-            <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              학원 운영에 필요한 모든 도메인을 하나로
-            </p>
+            <h2 id="features-title" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">학원 운영에 필요한 모든 도메인을 하나로</h2>
             <p className="mt-3 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               원생 등록, 1초 출결, 알림톡, 수강료 청구, 과제 관리, 정기 리포트까지 완벽하게 연동됩니다.
             </p>
           </div>
 
-          {/* Feature 6-Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Feature 1 */}
-            <div id="attendance" className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-600/60 transition-all shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-700 dark:text-emerald-400 mb-4">
-                  <CalendarCheck2 className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  1초 출결 & 미등원 긴급 안심 알림
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                  스마트폰/태블릿 터치 한 번으로 출석/지각/결석/조퇴를 기록하고, 수업 시작 시간이 지나도 미등원한 학생을 실시간 감지하여 경고합니다.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+          {/* Feature list: attendance leads (it is the product's first promise), the rest read as one list */}
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-16 gap-y-12 items-start">
+            <div id="attendance" className="lg:sticky lg:top-24">
+              <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white text-balance">
+                1초 출결 & 미등원 긴급 안심 알림
+              </h3>
+              <p className="mt-4 text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+                스마트폰/태블릿 터치 한 번으로 출석/지각/결석/조퇴를 기록하고, 수업 시작 시간이 지나도 미등원한 학생을 실시간 감지하여 경고합니다.
+              </p>
+              <p className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-700 dark:text-indigo-400" aria-hidden="true" />
                 <span>카카오 알림톡 자동 발송 연동</span>
+              </p>
+
+              {/* Illustration of the product's own status vocabulary (sample proportions, not real data) */}
+              <div className="mt-8" role="img" aria-label="출석, 지각, 조퇴, 결석, 미체크 비율을 색으로 나눈 출결 막대 예시">
+                <div className="flex h-3 gap-0.5 overflow-hidden rounded-full">
+                  <span className="bg-status-present-solid" style={{ flexGrow: 18 }} />
+                  <span className="bg-status-late-solid" style={{ flexGrow: 3 }} />
+                  <span className="bg-status-leave-solid" style={{ flexGrow: 2 }} />
+                  <span className="bg-status-absent-solid" style={{ flexGrow: 2 }} />
+                  <span className="bg-status-unmarked-solid" style={{ flexGrow: 6 }} />
+                </div>
+                <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+                  <li className="flex items-center gap-1.5"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-status-present-solid" />출석</li>
+                  <li className="flex items-center gap-1.5"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-status-late-solid" />지각</li>
+                  <li className="flex items-center gap-1.5"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-status-leave-solid" />조퇴</li>
+                  <li className="flex items-center gap-1.5"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-status-absent-solid" />결석</li>
+                  <li className="flex items-center gap-1.5"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-status-unmarked-solid" />미체크</li>
+                </ul>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">예시 화면 · 실제 수치가 아닙니다</p>
               </div>
             </div>
 
-            {/* Feature 2 */}
-            <div id="students" className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-600/60 transition-all shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4">
-                  <Users className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  원생 관리 & 대용량 CSV 일괄 등록
+            <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+              <li id="students" className="py-6 first:pt-0 last:pb-0">
+                <h3 className="flex items-center gap-2.5 text-base font-bold text-slate-900 dark:text-white">
+                  <Users className="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                  <span>원생 관리 & 대용량 CSV 일괄 등록</span>
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                   재원/휴원/퇴원 및 학년별 스마트 필터링과 기존 학원 엑셀 데이터를 드래그앤드롭 3단계 마법사로 한 번에 등록합니다.
                 </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1">
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>중복 검사 & 대용량 안전 등록</span>
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div id="classes" className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-600/60 transition-all shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-11 h-11 rounded-2xl bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-4">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  반 개설 & 스마트 수강생 배정
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <FileSpreadsheet className="w-3.5 h-3.5 shrink-0 text-indigo-700 dark:text-indigo-400" aria-hidden="true" />
+                  <span>중복 검사 & 대용량 안전 등록</span>
+                </p>
+              </li>
+              <li id="classes" className="py-6 first:pt-0 last:pb-0">
+                <h3 className="flex items-center gap-2.5 text-base font-bold text-slate-900 dark:text-white">
+                  <BookOpen className="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                  <span>반 개설 & 스마트 수강생 배정</span>
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                   정원 관리, 담당 강사 배정, 자동완성 Combobox 검색으로 원생을 빠르게 반에 매핑하고 요일별 시간표를 관리합니다.
                 </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>스마트 학생 검색 & 배정 매핑</span>
-              </div>
-            </div>
-
-            {/* Feature 4 */}
-            <div id="class-logs" className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-600/60 transition-all shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-700 dark:text-amber-400 mb-4">
-                  <ClipboardList className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  수업 일지 & 과제 1초 검사 피드백
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Sparkles className="w-3.5 h-3.5 shrink-0 text-indigo-700 dark:text-indigo-400" aria-hidden="true" />
+                  <span>스마트 학생 검색 & 배정 매핑</span>
+                </p>
+              </li>
+              <li className="py-6 first:pt-0 last:pb-0">
+                <h3 className="flex items-center gap-2.5 text-base font-bold text-slate-900 dark:text-white">
+                  <ClipboardList className="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                  <span>수업 일지 & 과제 1초 검사 피드백</span>
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                   수업 회차별 진도 범위와 교재를 기록하고, 수강생별 과제 완수율과 점수를 1초 만에 검사하여 피드백을 축적합니다.
                 </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>학부모 상담용 피드백 축적</span>
-              </div>
-            </div>
-
-            {/* Feature 5 */}
-            <div id="tuition" className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-600/60 transition-all shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-rose-700 dark:text-rose-400 mb-4">
-                  <CreditCard className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  수강료 청구 & 카드/계좌 복합 수납
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-indigo-700 dark:text-indigo-400" aria-hidden="true" />
+                  <span>학부모 상담용 피드백 축적</span>
+                </p>
+              </li>
+              <li id="tuition" className="py-6 first:pt-0 last:pb-0">
+                <h3 className="flex items-center gap-2.5 text-base font-bold text-slate-900 dark:text-white">
+                  <CreditCard className="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                  <span>수강료 청구 & 카드/계좌 복합 수납</span>
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                   매월 자동 청구서 발행, 카드/계좌/현금 복합 결제 수단 수납 및 미납자 관리까지 한눈에 파악할 수 있습니다.
                 </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-rose-700 dark:text-rose-400 font-semibold flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>실시간 수납 통계 & 영수증 발행</span>
-              </div>
-            </div>
-
-            {/* Feature 6 */}
-            <div id="reports" className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-600/60 transition-all shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  학습 & 출결 정기 리포트 카카오 발송
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <TrendingUp className="w-3.5 h-3.5 shrink-0 text-indigo-700 dark:text-indigo-400" aria-hidden="true" />
+                  <span>실시간 수납 통계 & 영수증 발행</span>
+                </p>
+              </li>
+              <li id="reports" className="py-6 first:pt-0 last:pb-0">
+                <h3 className="flex items-center gap-2.5 text-base font-bold text-slate-900 dark:text-white">
+                  <FileText className="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                  <span>학습 & 출결 정기 리포트 카카오 발송</span>
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                   기간별 출석률과 과제 완수율, 성적 데이터를 종합 분석하여 학부모님께 카카오 알림톡으로 정기 리포트를 1초 전송합니다.
                 </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1">
-                <Send className="w-3.5 h-3.5" />
-                <span>반 전체 원클릭 일괄 발송 지원</span>
-              </div>
-            </div>
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Send className="w-3.5 h-3.5 shrink-0 text-indigo-700 dark:text-indigo-400" aria-hidden="true" />
+                  <span>반 전체 원클릭 일괄 발송 지원</span>
+                </p>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
 
       {/* 4. Pricing Plans Section */}
-      <section id="pricing" className="py-24 bg-slate-50 dark:bg-slate-950 relative">
+      <section id="pricing" aria-labelledby="pricing-title" className="py-24 bg-slate-50 dark:bg-slate-950 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-2">
-              PRICING PLANS
-            </h2>
-            <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              학원 규모에 맞는 합리적이고 투명한 요금제
-            </p>
+            <h2 id="pricing-title" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">학원 규모에 맞는 합리적이고 투명한 요금제</h2>
             <p className="mt-3 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               신규 개설 시 기본 FREE 플랜이 무료 제공되며, 학원 성장에 맞춰 언제든 손쉽게 업그레이드할 수 있습니다.
             </p>
@@ -627,15 +569,10 @@ export default function HomePage() {
       </section>
 
       {/* 5. Frequently Asked Questions (FAQ) */}
-      <section id="faq" className="py-20 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800">
+      <section id="faq" aria-labelledby="faq-title" className="py-20 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center">
-            <h2 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-2">
-              FAQ
-            </h2>
-            <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              자주 묻는 질문
-            </p>
+            <h2 id="faq-title" className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">자주 묻는 질문</h2>
           </div>
 
           <div className="space-y-3">
@@ -688,12 +625,12 @@ export default function HomePage() {
       </section>
 
       {/* 6. Bottom Call to Action Banner */}
-      <section className="py-16 bg-gradient-to-r from-indigo-600 to-purple-600 text-white relative overflow-hidden">
+      <section aria-labelledby="cta-title" className="py-16 bg-indigo-800 text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
+          <h2 id="cta-title" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
             지금 바로 학원 관리를 1초 만에 스마트하게 바꾸세요
           </h2>
-          <p className="text-indigo-100 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+          <p className="text-indigo-100 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
             복잡한 설정 없이 1분 만에 학원을 개설하고 바로 출결 및 원생 관리를 시작해보세요.
           </p>
           <div className="pt-2">

@@ -444,7 +444,7 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
       {/* 1. Desktop Left Sidebar (Fixed on left, w-64) */}
       <aside
         aria-label="사이드바"
-        className={`hidden lg:flex flex-col ${isCollapsed ? 'w-[4.5rem]' : 'w-64'} overflow-hidden ${widthTransition} fixed inset-y-0 left-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-r border-slate-200/90 dark:border-slate-800/90 shadow-2xs`}
+        className={`hidden lg:flex flex-col ${isCollapsed ? 'w-[4.5rem]' : 'w-64'} overflow-hidden ${widthTransition} fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800/90 shadow-2xs`}
       >
         {/* Sidebar Brand Header (icon x-position is identical in both widths so the logo never slides) */}
         <div className="h-16 px-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -660,7 +660,7 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
                 onClick={handleLogout}
                 title="로그아웃"
                 aria-label="로그아웃"
-                className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-ui active:scale-[0.97] cursor-pointer"
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-ui active:scale-[0.97] cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -696,7 +696,7 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
                 <button
                   onClick={handleLogout}
                   title="로그아웃"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition-ui active:scale-[0.97] cursor-pointer"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition-ui active:scale-[0.97] cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>로그아웃</span>
@@ -708,7 +708,7 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
       </aside>
 
       {/* 2. Mobile & Tablet Top Bar (< 1024px) */}
-      <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800/90 px-4 flex items-center justify-between shadow-xs">
+      <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-16 bg-white dark:bg-slate-900 border-b border-slate-200/90 dark:border-slate-800/90 px-4 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-2.5">
           <Link href={user.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard'} aria-label="ClassHelper 홈" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
@@ -887,13 +887,8 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
 
       {/* 4. Main Page Content (Offset for the sidebar or icon rail on desktop; top bar and tab bar room on phones) */}
       <div
-        className={`flex-1 ${isCollapsed ? 'lg:pl-[4.5rem]' : 'lg:pl-64'} ${paddingTransition} flex flex-col min-w-0 pt-16 lg:pt-0 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 relative overflow-x-hidden bg-ambient-mesh bg-tech-grid`}
+        className={`flex-1 ${isCollapsed ? 'lg:pl-[4.5rem]' : 'lg:pl-64'} ${paddingTransition} flex flex-col min-w-0 pt-16 lg:pt-0 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 relative overflow-x-hidden`}
       >
-        {/* Atmospheric Ambient Glowing Orbs */}
-        <div className="absolute -top-32 -left-20 w-[32rem] h-[32rem] rounded-full bg-gradient-to-br from-indigo-500/12 via-indigo-600/6 to-transparent dark:from-indigo-500/18 dark:via-indigo-600/8 blur-[100px] pointer-events-none -z-10" />
-        <div className="absolute top-20 -right-20 w-[36rem] h-[36rem] rounded-full bg-gradient-to-bl from-purple-500/10 via-fuchsia-500/5 to-transparent dark:from-purple-500/16 dark:via-fuchsia-500/8 blur-[120px] pointer-events-none -z-10" />
-        <div className="absolute bottom-10 left-1/3 w-[30rem] h-[30rem] rounded-full bg-gradient-to-tr from-sky-400/8 via-cyan-400/4 to-transparent dark:from-sky-400/12 dark:via-cyan-400/6 blur-[100px] pointer-events-none -z-10" />
-
         {children}
       </div>
     </div>

@@ -190,10 +190,6 @@ export function TodayBoard() {
           </p>
         )}
       </section>
-
-      {!isTeacher && (
-        <p className="text-sm text-slate-500 dark:text-slate-400">수강료·미납 현황은 준비 중입니다.</p>
-      )}
     </div>
   );
 }
