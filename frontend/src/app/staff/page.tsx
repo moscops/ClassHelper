@@ -1501,10 +1501,11 @@ export default function StaffPage() {
 
               {/* Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <label htmlFor="staff-edit-name" className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   이름 <span className="text-rose-500">*</span>
                 </label>
                 <input
+                  id="staff-edit-name"
                   type="text"
                   required
                   value={editForm.name}
@@ -1517,10 +1518,11 @@ export default function StaffPage() {
 
               {/* Phone */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <label htmlFor="staff-edit-phone" className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   연락처
                 </label>
                 <input
+                  id="staff-edit-phone"
                   type="tel"
                   value={editForm.phone}
                   onChange={(e) =>
@@ -1642,7 +1644,7 @@ export default function StaffPage() {
                 type="submit"
                 form="password-reset-form"
                 disabled={isSubmittingPassword}
-                className="px-5 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer shadow-md shadow-amber-600/20 disabled:opacity-50"
+                className="px-5 py-2.5 rounded-2xl bg-amber-700 hover:bg-amber-800 text-white text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer shadow-md shadow-amber-600/20 disabled:opacity-50"
               >
                 {isSubmittingPassword ? (
                   <>
