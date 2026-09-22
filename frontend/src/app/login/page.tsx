@@ -404,7 +404,7 @@ export default function LoginPage() {
               {/* Error Alert */}
               {errorMessage && (
                 <div className="mb-5 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
                   <span>{errorMessage}</span>
                 </div>
               )}
@@ -416,7 +416,7 @@ export default function LoginPage() {
                     이메일 계정
                   </label>
                   <div className="relative rounded-xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                       <Mail className="w-4 h-4" />
                     </div>
                     <input
@@ -432,7 +432,7 @@ export default function LoginPage() {
                     />
                   </div>
                   {errors.email && (
-                    <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.email.message}</p>
+                    <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.email.message}</p>
                   )}
                 </div>
 
@@ -442,7 +442,7 @@ export default function LoginPage() {
                     비밀번호
                   </label>
                   <div className="relative rounded-2xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
@@ -460,13 +460,13 @@ export default function LoginPage() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors.password.message}</p>
+                    <p className="mt-1 text-xs text-rose-700 dark:text-rose-400">{errors.password.message}</p>
                   )}
                 </div>
 
@@ -529,7 +529,7 @@ export default function LoginPage() {
                             {account.email}
                           </div>
                         </div>
-                        <div className="shrink-0 flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400 group-hover:translate-x-0.5 transition-transform">
+                        <div className="shrink-0 flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-400 group-hover:translate-x-0.5 transition-transform">
                           <span>즉시 로그인</span>
                           <ArrowRight className="w-3 h-3" />
                         </div>
@@ -555,7 +555,7 @@ export default function LoginPage() {
 
               {joinErrorMessage && (
                 <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
                   <span>{joinErrorMessage}</span>
                 </div>
               )}
@@ -567,7 +567,7 @@ export default function LoginPage() {
                     학원 초대 코드 <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <KeyRound className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="text"
                       required
@@ -645,7 +645,7 @@ export default function LoginPage() {
                 {/* Phone */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    휴대폰 번호 <span className="text-slate-400 font-normal">(선택)</span>
+                    휴대폰 번호 <span className="text-slate-500 dark:text-slate-400 font-normal">(선택)</span>
                   </label>
                   <input
                     type="tel"
@@ -674,7 +674,7 @@ export default function LoginPage() {
                       type="button"
                       onClick={() => setShowJoinPassword(!showJoinPassword)}
                       aria-label={showJoinPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     >
                       {showJoinPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -695,7 +695,7 @@ export default function LoginPage() {
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   />
                   {joinPassword && joinConfirmPassword && (
-                    <p className={`text-[11px] mt-1 font-medium ${joinPassword === joinConfirmPassword ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                    <p className={`text-[11px] mt-1 font-medium ${joinPassword === joinConfirmPassword ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-500'}`}>
                       {joinPassword === joinConfirmPassword ? '✓ 비밀번호가 일치합니다.' : '✗ 비밀번호가 일치하지 않습니다.'}
                     </p>
                   )}
@@ -725,7 +725,7 @@ export default function LoginPage() {
               {/* Kiosk Error Alert */}
               {kioskError && (
                 <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
                   <span>{kioskError}</span>
                 </div>
               )}
@@ -743,7 +743,7 @@ export default function LoginPage() {
                     학원 키오스크 링크 또는 토큰 입력
                   </label>
                   <div className="relative rounded-2xl shadow-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                       <KeyRound className="w-4 h-4" />
                     </div>
                     <input
@@ -804,7 +804,7 @@ export default function LoginPage() {
                       <span>클래스헬퍼 대치본원 키오스크 즉시 열기</span>
                     </div>
                     {isDevKioskLoading ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700 dark:text-amber-400" />
                     ) : (
                       <ArrowRight className="w-3.5 h-3.5 text-amber-500 group-hover:translate-x-0.5 transition-transform" />
                     )}

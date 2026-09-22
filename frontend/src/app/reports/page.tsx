@@ -566,12 +566,12 @@ export default function ReportsPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-emerald-300 dark:hover:border-emerald-700/60 hover:shadow-md transition-all">
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2.5">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-700 dark:text-emerald-400 mb-2.5">
                 <CheckCircle2 className="w-4.5 h-4.5" />
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">카카오 알림톡 엔진</span>
               <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
+                <span className="text-base font-extrabold text-emerald-700 dark:text-emerald-400">
                   정상 가동 중
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
@@ -581,7 +581,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-amber-300 dark:hover:border-amber-700/60 hover:shadow-md transition-all">
-              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-2.5">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center text-amber-700 dark:text-amber-400 mb-2.5">
                 <Sparkles className="w-4.5 h-4.5" />
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">권장 정기 발송 주기</span>
@@ -589,7 +589,7 @@ export default function ReportsPage() {
                 <span className="text-base font-extrabold text-slate-900 dark:text-white">
                   주간 / 월간 정기
                 </span>
-                <span className="text-xs font-semibold text-slate-400">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   매월 말일 / 주말
                 </span>
               </div>
@@ -683,7 +683,7 @@ export default function ReportsPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3.5">
               {/* Date Pickers */}
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold shrink-0">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold shrink-0">
                   <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   <span>집계 기간:</span>
                 </div>
@@ -696,7 +696,7 @@ export default function ReportsPage() {
                     }}
                     showTodayShortcut={false}
                   />
-                  <span className="text-slate-400 font-bold text-xs">~</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-bold text-xs">~</span>
                   <CustomDatePicker
                     value={globalEnd}
                     onChange={(val) => {
@@ -712,7 +712,7 @@ export default function ReportsPage() {
               {activeTab === 'STUDENTS' && (
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <div className="relative w-full sm:w-64">
-                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
                     <input
                       type="text"
                       placeholder="원생 이름, 학부모 연락처..."
@@ -752,7 +752,7 @@ export default function ReportsPage() {
                 </div>
               ) : classes.length === 0 ? (
                 <div className="py-16 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center justify-center text-center p-6 space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
                     <BookOpen className="w-6 h-6" />
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">개설된 수업 반이 없습니다</h3>
@@ -776,7 +776,7 @@ export default function ReportsPage() {
                           <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] border border-indigo-200 dark:border-indigo-800">
                             {cls.subject || '과목 미지정'}
                           </span>
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800">
+                          <span className="text-[11px] text-slate-600 dark:text-slate-400 font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800">
                             재원생 {cls.enrolledCount}명
                           </span>
                         </div>
@@ -790,7 +790,7 @@ export default function ReportsPage() {
                       </div>
 
                       <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <span className="text-[11px] text-slate-400 font-mono">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                           {globalStart} ~ {globalEnd}
                         </span>
                         <button
@@ -821,7 +821,7 @@ export default function ReportsPage() {
                   <p className="text-xs text-slate-500 dark:text-slate-400">원생 목록을 불러오고 있습니다...</p>
                 </div>
               ) : filteredStudents.length === 0 ? (
-                <div className="py-16 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center justify-center text-center p-6 text-slate-400 text-xs">
+                <div className="py-16 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center justify-center text-center p-6 text-slate-500 dark:text-slate-400 text-xs">
                   <p>일치하는 원생 검색 결과가 없습니다.</p>
                 </div>
               ) : (
@@ -861,7 +861,7 @@ export default function ReportsPage() {
                                 ))}
                               </div>
                             ) : (
-                              <span className="text-slate-400">수강 반 없음</span>
+                              <span className="text-slate-500 dark:text-slate-400">수강 반 없음</span>
                             )}
                           </td>
                           <td className="py-3 px-4 text-right">
@@ -988,7 +988,7 @@ export default function ReportsPage() {
                   type="button"
                   onClick={() => setIsWizardModalOpen(false)}
                   disabled={isSendingWizard}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1121,7 +1121,7 @@ export default function ReportsPage() {
                       }}
                       showTodayShortcut={false}
                     />
-                    <span className="text-slate-400 font-bold">~</span>
+                    <span className="text-slate-500 dark:text-slate-400 font-bold">~</span>
                     <CustomDatePicker
                       value={globalEnd}
                       onChange={(val) => {
@@ -1141,7 +1141,7 @@ export default function ReportsPage() {
                 {/* Error Banner */}
                 {wizardError && (
                   <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2 animate-in fade-in">
-                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
                     <span>{wizardError}</span>
                   </div>
                 )}
@@ -1157,7 +1157,7 @@ export default function ReportsPage() {
                       <button
                         type="button"
                         onClick={() => setWizardEditableMessage(wizardPreview.message)}
-                        className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold cursor-pointer"
+                        className="inline-flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold cursor-pointer"
                         title="자동 계산된 기본 메시지로 되돌립니다"
                       >
                         <RotateCcw className="w-3 h-3" />
@@ -1167,7 +1167,7 @@ export default function ReportsPage() {
                   </div>
 
                   {isLoadingWizardPreview ? (
-                    <div className="py-8 text-center text-slate-400">
+                    <div className="py-8 text-center text-slate-500 dark:text-slate-400">
                       <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1 text-indigo-600" />
                       <span>리포트 미리보기 계산 중...</span>
                     </div>
@@ -1175,7 +1175,7 @@ export default function ReportsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {/* Left: Textarea Editor */}
                       <div className="space-y-1">
-                        <span className="text-[11px] text-slate-400 block font-medium">메시지 본문 편집 (자유 수정 가능)</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">메시지 본문 편집 (자유 수정 가능)</span>
                         <textarea
                           rows={8}
                           value={wizardEditableMessage}
@@ -1187,7 +1187,7 @@ export default function ReportsPage() {
 
                       {/* Right: Kakao Yellow Bubble Preview */}
                       <div className="space-y-1">
-                        <span className="text-[11px] text-slate-400 block font-medium">실제 학부모 수신 화면 (카카오 알림톡)</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">실제 학부모 수신 화면 (카카오 알림톡)</span>
                         <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-52 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-xs">
                           {wizardEditableMessage || '메시지 본문이 여기에 표시됩니다.'}
                         </div>
@@ -1200,7 +1200,7 @@ export default function ReportsPage() {
                 {wizardResult && (
                   <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-1 animate-in fade-in">
                     <div className="flex items-center gap-2 font-bold text-xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                       <span>리포트 카카오 알림톡 발송 완료!</span>
                     </div>
                     {'sentCount' in wizardResult ? (
@@ -1280,7 +1280,7 @@ export default function ReportsPage() {
                   type="button"
                   onClick={() => setIsBatchModalOpen(false)}
                   disabled={isSendingBatch}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1313,7 +1313,7 @@ export default function ReportsPage() {
 
                 {/* Sample Kakao Bubble Preview */}
                 {isLoadingBatchPreview ? (
-                  <div className="py-6 text-center text-slate-400">
+                  <div className="py-6 text-center text-slate-500 dark:text-slate-400">
                     <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1 text-indigo-600" />
                     <span>대표 학생 알림톡 미리보기 로드 중...</span>
                   </div>
@@ -1331,7 +1331,7 @@ export default function ReportsPage() {
 
                 {batchError && (
                   <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2 animate-in fade-in">
-                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
                     <span>{batchError}</span>
                   </div>
                 )}
@@ -1346,7 +1346,7 @@ export default function ReportsPage() {
                         </div>
                       </div>
                       <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
-                        <span className="text-[11px] text-slate-500 font-semibold">제외 / 실패</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">제외 / 실패</span>
                         <div className="text-xl font-extrabold text-slate-700 dark:text-slate-300">
                           {batchResult.failedCount}건
                         </div>
@@ -1358,7 +1358,7 @@ export default function ReportsPage() {
                         {batchResult.failed.map((f, idx) => (
                           <div key={idx} className="p-2.5 flex items-center justify-between text-[11px]">
                             <span className="font-bold">{f.studentName}</span>
-                            <span className="text-rose-600 font-medium">{f.reason}</span>
+                            <span className="text-rose-700 dark:text-rose-400 font-medium">{f.reason}</span>
                           </div>
                         ))}
                       </div>
@@ -1420,7 +1420,7 @@ export default function ReportsPage() {
                     <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <span>{selectedStudentForReport.name} 학생 리포트 발송</span>
                     </h3>
-                    <p className="text-xs text-slate-400 font-mono">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
                       학부모 연락처: {selectedStudentForReport.parentPhone || '없음'}
                     </p>
                   </div>
@@ -1430,7 +1430,7 @@ export default function ReportsPage() {
                   type="button"
                   onClick={() => setIsStudentModalOpen(false)}
                   disabled={isSendingStudentReport}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1451,7 +1451,7 @@ export default function ReportsPage() {
                       }}
                       showTodayShortcut={false}
                     />
-                    <span className="text-slate-400 font-bold">~</span>
+                    <span className="text-slate-500 dark:text-slate-400 font-bold">~</span>
                     <CustomDatePicker
                       value={studentPeriodEnd}
                       onChange={(val) => {
@@ -1466,14 +1466,14 @@ export default function ReportsPage() {
                 {/* Error Banner */}
                 {studentReportError && (
                   <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2 animate-in fade-in">
-                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
                     <span>{studentReportError}</span>
                   </div>
                 )}
 
                 {/* Preview & Edit Area */}
                 {isLoadingPreview ? (
-                  <div className="py-12 text-center text-slate-400">
+                  <div className="py-12 text-center text-slate-500 dark:text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
                     <span>리포트 데이터를 집계하는 중...</span>
                   </div>
@@ -1482,21 +1482,21 @@ export default function ReportsPage() {
                     {/* Metrics Summary */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
-                        <span className="text-[11px] text-slate-400 font-semibold">출결 요약</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">출결 요약</span>
                         <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
                           {reportPreview.attendance.attendanceRate}% 출석
                         </div>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
                           총 {reportPreview.attendance.totalDays}일 중 {reportPreview.attendance.presentCount}일 출석 (지각 {reportPreview.attendance.lateCount}, 결석 {reportPreview.attendance.absentCount})
                         </p>
                       </div>
 
                       <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
-                        <span className="text-[11px] text-slate-400 font-semibold">과제 요약</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">과제 요약</span>
                         <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
                           {reportPreview.homework.completionRate}% 완수
                         </div>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
                           총 {reportPreview.homework.totalAssignments}건 중 {reportPreview.homework.completedAssignments}건 완료 (평균 {reportPreview.homework.averageScore ?? '-'}점)
                         </p>
                       </div>
@@ -1542,7 +1542,7 @@ export default function ReportsPage() {
                           <button
                             type="button"
                             onClick={() => setEditableMessage(reportPreview.message)}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold cursor-pointer"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold cursor-pointer"
                             title="자동 계산된 기본 텍스트로 복원"
                           >
                             <RotateCcw className="w-3 h-3" />
@@ -1574,7 +1574,7 @@ export default function ReportsPage() {
                 {studentSendResult && (
                   <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-1 animate-in fade-in">
                     <div className="flex items-center gap-2 font-bold text-xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                       <span>카카오 알림톡 발송 완료!</span>
                     </div>
                     <p className="text-[11px] text-emerald-700 dark:text-emerald-300">

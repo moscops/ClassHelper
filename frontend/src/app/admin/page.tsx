@@ -315,7 +315,7 @@ function AdminPortalContent() {
         <span
           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-semibold text-[11px] border ${
             isCanceled
-              ? 'bg-slate-100 dark:bg-slate-800/60 text-slate-400 border-slate-300 dark:border-slate-700 line-through'
+              ? 'bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700 line-through'
               : tierConfig.color
           }`}
         >
@@ -326,7 +326,7 @@ function AdminPortalContent() {
           <span className="text-[10px] text-rose-500 font-semibold">구독 취소됨</span>
         )}
         {!isCanceled && expiresAt && (
-          <span className="text-[10px] text-slate-400 font-normal">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
             ~{new Date(expiresAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })} 만료
           </span>
         )}
@@ -444,7 +444,7 @@ function AdminPortalContent() {
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase tracking-wide">
                   {currentHeader.badge}
                 </span>
-                <span className="text-xs text-slate-400">ClassHelper SaaS 관리자 포털</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">ClassHelper SaaS 관리자 포털</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5 mt-1">
                 <HeaderIcon className="w-7 h-7 text-purple-600 dark:text-purple-400" />
@@ -490,7 +490,7 @@ function AdminPortalContent() {
                       <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                         {stats?.academies.total ?? academies.length}
                       </span>
-                      <span className="text-xs text-slate-400">개 학원</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">개 학원</span>
                     </div>
                     <div className="mt-2 flex items-center gap-1.5 text-[11px] flex-wrap">
                       <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold">
@@ -518,7 +518,7 @@ function AdminPortalContent() {
                       <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                         {stats?.students.total ?? 0}
                       </span>
-                      <span className="text-xs text-slate-400">명</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">명</span>
                     </div>
                     <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                       정규 재원생:{' '}
@@ -527,7 +527,7 @@ function AdminPortalContent() {
                       </span>
                     </div>
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-700 dark:text-emerald-400">
                     <Users className="w-5 h-5" />
                   </div>
                 </div>
@@ -541,7 +541,7 @@ function AdminPortalContent() {
                       <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                         {stats?.classes.total ?? 0}
                       </span>
-                      <span className="text-xs text-slate-400">개 반</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">개 반</span>
                     </div>
                     <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                       등록 강사/직원:{' '}
@@ -550,7 +550,7 @@ function AdminPortalContent() {
                       </span>
                     </div>
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-700 dark:text-amber-400">
                     <BookOpen className="w-5 h-5" />
                   </div>
                 </div>
@@ -564,7 +564,7 @@ function AdminPortalContent() {
                       <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                         {stats?.todayAttendances ?? 0}
                       </span>
-                      <span className="text-xs text-slate-400">건 출결</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">건 출결</span>
                     </div>
                     <div className="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium flex items-center gap-1">
                       <MessageSquare className="w-3 h-3" />
@@ -645,9 +645,9 @@ function AdminPortalContent() {
                     </div>
                     <div className="mt-1 text-lg font-black text-slate-900 dark:text-white">
                       {planCounts.FREE}
-                      <span className="text-xs font-normal text-slate-400 ml-1">학원</span>
+                      <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">학원</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">기본 30명 한도</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">기본 30명 한도</p>
                   </div>
 
                   <div className="p-3 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40">
@@ -657,9 +657,9 @@ function AdminPortalContent() {
                     </div>
                     <div className="mt-1 text-lg font-black text-indigo-950 dark:text-indigo-200">
                       {planCounts.PRO}
-                      <span className="text-xs font-normal text-indigo-400 ml-1">학원</span>
+                      <span className="text-xs font-normal text-indigo-700 dark:text-indigo-400 ml-1">학원</span>
                     </div>
-                    <p className="text-[11px] text-indigo-600/80 dark:text-indigo-400/80 mt-0.5">
+                    <p className="text-[11px] text-indigo-700 dark:text-indigo-300 mt-0.5">
                       무제한 원생 & 출결
                     </p>
                   </div>
@@ -671,9 +671,9 @@ function AdminPortalContent() {
                     </div>
                     <div className="mt-1 text-lg font-black text-purple-950 dark:text-purple-200">
                       {planCounts.ENTERPRISE}
-                      <span className="text-xs font-normal text-purple-400 ml-1">학원</span>
+                      <span className="text-xs font-normal text-purple-700 dark:text-purple-400 ml-1">학원</span>
                     </div>
-                    <p className="text-[11px] text-purple-600/80 dark:text-purple-400/80 mt-0.5">
+                    <p className="text-[11px] text-purple-700 dark:text-purple-300 mt-0.5">
                       다지점 본원/분원
                     </p>
                   </div>
@@ -719,13 +719,13 @@ function AdminPortalContent() {
                             <div className="font-bold text-slate-900 dark:text-white">
                               {academy.name}
                             </div>
-                            <div className="text-[11px] text-slate-400">ID: #{academy.id}</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400">ID: #{academy.id}</div>
                           </td>
                           <td className="py-3 px-4">
                             <div className="font-semibold text-slate-800 dark:text-slate-200">
                               {academy.owner?.name || '미등록'}
                             </div>
-                            <div className="text-[11px] text-slate-400">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400">
                               {academy.owner?.phone || academy.phoneNumber || '연락처 없음'}
                             </div>
                           </td>
@@ -823,7 +823,7 @@ function AdminPortalContent() {
                         onChange={(e) => setCustomStartDate(e.target.value)}
                         className="px-2.5 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                       />
-                      <span className="text-slate-400 text-xs">~</span>
+                      <span className="text-slate-500 dark:text-slate-400 text-xs">~</span>
                       <input
                         type="date"
                         value={customEndDate}
@@ -866,7 +866,7 @@ function AdminPortalContent() {
                       <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                         {isLoadingVisitors ? '...' : (visitorSummary?.totalVisitors ?? 0).toLocaleString()}
                       </span>
-                      <span className="text-xs text-slate-400">명</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">명</span>
                     </div>
                     <div className="mt-2 text-[11px] text-purple-600 dark:text-purple-400 font-semibold">
                       오늘 방문: {visitorSummary?.todayVisitors ?? 0}명 (비로그인 {visitorSummary?.dailyStats.find(d => d.date === new Date().toISOString().slice(0, 10))?.anonymousVisitors ?? 0} + 로그인 {visitorSummary?.todayLogins ?? 0})
@@ -887,7 +887,7 @@ function AdminPortalContent() {
                       <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                         {isLoadingVisitors ? '...' : (visitorSummary?.totalLogins ?? 0).toLocaleString()}
                       </span>
-                      <span className="text-xs text-slate-400">명</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">명</span>
                     </div>
                     <div className="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">
                       오늘 로그인: {visitorSummary?.todayLogins ?? 0}명 (고유 사용자)
@@ -908,13 +908,13 @@ function AdminPortalContent() {
                       <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                         {isLoadingVisitors ? '...' : (visitorSummary?.totalNewSignups ?? 0).toLocaleString()}
                       </span>
-                      <span className="text-xs text-slate-400">명</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">명</span>
                     </div>
-                    <div className="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <div className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">
                       오늘 신규 가입: +{visitorSummary?.todayNewSignups ?? 0}명
                     </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                  <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
                     <Sparkles className="w-5 h-5" />
                   </div>
                 </div>
@@ -929,13 +929,13 @@ function AdminPortalContent() {
                       <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
                         {isLoadingVisitors ? '...' : (visitorSummary?.totalNewAcademies ?? 0).toLocaleString()}
                       </span>
-                      <span className="text-xs text-slate-400">개 학원</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">개 학원</span>
                     </div>
-                    <div className="mt-2 text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
+                    <div className="mt-2 text-[11px] text-amber-700 dark:text-amber-400 font-semibold">
                       오늘 신규 개설: +{visitorSummary?.todayNewAcademies ?? 0}개
                     </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
                     <Building2 className="w-5 h-5" />
                   </div>
                 </div>
@@ -979,7 +979,7 @@ function AdminPortalContent() {
                     <RefreshCw className="w-6 h-6 animate-spin text-purple-600" />
                   </div>
                 ) : !visitorSummary?.dailyStats.length ? (
-                  <div className="h-48 flex items-center justify-center text-xs text-slate-400">
+                  <div className="h-48 flex items-center justify-center text-xs text-slate-500 dark:text-slate-400">
                     표시할 방문 통계 데이터가 없습니다.
                   </div>
                 ) : (
@@ -1022,7 +1022,7 @@ function AdminPortalContent() {
                                   className={`text-[10px] font-extrabold transition-colors ${
                                     isSelected
                                       ? 'text-purple-600 dark:text-purple-400'
-                                      : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'
+                                      : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'
                                   }`}
                                 >
                                   {totalUV}
@@ -1070,7 +1070,7 @@ function AdminPortalContent() {
                                 className={`text-[10px] ${
                                   isWeekend
                                     ? 'text-rose-500 font-semibold'
-                                    : 'text-slate-400'
+                                    : 'text-slate-500 dark:text-slate-400'
                                 }`}
                               >
                                 {dayName}
@@ -1089,7 +1089,7 @@ function AdminPortalContent() {
                           <span className="font-bold text-slate-900 dark:text-white">
                             {selectedVisitorDate.date} 상세 분석
                           </span>
-                          <span className="text-slate-400">|</span>
+                          <span className="text-slate-500 dark:text-slate-400">|</span>
                           <span className="text-slate-600 dark:text-slate-300">
                             총 순방문 <strong className="text-purple-600 dark:text-purple-400">{selectedVisitorDate.anonymousVisitors + selectedVisitorDate.loginCount}</strong>명
                           </span>
@@ -1102,11 +1102,11 @@ function AdminPortalContent() {
                         </div>
 
                         <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 text-[11px] flex-wrap">
-                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                          <span className="font-semibold text-emerald-700 dark:text-emerald-400">
                             신규 가입 +{selectedVisitorDate.newSignups}명
                           </span>
                           <span>•</span>
-                          <span className="font-semibold text-amber-600 dark:text-amber-400">
+                          <span className="font-semibold text-amber-700 dark:text-amber-400">
                             신규 학원 +{selectedVisitorDate.newAcademies}개원
                           </span>
                         </div>
@@ -1131,7 +1131,7 @@ function AdminPortalContent() {
 
                   <div className="flex items-center gap-2">
                     <div className="relative">
-                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
                       <input
                         type="text"
                         placeholder="날짜 검색 (예: 2026-09)..."
@@ -1177,7 +1177,7 @@ function AdminPortalContent() {
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                       {filteredDailyStats.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="py-8 text-center text-slate-400">
+                          <td colSpan={7} className="py-8 text-center text-slate-500 dark:text-slate-400">
                             해당 조건의 일일 방문 기록이 없습니다.
                           </td>
                         </tr>
@@ -1202,8 +1202,8 @@ function AdminPortalContent() {
                                   <span
                                     className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${
                                       isWeekend
-                                        ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                        ? 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                                     }`}
                                   >
                                     {dayName}요일
@@ -1215,21 +1215,21 @@ function AdminPortalContent() {
                                 <span className="font-extrabold text-slate-900 dark:text-white">
                                   {totalUV.toLocaleString()}
                                 </span>
-                                <span className="text-[11px] text-slate-400 ml-1">명</span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 ml-1">명</span>
                               </td>
 
                               <td className="py-3 px-4">
                                 <span className="font-semibold text-purple-600 dark:text-purple-400">
                                   {stat.anonymousVisitors.toLocaleString()}
                                 </span>
-                                <span className="text-[11px] text-slate-400 ml-1">명</span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 ml-1">명</span>
                               </td>
 
                               <td className="py-3 px-4">
                                 <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                                   {stat.loginCount.toLocaleString()}
                                 </span>
-                                <span className="text-[11px] text-slate-400 ml-1">명</span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 ml-1">명</span>
                               </td>
 
                               <td className="py-3 px-4">
@@ -1239,7 +1239,7 @@ function AdminPortalContent() {
                                     <span>+{stat.newSignups}명</span>
                                   </span>
                                 ) : (
-                                  <span className="text-slate-400 text-xs">-</span>
+                                  <span className="text-slate-500 dark:text-slate-400 text-xs">-</span>
                                 )}
                               </td>
 
@@ -1250,7 +1250,7 @@ function AdminPortalContent() {
                                     <span>+{stat.newAcademies}개원</span>
                                   </span>
                                 ) : (
-                                  <span className="text-slate-400 text-xs">-</span>
+                                  <span className="text-slate-500 dark:text-slate-400 text-xs">-</span>
                                 )}
                               </td>
 
@@ -1268,7 +1268,7 @@ function AdminPortalContent() {
                                     학사 운영 활성
                                   </span>
                                 ) : (
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-normal bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-normal bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                                     일반 방문
                                   </span>
                                 )}
@@ -1370,7 +1370,7 @@ function AdminPortalContent() {
                         onClick={() => setStatusFilter('ACTIVE')}
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           statusFilter === 'ACTIVE'
-                            ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                            ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs'
                             : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
@@ -1381,7 +1381,7 @@ function AdminPortalContent() {
                         onClick={() => setStatusFilter('SUSPENDED')}
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           statusFilter === 'SUSPENDED'
-                            ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-xs'
+                            ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-400 shadow-xs'
                             : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
@@ -1391,7 +1391,7 @@ function AdminPortalContent() {
 
                     {/* Search Input */}
                     <div className="relative w-full sm:w-64">
-                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         placeholder="학원명, 원장, 연락처, 주소 검색..."
@@ -1403,7 +1403,7 @@ function AdminPortalContent() {
                         <button
                           type="button"
                           onClick={() => setSearchTerm('')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-600 cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -1428,7 +1428,7 @@ function AdminPortalContent() {
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                       {filteredAcademies.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="py-12 text-center text-slate-400">
+                          <td colSpan={6} className="py-12 text-center text-slate-500 dark:text-slate-400">
                             검색 조건과 일치하는 입점 학원이 없습니다.
                           </td>
                         </tr>
@@ -1450,7 +1450,7 @@ function AdminPortalContent() {
                                   <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                                     {academy.address || '주소 미등록'}
                                   </div>
-                                  <div className="text-[10px] text-slate-400 mt-0.5">
+                                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                                     사업자: {academy.businessNumber || '미등록'} • 대표전화:{' '}
                                     {academy.phoneNumber || '미등록'}
                                   </div>
@@ -1467,12 +1467,12 @@ function AdminPortalContent() {
                                   <div className="text-[11px] text-slate-500 dark:text-slate-400">
                                     {academy.owner.email}
                                   </div>
-                                  <div className="text-[10px] text-slate-400">
+                                  <div className="text-[10px] text-slate-500 dark:text-slate-400">
                                     {academy.owner.phone || '연락처 없음'}
                                   </div>
                                 </div>
                               ) : (
-                                <span className="text-slate-400 italic">원장 계정 미등록</span>
+                                <span className="text-slate-500 dark:text-slate-400 italic">원장 계정 미등록</span>
                               )}
                             </td>
 
@@ -1543,8 +1543,8 @@ function AdminPortalContent() {
                                   disabled={actionLoadingId === academy.id}
                                   className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 disabled:opacity-50 ${
                                     academy.status === 'ACTIVE'
-                                      ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 border border-rose-200 dark:border-rose-900'
-                                      : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-900'
+                                      ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 hover:bg-rose-100 border border-rose-200 dark:border-rose-900'
+                                      : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-900'
                                   }`}
                                   title={academy.status === 'ACTIVE' ? '학원 일시 정지' : '정상 운영 재개'}
                                 >
@@ -1586,7 +1586,7 @@ function AdminPortalContent() {
                     <span className="px-2.5 py-0.5 rounded-md font-bold text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                       FREE 플랜
                     </span>
-                    <span className="text-xs font-extrabold text-slate-400">
+                    <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400">
                       {planCounts.FREE}개 학원 이용 중
                     </span>
                   </div>
@@ -1700,7 +1700,7 @@ function AdminPortalContent() {
                           >
                             <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
                               <div>{academy.name}</div>
-                              <div className="text-[10px] text-slate-400 font-normal">
+                              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
                                 #{academy.id} • 원생 {academy.stats.studentCount}명
                               </div>
                             </td>
@@ -1708,7 +1708,7 @@ function AdminPortalContent() {
                               <div className="font-semibold text-slate-800 dark:text-slate-200">
                                 {academy.owner?.name || '미등록'}
                               </div>
-                              <div className="text-[11px] text-slate-400">
+                              <div className="text-[11px] text-slate-500 dark:text-slate-400">
                                 {academy.owner?.email || '-'}
                               </div>
                             </td>
@@ -1732,7 +1732,7 @@ function AdminPortalContent() {
                                   {new Date(sub.expiresAt).toLocaleDateString('ko-KR')}
                                 </span>
                               ) : (
-                                <span className="text-slate-400 font-medium">무기한 (제한 없음)</span>
+                                <span className="text-slate-500 dark:text-slate-400 font-medium">무기한 (제한 없음)</span>
                               )}
                             </td>
                             <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400 max-w-xs truncate">
@@ -1767,7 +1767,7 @@ function AdminPortalContent() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      <FileText className="w-5 h-5 text-amber-700 dark:text-amber-400" />
                       <span>플랫폼 관리자 조작 감사 로그 (Audit Trail)</span>
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1794,7 +1794,7 @@ function AdminPortalContent() {
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                       {auditLogs.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="py-12 text-center text-slate-400">
+                          <td colSpan={6} className="py-12 text-center text-slate-500 dark:text-slate-400">
                             아직 기록된 관리자 작업 감사 로그가 없습니다.
                           </td>
                         </tr>
@@ -1817,7 +1817,7 @@ function AdminPortalContent() {
                               <span className="font-semibold text-slate-900 dark:text-white">
                                 {log.adminName}
                               </span>
-                              <span className="text-[11px] text-slate-400 block">
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
                                 {log.adminEmail}
                               </span>
                             </td>
@@ -1839,7 +1839,7 @@ function AdminPortalContent() {
                                 {log.targetType}
                               </span>
                               {log.targetId && (
-                                <span className="text-slate-400 ml-1">#{log.targetId}</span>
+                                <span className="text-slate-500 dark:text-slate-400 ml-1">#{log.targetId}</span>
                               )}
                             </td>
                             <td className="py-3 px-4 text-slate-600 dark:text-slate-300 max-w-sm">
@@ -1848,12 +1848,12 @@ function AdminPortalContent() {
                               ) : log.details?.message ? (
                                 <span>{log.details.message}</span>
                               ) : (
-                                <span className="font-mono text-[11px] text-slate-400">
+                                <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
                                   {JSON.stringify(log.details)}
                                 </span>
                               )}
                             </td>
-                            <td className="py-3 px-4 text-right font-mono text-slate-400 text-[11px]">
+                            <td className="py-3 px-4 text-right font-mono text-slate-500 dark:text-slate-400 text-[11px]">
                               {log.ipAddress || '127.0.0.1'}
                             </td>
                           </tr>
@@ -1876,7 +1876,7 @@ function AdminPortalContent() {
                 {/* 1. Backend API Health */}
                 <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-700 dark:text-emerald-400">
                       <Server className="w-5 h-5" />
                     </div>
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
@@ -1955,7 +1955,7 @@ function AdminPortalContent() {
               <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4">
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
                     <span>배포 파이프라인 및 백업 인프라 아키텍처</span>
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1978,7 +1978,7 @@ function AdminPortalContent() {
 
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
                     <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <Database className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                       <span>AWS S3 데이터베이스 일일 자동 백업</span>
                     </div>
                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -2028,7 +2028,7 @@ function AdminPortalContent() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     학원 운영 규모, 소속 교직원 명단 및 구독 현황 분석
                   </p>
                 </div>
@@ -2037,7 +2037,7 @@ function AdminPortalContent() {
               <button
                 type="button"
                 onClick={() => setSelectedAcademyIdForDetail(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2046,7 +2046,7 @@ function AdminPortalContent() {
             {/* Modal Body */}
             <div className="p-5 sm:p-6 overflow-y-auto space-y-6 text-xs flex-1">
               {isLoadingDetail ? (
-                <div className="py-16 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+                <div className="py-16 text-center text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center gap-2">
                   <RefreshCw className="w-6 h-6 animate-spin text-indigo-600 dark:text-indigo-400" />
                   <span>학원 세부 정보를 조회하는 중입니다...</span>
                 </div>
@@ -2060,7 +2060,7 @@ function AdminPortalContent() {
                       </span>
                       <div className="text-xl font-black text-indigo-950 dark:text-indigo-200 mt-1">
                         {academyDetail._count?.students ?? 0}
-                        <span className="text-xs font-normal text-indigo-400 ml-1">명</span>
+                        <span className="text-xs font-normal text-indigo-700 dark:text-indigo-400 ml-1">명</span>
                       </div>
                     </div>
 
@@ -2090,7 +2090,7 @@ function AdminPortalContent() {
                       </span>
                       <div className="text-xl font-black text-purple-950 dark:text-purple-200 mt-1">
                         {academyDetail._count?.tuitionInvoices ?? 0}
-                        <span className="text-xs font-normal text-purple-400 ml-1">건</span>
+                        <span className="text-xs font-normal text-purple-700 dark:text-purple-400 ml-1">건</span>
                       </div>
                     </div>
                   </div>
@@ -2103,19 +2103,19 @@ function AdminPortalContent() {
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                       <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <Phone className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                         <span>대표 전화: {academyDetail.phoneNumber || '미등록'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                        <CreditCard className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <CreditCard className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                         <span>사업자번호: {academyDetail.businessNumber || '미등록'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 sm:col-span-2">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <MapPin className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                         <span>도로명 주소: {academyDetail.address || '주소 정보 미등록'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-slate-500 sm:col-span-2 text-[11px]">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <Calendar className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                         <span>
                           등록 일자: {new Date(academyDetail.createdAt).toLocaleString('ko-KR')}
                         </span>
@@ -2177,7 +2177,7 @@ function AdminPortalContent() {
                               <td className="py-2.5 px-3 text-slate-500">
                                 {u.phone || '-'}
                               </td>
-                              <td className="py-2.5 px-3 text-right text-slate-400 text-[11px]">
+                              <td className="py-2.5 px-3 text-right text-slate-500 dark:text-slate-400 text-[11px]">
                                 {new Date(u.createdAt).toLocaleDateString('ko-KR')}
                               </td>
                             </tr>
@@ -2234,8 +2234,8 @@ function AdminPortalContent() {
                   }}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                     academyDetail.status === 'ACTIVE'
-                      ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100'
-                      : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100'
+                      ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 hover:bg-rose-100'
+                      : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'
                   }`}
                 >
                   {academyDetail.status === 'ACTIVE' ? (
@@ -2297,7 +2297,7 @@ function AdminPortalContent() {
                 type="button"
                 onClick={handleCloseSubscriptionModal}
                 disabled={isSavingSubscription}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2331,7 +2331,7 @@ function AdminPortalContent() {
                     <div className="mt-2.5">
                       <div className="font-bold text-slate-900 dark:text-white">FREE</div>
                       <div className="text-[10px] text-slate-500 mt-0.5">원생 30명 한도</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">기본 학사 운영</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">기본 학사 운영</div>
                     </div>
                   </button>
 
@@ -2445,7 +2445,7 @@ function AdminPortalContent() {
                 </div>
                 {!isUnlimitedExpiry && (
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                       <Calendar className="w-3.5 h-3.5" />
                     </div>
                     <input

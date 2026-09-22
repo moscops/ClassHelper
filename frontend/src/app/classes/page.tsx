@@ -907,7 +907,7 @@ export default function ClassesPage() {
                             <span>휴강</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold">
                             <span>폐강</span>
                           </span>
                         )}
@@ -1423,7 +1423,7 @@ export default function ClassesPage() {
                               setSelectedStudentIdToEnroll('');
                               setIsStudentDropdownOpen(true);
                             }}
-                            className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            className="p-1 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                             title="선택 초기화"
                           >
                             <X className="w-3.5 h-3.5" />
@@ -1476,7 +1476,7 @@ export default function ClassesPage() {
                               <button
                                 type="button"
                                 onClick={() => setIsStudentDropdownOpen(false)}
-                                className="px-2 py-0.5 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                                className="px-2 py-0.5 rounded-lg text-[10px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                               >
                                 닫기
                               </button>
@@ -1486,7 +1486,7 @@ export default function ClassesPage() {
                           {/* Student Items List */}
                           <div className="overflow-y-auto space-y-1 flex-1 pr-0.5">
                             {filtered.length === 0 ? (
-                              <div className="py-6 text-center text-slate-400 text-xs">
+                              <div className="py-6 text-center text-slate-500 dark:text-slate-400 text-xs">
                                 일치하는 원생이 없습니다.
                               </div>
                             ) : (
@@ -1506,7 +1506,7 @@ export default function ClassesPage() {
                                     }}
                                     className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-all select-none ${
                                       isAlreadyEnrolled
-                                        ? 'opacity-40 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40 text-slate-400'
+                                        ? 'opacity-40 cursor-not-allowed bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400'
                                         : isChecked
                                         ? 'bg-indigo-50/90 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-200 font-bold border border-indigo-200 dark:border-indigo-800/80 cursor-pointer'
                                         : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer'
@@ -1532,12 +1532,12 @@ export default function ClassesPage() {
                                             {s.name}
                                           </span>
                                           {(s.grade || s.schoolName) && (
-                                            <span className="text-[10px] text-slate-400 truncate">
+                                            <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
                                               ({s.grade || ''}{s.grade && s.schoolName ? ' • ' : ''}{s.schoolName || ''})
                                             </span>
                                           )}
                                         </div>
-                                        <span className="text-[10px] text-slate-400">
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400">
                                           {s.parentPhone || s.studentPhone || '연락처 없음'}
                                         </span>
                                       </div>
@@ -1824,7 +1824,7 @@ export default function ClassesPage() {
                 type="button"
                 onClick={() => setIsClassReportModalOpen(false)}
                 disabled={isSendingClassReport}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1836,7 +1836,7 @@ export default function ClassesPage() {
               <div className="space-y-2">
                 <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                   <span>리포트 대상 기간 설정</span>
-                  <span className="text-[11px] text-slate-400 font-normal">프리셋 버튼으로 빠른 설정</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">프리셋 버튼으로 빠른 설정</span>
                 </label>
 
                 {/* Presets */}
@@ -1872,7 +1872,7 @@ export default function ClassesPage() {
                     onChange={(e) => setClassReportStart(e.target.value)}
                     className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                   />
-                  <span className="text-slate-400 font-bold">~</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-bold">~</span>
                   <input
                     type="date"
                     value={classReportEnd}
@@ -1899,7 +1899,7 @@ export default function ClassesPage() {
 
               {/* 3. Sample Kakao Bubble Preview */}
               {isLoadingClassReportPreview ? (
-                <div className="py-6 text-center text-slate-400">
+                <div className="py-6 text-center text-slate-500 dark:text-slate-400">
                   <Loader2 className="w-5 h-5 animate-spin mx-auto mb-1 text-purple-600" />
                   <span>대표 학생 알림톡 미리보기 로드 중...</span>
                 </div>
@@ -1919,7 +1919,7 @@ export default function ClassesPage() {
               {/* Error Alert */}
               {classReportError && (
                 <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2.5 animate-in fade-in">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <AlertTriangle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-bold text-xs">발송 실패</p>
                     <p className="text-[11px] mt-0.5">{classReportError}</p>
@@ -1934,7 +1934,7 @@ export default function ClassesPage() {
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
                     <h4 className="font-bold text-slate-900 dark:text-white flex items-center justify-between mb-2">
                       <span>발송 처리 결과 요약</span>
-                      <span className="text-[11px] text-slate-400 font-normal">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
                         총 {classReportResult.totalStudents}명 대상
                       </span>
                     </h4>
@@ -1966,7 +1966,7 @@ export default function ClassesPage() {
                         {classReportResult.failed.map((f, idx) => (
                           <div key={idx} className="p-2 flex items-center justify-between text-[11px]">
                             <span className="font-bold text-slate-800 dark:text-slate-200">{f.studentName}</span>
-                            <span className="text-rose-600 dark:text-rose-400">{f.reason}</span>
+                            <span className="text-rose-700 dark:text-rose-400">{f.reason}</span>
                           </div>
                         ))}
                       </div>

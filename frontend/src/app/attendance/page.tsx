@@ -926,7 +926,7 @@ export default function AttendancePage() {
                 </span>
               )}
               {schedule && (
-                <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                   {schedule}
                 </span>
               )}
@@ -934,12 +934,12 @@ export default function AttendancePage() {
 
             <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
               <span className="flex items-center gap-1 font-medium">
-                <Phone className="w-3.5 h-3.5 text-slate-400" />
+                <Phone className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                 학부모: {student.parentPhone}
                 {student.parentName && ` (${student.parentName})`}
               </span>
               {student.studentPhone && (
-                <span className="hidden sm:inline-block text-slate-400">
+                <span className="hidden sm:inline-block text-slate-500 dark:text-slate-400">
                   • 원생: {student.studentPhone}
                 </span>
               )}
@@ -952,19 +952,19 @@ export default function AttendancePage() {
           {/* Status Badge */}
           {currentStatus === 'PRESENT' && (
             <span className="px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
               <span>출석 완료</span>
             </span>
           )}
           {currentStatus === 'ABSENT' && (
             <span className="px-3 py-1.5 rounded-xl bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-700 text-rose-800 dark:text-rose-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-              <XCircle className="w-4 h-4 text-rose-600" />
+              <XCircle className="w-4 h-4 text-rose-700 dark:text-rose-400" />
               <span>결석</span>
             </span>
           )}
           {currentStatus === 'LATE' && (
             <span className="px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-              <Clock className="w-4 h-4 text-amber-600" />
+              <Clock className="w-4 h-4 text-amber-700 dark:text-amber-400" />
               <span>지각</span>
             </span>
           )}
@@ -1010,7 +1010,7 @@ export default function AttendancePage() {
           )}
 
           {att?.reason && (
-            <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg truncate max-w-[140px]" title={att.reason}>
+            <span className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg truncate max-w-[140px]" title={att.reason}>
               사유: {att.reason}
             </span>
           )}
@@ -1025,7 +1025,7 @@ export default function AttendancePage() {
             onClick={() => handleQuickStatusChange(student.studentId, 'PRESENT', classId)}
             className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               currentStatus === 'PRESENT'
-                ? 'bg-emerald-600 text-white shadow-xs'
+                ? 'bg-emerald-700 text-white shadow-xs'
                 : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
             }`}
           >
@@ -1040,7 +1040,7 @@ export default function AttendancePage() {
             onClick={() => handleQuickStatusChange(student.studentId, 'LATE', classId)}
             className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               currentStatus === 'LATE'
-                ? 'bg-amber-500 text-white shadow-xs'
+                ? 'bg-amber-500 text-amber-950 shadow-xs'
                 : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 dark:hover:bg-amber-900/50'
             }`}
           >
@@ -1155,14 +1155,14 @@ export default function AttendancePage() {
                   </span>
                 )}
                 {schedule && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                     {schedule}
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
                 <span className="flex items-center gap-1">
-                  <Phone className="w-3 h-3 text-slate-400" />
+                  <Phone className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                   {student.parentPhone}
                   {student.parentName && ` (${student.parentName})`}
                 </span>
@@ -1174,19 +1174,19 @@ export default function AttendancePage() {
           <div className="flex items-center gap-1.5 shrink-0">
             {currentStatus === 'PRESENT' && (
               <span className="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                 <span>출석</span>
               </span>
             )}
             {currentStatus === 'ABSENT' && (
               <span className="px-2.5 py-1 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-1">
-                <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                <XCircle className="w-3.5 h-3.5 text-rose-700 dark:text-rose-400" />
                 <span>결석</span>
               </span>
             )}
             {currentStatus === 'LATE' && (
               <span className="px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                <Clock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                 <span>지각</span>
               </span>
             )}
@@ -1197,7 +1197,7 @@ export default function AttendancePage() {
               </span>
             )}
             {!currentStatus && (
-              <span className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-xs font-medium">
+              <span className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-medium">
                 미체크
               </span>
             )}
@@ -1234,14 +1234,14 @@ export default function AttendancePage() {
 
           {att?.reason && (
             <div className="text-slate-600 dark:text-slate-300 font-medium">
-              <span className="text-slate-400 mr-1">사유:</span>
+              <span className="text-slate-500 dark:text-slate-400 mr-1">사유:</span>
               {att.reason}
             </div>
           )}
 
           {att?.isMakeupNeeded && (
             <div className="flex items-center justify-between pt-1 mt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+              <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
                 <Bookmark className="w-3 h-3" />
                 보강 수업 대상자
               </span>
@@ -1269,7 +1269,7 @@ export default function AttendancePage() {
             onClick={() => handleQuickStatusChange(student.studentId, 'PRESENT', classId)}
             className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
               currentStatus === 'PRESENT'
-                ? 'bg-emerald-600 text-white shadow-xs'
+                ? 'bg-emerald-700 text-white shadow-xs'
                 : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
             }`}
           >
@@ -1284,7 +1284,7 @@ export default function AttendancePage() {
             onClick={() => handleQuickStatusChange(student.studentId, 'LATE', classId)}
             className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
               currentStatus === 'LATE'
-                ? 'bg-amber-500 text-white shadow-xs'
+                ? 'bg-amber-500 text-amber-950 shadow-xs'
                 : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 dark:hover:bg-amber-900/50'
             }`}
           >
@@ -1401,7 +1401,7 @@ export default function AttendancePage() {
             <div className="p-4 sm:p-5 rounded-3xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 shadow-md animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
                 <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs animate-bounce">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs motion-safe:animate-pulse">
                     <AlertTriangle className="w-5 h-5" />
                   </div>
                   <div>
@@ -1445,7 +1445,7 @@ export default function AttendancePage() {
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs font-semibold text-rose-800 dark:text-rose-200 shadow-2xs"
                   >
                     <span>{st.studentName}</span>
-                    <span className="text-[10px] font-normal text-rose-600 dark:text-rose-400">
+                    <span className="text-[10px] font-normal text-rose-700 dark:text-rose-400">
                       ({st.className})
                     </span>
                     {st.isAlertSent && (
@@ -1517,17 +1517,17 @@ export default function AttendancePage() {
                           </span>
                         </span>
                       ) : (
-                        <span className="text-slate-400">개설된 반을 선택해주세요</span>
+                        <span className="text-slate-500 dark:text-slate-400">개설된 반을 선택해주세요</span>
                       )}
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isClassDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0 transition-transform ${isClassDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {/* Dropdown Menu */}
                   {isClassDropdownOpen && (
                     <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-1.5 max-h-64 overflow-y-auto space-y-1">
                       {classes.length === 0 ? (
-                        <div className="p-3 text-center text-xs text-slate-400">
+                        <div className="p-3 text-center text-xs text-slate-500 dark:text-slate-400">
                           개설된 활성 반이 없습니다.
                         </div>
                       ) : (
@@ -1551,7 +1551,7 @@ export default function AttendancePage() {
                               </span>
                               <span className="truncate">{cls.name}</span>
                             </div>
-                            <span className="text-[11px] text-slate-400 shrink-0">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">
                               {cls.enrolledCount}명 수강
                             </span>
                           </button>
@@ -1734,7 +1734,7 @@ export default function AttendancePage() {
                 </p>
                 <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
                   {displayTotals.total}
-                  <span className="text-xs font-normal text-slate-400 ml-1">명</span>
+                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">명</span>
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
@@ -1746,11 +1746,11 @@ export default function AttendancePage() {
             <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">당일 출석률</p>
-                <p className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+                <p className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 mt-1">
                   {displayTotals.rate}%
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-700 dark:text-emerald-400">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
             </div>
@@ -1761,7 +1761,7 @@ export default function AttendancePage() {
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">출석 완료</p>
                 <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
                   {displayTotals.present}
-                  <span className="text-xs font-normal text-slate-400 ml-1">명</span>
+                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">명</span>
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400">
@@ -1773,13 +1773,13 @@ export default function AttendancePage() {
             <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">결석 / 지각</p>
-                <p className="text-xl sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">
+                <p className="text-xl sm:text-2xl font-extrabold text-rose-700 dark:text-rose-400 mt-1">
                   {displayTotals.absent}
-                  <span className="text-xs font-normal text-slate-400 mx-1">/</span>
-                  <span className="text-amber-500">{displayTotals.late}</span>
+                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400 mx-1">/</span>
+                  <span className="text-amber-600 dark:text-amber-500">{displayTotals.late}</span>
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-800 flex items-center justify-center text-rose-600 dark:text-rose-400">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-800 flex items-center justify-center text-rose-700 dark:text-rose-400">
                 <AlertTriangle className="w-5 h-5" />
               </div>
             </div>
@@ -1911,13 +1911,13 @@ export default function AttendancePage() {
                               <div
                                 className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-all ${
                                   isCollapsed
-                                    ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'
+                                    ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600'
                                     : 'bg-indigo-100 dark:bg-indigo-950 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400'
                                 }`}
                               >
                                 <ChevronDown
                                   className={`w-4 h-4 transition-transform duration-200 ${
-                                    isCollapsed ? '-rotate-90 text-slate-400' : 'rotate-0'
+                                    isCollapsed ? '-rotate-90 text-slate-500 dark:text-slate-400' : 'rotate-0'
                                   }`}
                                 />
                               </div>
@@ -1985,7 +1985,7 @@ export default function AttendancePage() {
                                   handleBatchPresentForTimeSlot(group);
                                 }}
                                 disabled={isBatchLoading || group.students.length === 0}
-                                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-2xs transition-all cursor-pointer disabled:opacity-50"
                               >
                                 <CheckCheck className="w-3.5 h-3.5" />
                                 <span>해당 시간 전원 출석</span>
@@ -1997,7 +1997,7 @@ export default function AttendancePage() {
                           {!isCollapsed && (
                             <div className="p-4 sm:p-5 animate-in fade-in duration-150">
                               {filteredInGroup.length === 0 ? (
-                                <div className="text-center py-6 text-xs text-slate-400">
+                                <div className="text-center py-6 text-xs text-slate-500 dark:text-slate-400">
                                   검색 조건에 맞는 원생이 없습니다.
                                 </div>
                               ) : viewLayout === 'LARGE_LIST' ? (
@@ -2102,7 +2102,7 @@ export default function AttendancePage() {
                           type="button"
                           onClick={handleBatchAllPresent}
                           disabled={isBatchLoading || !roster || roster.students.length === 0}
-                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-2xs transition-all cursor-pointer disabled:opacity-50"
                         >
                           {isBatchLoading ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -2287,7 +2287,7 @@ export default function AttendancePage() {
                           isMakeupCompleted: e.target.checked,
                         }))
                       }
-                      className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                      className="w-4 h-4 rounded text-emerald-700 dark:text-emerald-400 focus:ring-emerald-500"
                     />
                     <span>보강 수업 완료 처리됨</span>
                   </label>
@@ -2341,7 +2341,7 @@ export default function AttendancePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <span className="text-[10px] text-slate-400 font-medium block">알림톡 본문 수정</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">알림톡 본문 수정</span>
                     <textarea
                       rows={4}
                       value={detailFormData.customKakaoMessage}
@@ -2357,7 +2357,7 @@ export default function AttendancePage() {
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[10px] text-slate-400 font-medium block">실제 학부모 수신 화면</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">실제 학부모 수신 화면</span>
                     <div className="p-3 rounded-xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-28 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-2xs">
                       {detailFormData.customKakaoMessage || '알림톡 내용이 표시됩니다.'}
                     </div>
@@ -2523,7 +2523,7 @@ export default function AttendancePage() {
               <button
                 type="button"
                 onClick={() => setIsKioskModalOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2550,7 +2550,7 @@ export default function AttendancePage() {
                   우리 학원 전용 키오스크 접속 주소
                 </label>
                 {isLoadingKioskToken ? (
-                  <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs">
+                  <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 text-xs">
                     <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
                     <span>키오스크 접속 토큰을 생성하고 있습니다...</span>
                   </div>
@@ -2570,8 +2570,8 @@ export default function AttendancePage() {
                       >
                         {isCopiedKioskUrl ? (
                           <>
-                            <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                            <span className="text-emerald-600 dark:text-emerald-400">복사됨!</span>
+                            <Check className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                            <span className="text-emerald-700 dark:text-emerald-400">복사됨!</span>
                           </>
                         ) : (
                           <>
@@ -2587,7 +2587,7 @@ export default function AttendancePage() {
                       <button
                         type="button"
                         onClick={() => handleGenerateKioskToken(true)}
-                        className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 font-semibold underline cursor-pointer"
+                        className="text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 font-semibold underline cursor-pointer"
                       >
                         토큰 재발급
                       </button>

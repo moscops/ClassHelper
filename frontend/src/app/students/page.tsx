@@ -592,7 +592,7 @@ export default function StudentsPage() {
                   onClick={handleOpenBulkImportModal}
                   className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold shadow-2xs transition-all cursor-pointer"
                 >
-                  <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                   <span>CSV 일괄 등록</span>
                 </button>
               )}
@@ -1497,7 +1497,7 @@ export default function StudentsPage() {
                             <span>재원 (수업 및 출결 가능)</span>
                           </div>
                           {studentFormData.status === 'ACTIVE' && (
-                            <span className="text-[10px] text-emerald-600 font-bold">선택됨</span>
+                            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">선택됨</span>
                           )}
                         </button>
 
@@ -1518,7 +1518,7 @@ export default function StudentsPage() {
                             <span>휴원 (일정 기간 수업 보류)</span>
                           </div>
                           {studentFormData.status === 'ON_LEAVE' && (
-                            <span className="text-[10px] text-amber-600 font-bold">선택됨</span>
+                            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold">선택됨</span>
                           )}
                         </button>
 
@@ -1539,7 +1539,7 @@ export default function StudentsPage() {
                             <span>퇴원 (학원 종료)</span>
                           </div>
                           {studentFormData.status === 'DISCHARGED' && (
-                            <span className="text-[10px] text-rose-600 font-bold">선택됨</span>
+                            <span className="text-[10px] text-rose-700 dark:text-rose-400 font-bold">선택됨</span>
                           )}
                         </button>
                       </div>
@@ -1762,7 +1762,7 @@ export default function StudentsPage() {
                                         ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                                         : cls.status === 'COMPLETED'
                                         ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-700'
                                     }`}
                                   >
                                     {cls.status === 'ENROLLED'
@@ -1827,7 +1827,7 @@ export default function StudentsPage() {
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
                   <FileSpreadsheet className="w-5 h-5" />
                 </div>
                 <div>
@@ -1843,7 +1843,7 @@ export default function StudentsPage() {
               <button
                 type="button"
                 onClick={() => setIsBulkImportModalOpen(false)}
-                className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="p-1.5 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1912,8 +1912,8 @@ export default function StudentsPage() {
                       <div
                         className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
                           selectedCsvFile
-                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                         }`}
                       >
                         {selectedCsvFile ? (
@@ -1928,7 +1928,7 @@ export default function StudentsPage() {
                           <p className="text-xs font-bold text-slate-900 dark:text-white">
                             {selectedCsvFile.name}
                           </p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                             {(selectedCsvFile.size / 1024).toFixed(1)} KB • 클릭하여 다른 파일 선택
                           </p>
                         </div>
@@ -1937,7 +1937,7 @@ export default function StudentsPage() {
                           <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
                             이곳을 클릭하거나 CSV 파일을 드래그하여 업로드하세요
                           </p>
-                          <p className="text-[11px] text-slate-400 mt-1">
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                             최대 5MB, 최대 2,000행까지 지원됩니다 (.csv 파일만 가능)
                           </p>
                         </div>
@@ -1958,7 +1958,7 @@ export default function StudentsPage() {
                           <strong className="text-slate-700 dark:text-slate-300">성별 표기:</strong> <span className="font-bold text-indigo-600 dark:text-indigo-400">남</span> 또는 <span className="font-bold text-indigo-600 dark:text-indigo-400">여</span> (MALE / FEMALE 도 가능)
                         </li>
                         <li>
-                          <strong className="text-slate-700 dark:text-slate-300">재원상태 표기:</strong> <span className="font-bold text-emerald-600 dark:text-emerald-400">재원</span>, <span className="font-bold text-amber-600 dark:text-amber-400">휴원</span>, <span className="font-bold text-rose-600 dark:text-rose-400">퇴원</span> (미입력 시 자동으로 &apos;재원&apos;으로 등록)
+                          <strong className="text-slate-700 dark:text-slate-300">재원상태 표기:</strong> <span className="font-bold text-emerald-700 dark:text-emerald-400">재원</span>, <span className="font-bold text-amber-700 dark:text-amber-400">휴원</span>, <span className="font-bold text-rose-700 dark:text-rose-400">퇴원</span> (미입력 시 자동으로 &apos;재원&apos;으로 등록)
                         </li>
                         <li>
                           <strong className="text-slate-700 dark:text-slate-300">날짜 형식:</strong> 생년월일 및 등록일은 <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">YYYY-MM-DD</span> (예: 2013-05-14) 형식 준수
@@ -1980,7 +1980,7 @@ export default function StudentsPage() {
                       <button
                         type="submit"
                         disabled={!selectedCsvFile || isUploadingCsv}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
                       >
                         {isUploadingCsv ? (
                           <>
@@ -2010,22 +2010,22 @@ export default function StudentsPage() {
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-center">
-                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-semibold">신규 등록 성공</span>
-                      <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                      <span className="text-[11px] text-emerald-700 dark:text-emerald-400 block font-semibold">신규 등록 성공</span>
+                      <span className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 mt-0.5 block">
                         {bulkImportResult.createdCount}건
                       </span>
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-center">
-                      <span className="text-[11px] text-amber-600 dark:text-amber-400 block font-semibold">중복 건너뜀</span>
-                      <span className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 block">
+                      <span className="text-[11px] text-amber-700 dark:text-amber-400 block font-semibold">중복 건너뜀</span>
+                      <span className="text-xl font-extrabold text-amber-700 dark:text-amber-400 mt-0.5 block">
                         {bulkImportResult.skippedCount}건
                       </span>
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-center">
-                      <span className="text-[11px] text-rose-600 dark:text-rose-400 block font-semibold">검증 실패</span>
-                      <span className="text-xl font-extrabold text-rose-600 dark:text-rose-400 mt-0.5 block">
+                      <span className="text-[11px] text-rose-700 dark:text-rose-400 block font-semibold">검증 실패</span>
+                      <span className="text-xl font-extrabold text-rose-700 dark:text-rose-400 mt-0.5 block">
                         {bulkImportResult.failedCount}건
                       </span>
                     </div>
@@ -2082,7 +2082,7 @@ export default function StudentsPage() {
                               <tr key={idx}>
                                 <td className="py-1.5 px-3 font-semibold">{f.row}행</td>
                                 <td className="py-1.5 px-3 font-bold">{f.name || '(이름 누락)'}</td>
-                                <td className="py-1.5 px-3 text-rose-600 dark:text-rose-400">
+                                <td className="py-1.5 px-3 text-rose-700 dark:text-rose-400">
                                   {f.errors.join(', ')}
                                 </td>
                               </tr>
@@ -2157,7 +2157,7 @@ export default function StudentsPage() {
                 type="button"
                 onClick={() => setIsReportModalOpen(false)}
                 disabled={isSendingReport}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2169,7 +2169,7 @@ export default function StudentsPage() {
               <div className="space-y-2">
                 <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                   <span>조회 및 리포트 대상 기간</span>
-                  <span className="text-[11px] text-slate-400 font-normal">프리셋을 클릭하면 즉시 적용됩니다</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">프리셋을 클릭하면 즉시 적용됩니다</span>
                 </label>
 
                 {/* Preset Buttons */}
@@ -2205,7 +2205,7 @@ export default function StudentsPage() {
                     onChange={(e) => setReportPeriodStart(e.target.value)}
                     className="flex-1 px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                   />
-                  <span className="text-slate-400 font-bold">~</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-bold">~</span>
                   <input
                     type="date"
                     value={reportPeriodEnd}
@@ -2229,7 +2229,7 @@ export default function StudentsPage() {
               {/* 2. Success or Error Message Alert */}
               {reportSuccessMessage && (
                 <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 flex items-start gap-2.5 animate-in fade-in">
-                  <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <CheckCircle className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-bold text-xs">발송 완료</p>
                     <p className="text-[11px] mt-0.5">{reportSuccessMessage}</p>
@@ -2239,7 +2239,7 @@ export default function StudentsPage() {
 
               {reportErrorMessage && (
                 <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-start gap-2.5 animate-in fade-in">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <AlertTriangle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-bold text-xs">발송 불가 또는 오류</p>
                     <p className="text-[11px] mt-0.5">{reportErrorMessage}</p>
@@ -2255,7 +2255,7 @@ export default function StudentsPage() {
                 </label>
 
                 {isLoadingReportPreview ? (
-                  <div className="py-12 text-center text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <div className="py-12 text-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                     <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-purple-600" />
                     <span>출결 및 과제 데이터를 집계하여 리포트를 생성하는 중...</span>
                   </div>
@@ -2264,16 +2264,16 @@ export default function StudentsPage() {
                     {/* Summary Stat Chips */}
                     <div className="grid grid-cols-2 gap-2.5">
                       <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-                        <span className="text-[10px] text-slate-400 font-medium">출석률</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">출석률</span>
                         <div className="flex items-baseline justify-between mt-0.5">
                           <span className="text-base font-extrabold text-slate-900 dark:text-white">
                             {reportPreview.attendance.attendanceRate}%
                           </span>
-                          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                          <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">
                             출석 {reportPreview.attendance.presentCount}/{reportPreview.attendance.totalDays}일
                           </span>
                         </div>
-                        <div className="text-[10px] text-slate-400 mt-1 flex gap-1.5">
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex gap-1.5">
                           <span>지각: {reportPreview.attendance.lateCount}</span>
                           <span>•</span>
                           <span>결석: {reportPreview.attendance.absentCount}</span>
@@ -2281,7 +2281,7 @@ export default function StudentsPage() {
                       </div>
 
                       <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-                        <span className="text-[10px] text-slate-400 font-medium">과제 이행률</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">과제 이행률</span>
                         <div className="flex items-baseline justify-between mt-0.5">
                           <span className="text-base font-extrabold text-slate-900 dark:text-white">
                             {reportPreview.homework.completionRate}%
@@ -2290,7 +2290,7 @@ export default function StudentsPage() {
                             완료 {reportPreview.homework.completedAssignments}/{reportPreview.homework.totalAssignments}건
                           </span>
                         </div>
-                        <div className="text-[10px] text-slate-400 mt-1">
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                           평균 점수: {reportPreview.homework.averageScore ? `${reportPreview.homework.averageScore}점` : '평가 없음'}
                         </div>
                       </div>
@@ -2317,7 +2317,7 @@ export default function StudentsPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {/* Editor */}
                         <div className="space-y-1">
-                          <span className="text-[10px] text-slate-400 font-medium block">메시지 내용 편집</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">메시지 내용 편집</span>
                           <textarea
                             rows={7}
                             value={editableReportMessage}
@@ -2329,7 +2329,7 @@ export default function StudentsPage() {
 
                         {/* Kakao Preview Bubble */}
                         <div className="space-y-1">
-                          <span className="text-[10px] text-slate-400 font-medium block">실제 학부모 수신 화면</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">실제 학부모 수신 화면</span>
                           <div className="p-3.5 rounded-2xl bg-[#FAE100]/25 dark:bg-[#FAE100]/10 border border-[#FAE100] dark:border-amber-700/60 max-h-44 overflow-y-auto font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed shadow-xs">
                             {editableReportMessage || '메시지 본문이 여기에 표시됩니다.'}
                           </div>
@@ -2338,7 +2338,7 @@ export default function StudentsPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="py-8 text-center text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <div className="py-8 text-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                     기간을 선택한 후 리포트를 조회해주세요.
                   </div>
                 )}

@@ -154,7 +154,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 flex flex-col items-center text-center justify-center relative z-10 w-full">
           {/* Floating Stat Badges (Left & Right) */}
           <div className="hidden lg:flex items-center gap-2 absolute top-20 left-4 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-lg text-xs text-left animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-700 dark:text-emerald-400">
               <Bell className="w-4 h-4" />
             </div>
             <div>
@@ -169,7 +169,7 @@ export default function HomePage() {
             </div>
             <div>
               <p className="font-bold text-slate-900 dark:text-white">이번 달 원비 수납률 98.4%</p>
-              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">자동 청구서 & 복합 수납 연동</p>
+              <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">자동 청구서 & 복합 수납 연동</p>
             </div>
           </div>
 
@@ -217,12 +217,12 @@ export default function HomePage() {
                 <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 rounded-t-lg mt-1 ml-2 shadow-2xs">
                   <GraduationCap className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   <span className="truncate max-w-[180px]">ClassHelper - 학원 관리</span>
-                  <X className="w-3 h-3 text-slate-400 hover:text-slate-700 dark:hover:text-white ml-1 cursor-pointer" />
+                  <X className="w-3 h-3 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white ml-1 cursor-pointer" />
                 </div>
               </div>
 
               <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md text-[11px] text-slate-600 dark:text-slate-300 font-mono w-64 justify-center shadow-2xs">
-                <Lock className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <Lock className="w-3 h-3 text-emerald-700 dark:text-emerald-400 shrink-0" />
                 <span className="truncate">https://app.classhelper.kr/dashboard</span>
               </div>
 
@@ -247,7 +247,7 @@ export default function HomePage() {
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">오늘 재원생 출석률</p>
                   <div className="mt-1 flex items-baseline justify-between">
                     <span className="text-xl font-extrabold text-slate-900 dark:text-white">96.8%</span>
-                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">62/64명 등원</span>
+                    <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">62/64명 등원</span>
                   </div>
                 </div>
 
@@ -281,7 +281,7 @@ export default function HomePage() {
                         민준
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-900 dark:text-white">김민준 <span className="text-[11px] text-slate-400 font-normal">(중등 수학 심화A반)</span></p>
+                        <p className="font-semibold text-slate-900 dark:text-white">김민준 <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">(중등 수학 심화A반)</span></p>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">학부모: 010-1234-****</p>
                       </div>
                     </div>
@@ -296,7 +296,7 @@ export default function HomePage() {
                         서연
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-900 dark:text-white">이서연 <span className="text-[11px] text-slate-400 font-normal">(고등 영어 독해반)</span></p>
+                        <p className="font-semibold text-slate-900 dark:text-white">이서연 <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">(고등 영어 독해반)</span></p>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">학부모: 010-5678-****</p>
                       </div>
                     </div>
@@ -331,7 +331,7 @@ export default function HomePage() {
             {/* Feature 1 */}
             <div id="attendance" className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-600/60 transition-all shadow-xs flex flex-col justify-between">
               <div>
-                <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-700 dark:text-emerald-400 mb-4">
                   <CalendarCheck2 className="w-5 h-5" />
                 </div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
@@ -341,7 +341,7 @@ export default function HomePage() {
                   스마트폰/태블릿 터치 한 번으로 출석/지각/결석/조퇴를 기록하고, 수업 시작 시간이 지나도 미등원한 학생을 실시간 감지하여 경고합니다.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>카카오 알림톡 자동 발송 연동</span>
               </div>
@@ -388,7 +388,7 @@ export default function HomePage() {
             {/* Feature 4 */}
             <div id="class-logs" className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-600/60 transition-all shadow-xs flex flex-col justify-between">
               <div>
-                <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-700 dark:text-amber-400 mb-4">
                   <ClipboardList className="w-5 h-5" />
                 </div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
@@ -398,7 +398,7 @@ export default function HomePage() {
                   수업 회차별 진도 범위와 교재를 기록하고, 수강생별 과제 완수율과 점수를 1초 만에 검사하여 피드백을 축적합니다.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>학부모 상담용 피드백 축적</span>
               </div>
@@ -407,7 +407,7 @@ export default function HomePage() {
             {/* Feature 5 */}
             <div id="tuition" className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-300 dark:hover:border-indigo-600/60 transition-all shadow-xs flex flex-col justify-between">
               <div>
-                <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-rose-600 dark:text-rose-400 mb-4">
+                <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-rose-700 dark:text-rose-400 mb-4">
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
@@ -417,7 +417,7 @@ export default function HomePage() {
                   매월 자동 청구서 발행, 카드/계좌/현금 복합 결제 수단 수납 및 미납자 관리까지 한눈에 파악할 수 있습니다.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1">
+              <div className="mt-4 pt-3 border-t border-slate-200/70 dark:border-slate-700/70 text-[11px] text-rose-700 dark:text-rose-400 font-semibold flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>실시간 수납 통계 & 영수증 발행</span>
               </div>
@@ -475,7 +475,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-baseline gap-1 mb-2">
                   <span className="text-4xl font-extrabold text-slate-900 dark:text-white">₩0</span>
-                  <span className="text-xs text-slate-400 font-medium">/ 평생 무료</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ 평생 무료</span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
                   소규모 교습소, 공부방 및 초기 도입 학원을 위한 기본 플랜
@@ -483,22 +483,22 @@ export default function HomePage() {
 
                 <div className="space-y-3 pt-6 border-t border-slate-100 dark:border-slate-800 text-xs">
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                    <Check className="w-4 h-4 text-slate-400 shrink-0" />
+                    <Check className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
                     <span>재원생 최대 <strong>50명</strong> 등록</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                    <Check className="w-4 h-4 text-slate-400 shrink-0" />
+                    <Check className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
                     <span>단일 학원 운영</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                    <Check className="w-4 h-4 text-slate-400 shrink-0" />
+                    <Check className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
                     <span>1초 출결 체크 & 미등원 경고</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                    <Check className="w-4 h-4 text-slate-400 shrink-0" />
+                    <Check className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
                     <span>수업 일지 및 진도 관리</span>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-400">
+                  <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                     <X className="w-4 h-4 text-slate-300 shrink-0" />
                     <span className="line-through">카카오 알림톡 자동 연동</span>
                   </div>
@@ -533,7 +533,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-baseline gap-1 mb-2">
                   <span className="text-4xl font-extrabold text-slate-900 dark:text-white">₩49,000</span>
-                  <span className="text-xs text-slate-400 font-medium">/ 월 (부가세 포함)</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ 월 (부가세 포함)</span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
                   성장하는 일반 종합/단과 학원에 가장 최적화된 무제한 관리 플랜
@@ -587,7 +587,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-baseline gap-1 mb-2">
                   <span className="text-4xl font-extrabold text-slate-900 dark:text-white">맞춤 상담</span>
-                  <span className="text-xs text-slate-400 font-medium">/ 지점 규모별</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ 지점 규모별</span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
                   본원 및 다지점 직영/가맹 분원 통합 관리가 필요한 대형 학원 전용
@@ -671,7 +671,7 @@ export default function HomePage() {
                     <span>{faq.q}</span>
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform ${
+                    className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform ${
                       openFaqIndex === idx ? 'rotate-180 text-indigo-600' : ''
                     }`}
                   />

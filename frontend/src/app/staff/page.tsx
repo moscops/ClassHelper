@@ -566,16 +566,16 @@ export default function StaffPage() {
               }`}
             >
               {toastMessage.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
               ) : toastMessage.type === 'error' ? (
-                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0" />
               ) : (
                 <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
               )}
               <span className="text-xs sm:text-sm font-semibold">{toastMessage.text}</span>
               <button
                 onClick={() => setToastMessage(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -588,7 +588,7 @@ export default function StaffPage() {
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-2.5">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-800 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                     <span>교직원 & 강사진 관리 센터</span>
                   </div>
                   {todayDateStr && (
@@ -627,7 +627,7 @@ export default function StaffPage() {
                   className="px-3.5 py-2.5 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
                   title="강사/조교가 직접 가입할 수 있는 학원 초대 코드 조회 및 발급"
                 >
-                  <KeyRound className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <KeyRound className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                   <span>학원 초대 코드</span>
                 </button>
 
@@ -689,7 +689,7 @@ export default function StaffPage() {
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   개설 반 매핑 현황
                 </span>
-                <div className="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <div className="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-700 dark:text-emerald-400">
                   <BookOpen className="w-4.5 h-4.5" />
                 </div>
               </div>
@@ -699,7 +699,7 @@ export default function StaffPage() {
                 </span>
                 <span className="text-xs text-slate-500 dark:text-slate-400">개 반 배정</span>
               </div>
-              <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+              <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>강사별 전담 수업 배정 완료</span>
               </div>
@@ -721,7 +721,7 @@ export default function StaffPage() {
                 </span>
                 <span className="text-xs text-slate-500 dark:text-slate-400">명 (수업/행정)</span>
               </div>
-              <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+              <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                 <span>수업 강사 {stats.teacherCount}명</span>
                 <span>조교 {stats.staffCount}명</span>
               </div>
@@ -733,15 +733,15 @@ export default function StaffPage() {
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   계정 보안 & 활성 상태
                 </span>
-                <div className="w-9 h-9 rounded-2xl bg-amber-50 dark:bg-amber-950/70 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                <div className="w-9 h-9 rounded-2xl bg-amber-50 dark:bg-amber-950/70 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center text-amber-700 dark:text-amber-400">
                   <Shield className="w-4.5 h-4.5" />
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
                 <span className="text-2xl font-black text-slate-900 dark:text-white">100%</span>
-                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">정상 가동</span>
+                <span className="text-xs text-emerald-700 dark:text-emerald-400 font-bold">정상 가동</span>
               </div>
-              <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 text-[11px] text-slate-500">
+              <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
                 <KeyRound className="w-3 h-3 text-amber-500" />
                 <span>RTR 이중 암호화 토큰 보호</span>
               </div>
@@ -754,7 +754,7 @@ export default function StaffPage() {
             <div className="w-full md:w-auto flex flex-col sm:flex-row items-center gap-3 flex-1">
               {/* Search */}
               <div className="relative w-full sm:w-72">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="이름, 이메일, 연락처, 담당 반 검색..."
@@ -765,7 +765,7 @@ export default function StaffPage() {
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -807,7 +807,7 @@ export default function StaffPage() {
                   className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     viewMode === 'GRID'
                       ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                   title="카드 그리드 뷰"
                 >
@@ -819,7 +819,7 @@ export default function StaffPage() {
                   className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     viewMode === 'TABLE'
                       ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                   title="목록 테이블 뷰"
                 >
@@ -928,16 +928,16 @@ export default function StaffPage() {
                         {/* Email */}
                         <div className="flex items-center justify-between gap-2 text-slate-600 dark:text-slate-400">
                           <div className="flex items-center gap-2 min-w-0 truncate">
-                            <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <Mail className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                             <span className="truncate">{staff.email}</span>
                           </div>
                           <button
                             onClick={() => handleCopy(staff.email, staff.id)}
-                            className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                            className="p-1 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
                             title="이메일 복사"
                           >
                             {copiedId === staff.id ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                             ) : (
                               <Copy className="w-3.5 h-3.5" />
                             )}
@@ -947,7 +947,7 @@ export default function StaffPage() {
                         {/* Phone */}
                         <div className="flex items-center justify-between gap-2 text-slate-600 dark:text-slate-400">
                           <div className="flex items-center gap-2 min-w-0 truncate">
-                            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <Phone className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                             <span className="truncate">
                               {staff.phone || '연락처 미등록'}
                             </span>
@@ -955,11 +955,11 @@ export default function StaffPage() {
                           {staff.phone && (
                             <button
                               onClick={() => handleCopy(staff.phone!, `phone-${staff.id}`)}
-                              className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                              className="p-1 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
                               title="연락처 복사"
                             >
                               {copiedId === `phone-${staff.id}` ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
@@ -968,7 +968,7 @@ export default function StaffPage() {
                         </div>
 
                         {/* Joined Date */}
-                        <div className="flex items-center gap-2 text-slate-400 text-[11px]">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-[11px]">
                           <Calendar className="w-3.5 h-3.5 shrink-0" />
                           <span>
                             등록일: {new Date(staff.createdAt).toLocaleDateString('ko-KR')}
@@ -980,7 +980,7 @@ export default function StaffPage() {
                       <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                            <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+                            <BookOpen className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                             담당 수업 반
                           </span>
                           <span className="font-bold text-slate-900 dark:text-white">
@@ -1009,7 +1009,7 @@ export default function StaffPage() {
                             )}
                           </div>
                         ) : (
-                          <p className="text-[11px] text-slate-400 italic">
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">
                             {staff.role === 'TEACHER'
                               ? '아직 배정된 수업 반이 없습니다.'
                               : '담당 수업 반 없음 (행정/지원 직책)'}
@@ -1046,7 +1046,7 @@ export default function StaffPage() {
                       {canDelete && (
                         <button
                           onClick={() => handleOpenDeleteModal(staff)}
-                          className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
                           title="교직원 퇴사 처리"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1120,7 +1120,7 @@ export default function StaffPage() {
                                     </span>
                                   )}
                                 </div>
-                                <span className="text-xs text-slate-400 block truncate">
+                                <span className="text-xs text-slate-500 dark:text-slate-400 block truncate">
                                   {staff.email}
                                 </span>
                               </div>
@@ -1165,12 +1165,12 @@ export default function StaffPage() {
                                 )}
                               </div>
                             ) : (
-                              <span className="text-xs text-slate-400 italic">배정 반 없음</span>
+                              <span className="text-xs text-slate-500 dark:text-slate-400 italic">배정 반 없음</span>
                             )}
                           </td>
 
                           {/* Date */}
-                          <td className="py-4 px-4 text-xs text-slate-500">
+                          <td className="py-4 px-4 text-xs text-slate-500 dark:text-slate-400">
                             {new Date(staff.createdAt).toLocaleDateString('ko-KR')}
                           </td>
 
@@ -1180,7 +1180,7 @@ export default function StaffPage() {
                               {canEdit && (
                                 <button
                                   onClick={() => handleOpenEditModal(staff)}
-                                  className="p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 transition-colors cursor-pointer"
                                   title="정보 수정"
                                 >
                                   <Edit3 className="w-4 h-4" />
@@ -1189,7 +1189,7 @@ export default function StaffPage() {
                               {canResetPassword && (
                                 <button
                                   onClick={() => handleOpenPasswordModal(staff)}
-                                  className="p-1.5 rounded-xl text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition-colors cursor-pointer"
                                   title="비밀번호 초기화"
                                 >
                                   <KeyRound className="w-4 h-4" />
@@ -1198,7 +1198,7 @@ export default function StaffPage() {
                               {canDelete && (
                                 <button
                                   onClick={() => handleOpenDeleteModal(staff)}
-                                  className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
                                   title="삭제/퇴사"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -1238,7 +1238,7 @@ export default function StaffPage() {
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     신규 교직원 계정 등록
                   </h3>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     소속 학원에 새로운 강사, 실장 또는 조교 계정을 추가합니다.
                   </p>
                 </div>
@@ -1246,7 +1246,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1260,7 +1260,7 @@ export default function StaffPage() {
             >
               {createError && (
                 <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-700 dark:text-rose-400" />
                   <span>{createError}</span>
                 </div>
               )}
@@ -1318,7 +1318,7 @@ export default function StaffPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    초기 비밀번호 <span className="text-slate-400 font-normal">(선택)</span>
+                    초기 비밀번호 <span className="text-slate-500 dark:text-slate-400 font-normal">(선택)</span>
                   </label>
                   <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
                     미입력 시 임시 비밀번호 자동 발급
@@ -1340,7 +1340,7 @@ export default function StaffPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -1349,7 +1349,7 @@ export default function StaffPage() {
                     )}
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   * 비밀번호를 비워두면 영문+숫자+특수문자 조합의 임시 비밀번호가 자동 생성되며, 등록 완료 시 단 1회 화면에 표시됩니다.
                 </p>
               </div>
@@ -1442,13 +1442,13 @@ export default function StaffPage() {
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     교직원 정보 수정
                   </h3>
-                  <p className="text-[11px] text-slate-400">{selectedStaff.email}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{selectedStaff.email}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1461,7 +1461,7 @@ export default function StaffPage() {
             >
               {editError && (
                 <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-700 dark:text-rose-400" />
                   <span>{editError}</span>
                 </div>
               )}
@@ -1481,7 +1481,7 @@ export default function StaffPage() {
                   fullWidth
                 />
                 {selectedStaff.role === 'OWNER' && (
-                  <span className="text-[11px] text-amber-600 dark:text-amber-400">
+                  <span className="text-[11px] text-amber-700 dark:text-amber-400">
                     원장님 계정의 직책은 변경할 수 없습니다.
                   </span>
                 )}
@@ -1560,20 +1560,20 @@ export default function StaffPage() {
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 flex items-center justify-center">
                   <KeyRound className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     교직원 비밀번호 초기화
                   </h3>
-                  <p className="text-[11px] text-slate-400">{selectedStaff.name} ({selectedStaff.email})</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{selectedStaff.name} ({selectedStaff.email})</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsPasswordModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600"
+                className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1586,7 +1586,7 @@ export default function StaffPage() {
             >
               {passwordError && (
                 <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-700 dark:text-rose-400" />
                   <span>{passwordError}</span>
                 </div>
               )}
@@ -1610,7 +1610,7 @@ export default function StaffPage() {
                 <div className="font-bold text-slate-800 dark:text-slate-200 text-sm">
                   {selectedStaff.name} ({selectedStaff.role === 'TEACHER' ? '강사' : selectedStaff.role === 'ADMIN' ? '실장' : '조교'})
                 </div>
-                <div className="text-slate-400 text-[11px]">{selectedStaff.email}</div>
+                <div className="text-slate-500 dark:text-slate-400 text-[11px]">{selectedStaff.email}</div>
               </div>
             </form>
 
@@ -1655,7 +1655,7 @@ export default function StaffPage() {
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-rose-50/50 dark:bg-rose-950/30">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-400 flex items-center justify-center">
                   <AlertTriangle className="w-4 h-4" />
                 </div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
@@ -1665,7 +1665,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600"
+                className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1674,19 +1674,19 @@ export default function StaffPage() {
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4 min-h-0">
               {deleteError && (
                 <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-700 dark:text-rose-400" />
                   <span>{deleteError}</span>
                 </div>
               )}
 
               <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                정말로 <strong className="text-rose-600 font-bold">[{selectedStaff.name}]</strong>님의 계정을 학원에서 삭제/퇴사 처리하시겠습니까?
+                정말로 <strong className="text-rose-700 dark:text-rose-400 font-bold">[{selectedStaff.name}]</strong>님의 계정을 학원에서 삭제/퇴사 처리하시겠습니까?
               </p>
 
               {selectedStaff.taughtClasses && selectedStaff.taughtClasses.length > 0 && (
                 <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 space-y-1">
                   <div className="font-bold flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                     <span>주의: 담당 수업 반 안내</span>
                   </div>
                   <p className="text-[11px] leading-relaxed">
@@ -1747,7 +1747,7 @@ export default function StaffPage() {
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     [{selectedStaff.name}] 강사 담당 반 목록
                   </h3>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     총 {selectedStaff.taughtClasses?.length || 0}개 수업 반 배정됨
                   </p>
                 </div>
@@ -1755,7 +1755,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setIsClassModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600"
+                className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1804,7 +1804,7 @@ export default function StaffPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-center py-8 text-xs text-slate-400">
+                <p className="text-center py-8 text-xs text-slate-500 dark:text-slate-400">
                   배정된 수업 반이 없습니다.
                 </p>
               )}
@@ -1859,7 +1859,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setTempPasswordModalData(null)}
-                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="p-1 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1968,14 +1968,14 @@ export default function StaffPage() {
             {/* Modal Header */}
             <div className="shrink-0 flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center shadow-2xs">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center shadow-2xs">
                   <KeyRound className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     교직원 학원 초대 코드
                   </h3>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     강사/조교가 코드로 직접 가입하면 즉시 학원 교직원으로 등록됩니다.
                   </p>
                 </div>
@@ -1983,7 +1983,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setIsJoinCodeModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1992,13 +1992,13 @@ export default function StaffPage() {
             {/* Modal Body */}
             <div className="p-6 space-y-5">
               {isLoadingJoinCode ? (
-                <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
+                <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400">
                   <Loader2 className="w-7 h-7 animate-spin text-indigo-600" />
                   <span className="text-xs">학원 초대 코드 확인 중...</span>
                 </div>
               ) : !staffJoinCode ? (
                 <div className="py-8 text-center space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center mx-auto text-amber-700 dark:text-amber-400">
                     <KeyRound className="w-6 h-6" />
                   </div>
                   <div>
@@ -2029,7 +2029,7 @@ export default function StaffPage() {
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                       <span>우리 학원 교직원 가입 코드</span>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                      <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> 유효한 코드
                       </span>
                     </label>
@@ -2085,7 +2085,7 @@ export default function StaffPage() {
                       >
                         {copiedInviteLink ? (
                           <>
-                            <Check className="w-4 h-4 text-emerald-600" />
+                            <Check className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                             <span>링크 복사됨!</span>
                           </>
                         ) : (
@@ -2111,7 +2111,7 @@ export default function StaffPage() {
 
                   {/* Regenerate Warning & Button */}
                   <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
                       보안을 위해 주기적인 재발급을 권장합니다.
                     </span>
                     <button
@@ -2122,7 +2122,7 @@ export default function StaffPage() {
                         }
                       }}
                       disabled={isRegeneratingJoinCode}
-                      className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isRegeneratingJoinCode ? 'animate-spin' : ''}`} />
                       <span>코드 재발급</span>
