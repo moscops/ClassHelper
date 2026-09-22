@@ -307,6 +307,7 @@ export default function NotificationsPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Link
+                aria-label="대시보드로 돌아가기"
                 href="/dashboard"
                 className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
               >
@@ -315,7 +316,7 @@ export default function NotificationsPage() {
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
                 <span>알림 관리 센터</span>
                 {hasSystemError && (
-                  <span className="w-5 h-5 rounded-full bg-rose-600 text-white font-black text-xs flex items-center justify-center animate-bounce shadow-sm" title="데이터베이스 / 서버 통신 장애 발생">
+                  <span className="w-5 h-5 rounded-full bg-rose-600 text-white font-black text-xs flex items-center justify-center motion-safe:animate-pulse shadow-sm" title="데이터베이스 / 서버 통신 장애 발생">
                     !
                   </span>
                 )}
@@ -359,9 +360,9 @@ export default function NotificationsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-base">📢</span>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
                 학원 내부 교직원 공지사항
-              </h3>
+              </h2>
               <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold border border-indigo-100 dark:border-indigo-800">
                 {notices.length}건
               </span>
@@ -418,7 +419,7 @@ export default function NotificationsPage() {
           <div className="p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 shadow-xs space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black text-sm shadow-xs animate-bounce">
+                <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black text-sm shadow-xs motion-safe:animate-pulse">
                   !
                 </div>
                 <div>
@@ -739,19 +740,23 @@ export default function NotificationsPage() {
             if (e.target === e.currentTarget) setIsNoticeModalOpen(false);
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="notif-modal-1-title">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col my-auto">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-xl">📢</span>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                <h3 id="notif-modal-1-title" className="text-base font-bold text-slate-900 dark:text-white">
                   새 교직원 공지사항 등록
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsNoticeModalOpen(false)}
+                aria-label="닫기"
                 className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -762,10 +767,12 @@ export default function NotificationsPage() {
             <form onSubmit={handleSaveNotice} className="flex flex-col flex-1">
               <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
+                  <label htmlFor="notice-target" className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
                     공지 대상
                   </label>
                   <select
+                    id="notice-target"
+                    aria-label="공지 대상"
                     value={newNoticeTarget}
                     onChange={(e) => setNewNoticeTarget(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20"

@@ -575,6 +575,7 @@ export default function StaffPage() {
               <span className="text-xs sm:text-sm font-semibold">{toastMessage.text}</span>
               <button
                 onClick={() => setToastMessage(null)}
+              aria-label="알림 닫기"
                 className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-3.5 h-3.5" />
@@ -765,6 +766,7 @@ export default function StaffPage() {
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm('')}
+                  aria-label="검색어 지우기"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -844,9 +846,9 @@ export default function StaffPage() {
                 <Users className="w-7 h-7" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">
                   일치하는 교직원이 없습니다.
-                </h3>
+                </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                   검색어나 직책 필터를 변경하시거나, 새로운 강사/실장/조교 계정을 등록해보세요.
                 </p>
@@ -862,6 +864,7 @@ export default function StaffPage() {
           ) : viewMode === 'GRID' ? (
             /* CARD GRID VIEW */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <h2 className="sr-only">교직원 목록</h2>
               {filteredStaff.map((staff) => {
                 const badge = getRoleBadge(staff.role);
                 const RoleIcon = badge.icon;
@@ -1226,7 +1229,10 @@ export default function StaffPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsCreateModalOpen(false);
           }}
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="staff-modal-1-title">
           <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             {/* Header */}
             <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
@@ -1235,7 +1241,7 @@ export default function StaffPage() {
                   <UserPlus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h3 id="staff-modal-1-title" className="text-base font-bold text-slate-900 dark:text-white">
                     신규 교직원 계정 등록
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -1246,6 +1252,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
+              aria-label="닫기"
                 className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -1340,6 +1347,7 @@ export default function StaffPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
                   >
                     {showPassword ? (
@@ -1431,7 +1439,10 @@ export default function StaffPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsEditModalOpen(false);
           }}
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="staff-modal-2-title">
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
               <div className="flex items-center gap-2.5">
@@ -1439,7 +1450,7 @@ export default function StaffPage() {
                   <Edit3 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h3 id="staff-modal-2-title" className="text-base font-bold text-slate-900 dark:text-white">
                     교직원 정보 수정
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">{selectedStaff.email}</p>
@@ -1448,6 +1459,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
+              aria-label="닫기"
                 className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-4 h-4" />
@@ -1556,7 +1568,10 @@ export default function StaffPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsPasswordModalOpen(false);
           }}
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="staff-modal-3-title">
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
               <div className="flex items-center gap-2.5">
@@ -1564,7 +1579,7 @@ export default function StaffPage() {
                   <KeyRound className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h3 id="staff-modal-3-title" className="text-base font-bold text-slate-900 dark:text-white">
                     교직원 비밀번호 초기화
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">{selectedStaff.name} ({selectedStaff.email})</p>
@@ -1573,6 +1588,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setIsPasswordModalOpen(false)}
+              aria-label="닫기"
                 className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
@@ -1651,20 +1667,24 @@ export default function StaffPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsDeleteModalOpen(false);
           }}
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="staff-modal-4-title">
           <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-rose-50/50 dark:bg-rose-950/30">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-400 flex items-center justify-center">
                   <AlertTriangle className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                <h3 id="staff-modal-4-title" className="text-base font-bold text-slate-900 dark:text-white">
                   교직원 퇴사 / 삭제 확인
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
+              aria-label="닫기"
                 className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
@@ -1736,7 +1756,10 @@ export default function StaffPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsClassModalOpen(false);
           }}
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="staff-modal-5-title">
           <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
               <div className="flex items-center gap-2.5">
@@ -1744,7 +1767,7 @@ export default function StaffPage() {
                   <BookOpen className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h3 id="staff-modal-5-title" className="text-base font-bold text-slate-900 dark:text-white">
                     [{selectedStaff.name}] 강사 담당 반 목록
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -1755,6 +1778,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setIsClassModalOpen(false)}
+              aria-label="닫기"
                 className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
@@ -1839,7 +1863,10 @@ export default function StaffPage() {
               setTempPasswordModalData(null);
             }
           }}
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="staff-modal-6-title">
           <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-amber-50/50 dark:bg-amber-950/20">
@@ -1848,7 +1875,7 @@ export default function StaffPage() {
                   <KeyRound className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <h3 id="staff-modal-6-title" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                     <span>임시 비밀번호 자동 발급 완료</span>
                   </h3>
                   <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">
@@ -1859,6 +1886,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setTempPasswordModalData(null)}
+              aria-label="닫기"
                 className="p-1 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -1963,7 +1991,10 @@ export default function StaffPage() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsJoinCodeModalOpen(false);
           }}
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="staff-modal-7-title">
           <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="shrink-0 flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
@@ -1972,7 +2003,7 @@ export default function StaffPage() {
                   <KeyRound className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h3 id="staff-modal-7-title" className="text-base font-bold text-slate-900 dark:text-white">
                     교직원 학원 초대 코드
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -1983,6 +2014,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={() => setIsJoinCodeModalOpen(false)}
+              aria-label="닫기"
                 className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />

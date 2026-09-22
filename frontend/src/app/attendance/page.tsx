@@ -1566,9 +1566,9 @@ export default function AttendancePage() {
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-indigo-950 dark:text-indigo-200">
+                    <h2 className="text-xs sm:text-sm font-bold text-indigo-950 dark:text-indigo-200">
                       오늘 등원 예정 전체 학생 보기 모드
-                    </h4>
+                    </h2>
                     <p className="text-[11px] text-indigo-700 dark:text-indigo-400 mt-0.5">
                       시간표에 따라 지금 와야 하는 학생을 한눈에 파악하고 출결을 체크합니다.
                     </p>
@@ -2157,7 +2157,10 @@ export default function AttendancePage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="attendance-detail-title">
           <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 my-auto">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5 shrink-0">
               <div>
@@ -2397,7 +2400,10 @@ export default function AttendancePage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="attendance-stats-title">
           <div className="w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 my-auto">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5 shrink-0">
               <div>
@@ -2456,21 +2462,21 @@ export default function AttendancePage() {
                   {statsData.dailyStats.length === 0 ? (
                     <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-6">기간 내 출결 데이터가 없습니다.</p>
                   ) : (
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                    <div tabIndex={0} aria-label="일별 통계 목록" className="space-y-2 max-h-60 overflow-y-auto">
                       {statsData.dailyStats.map((stat) => (
                         <div
                           key={stat.date}
                           className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 text-xs"
                         >
                           <span className="font-bold text-slate-900 dark:text-white">{stat.date}</span>
-                          <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                          <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
                             <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
                               출석 {stat.present}
                             </span>
                             <span className="text-rose-700 dark:text-rose-400 font-semibold">
                               결석 {stat.absent}
                             </span>
-                            <span className="text-amber-500 font-semibold">
+                            <span className="text-amber-700 dark:text-amber-400 font-semibold">
                               지각 {stat.late}
                             </span>
                             <span className="font-bold text-indigo-600 dark:text-indigo-400">
@@ -2500,7 +2506,10 @@ export default function AttendancePage() {
 
       {/* Kiosk Setup & Launcher Modal */}
       {isKioskModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+ role="dialog"
+ aria-modal="true"
+ aria-labelledby="att-modal-3-title">
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-xl p-6 sm:p-7 space-y-6 animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -2509,7 +2518,7 @@ export default function AttendancePage() {
                   <Tablet className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h3 id="att-modal-3-title" className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     출석 키오스크 (태블릿 모드)
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
                       신규 기능
@@ -2523,6 +2532,7 @@ export default function AttendancePage() {
               <button
                 type="button"
                 onClick={() => setIsKioskModalOpen(false)}
+              aria-label="닫기"
                 className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />

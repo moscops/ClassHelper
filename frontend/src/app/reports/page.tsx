@@ -755,7 +755,7 @@ export default function ReportsPage() {
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
                     <BookOpen className="w-6 h-6" />
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">개설된 수업 반이 없습니다</h3>
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-white">개설된 수업 반이 없습니다</h2>
                   <Link
                     href="/classes"
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-xs"
@@ -766,6 +766,7 @@ export default function ReportsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <h2 className="sr-only">반별 리포트 목록</h2>
                   {classes.map((cls) => (
                     <div
                       key={cls.id}
@@ -966,7 +967,10 @@ export default function ReportsPage() {
               }
             }}
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
-          >
+          
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rep-modal-1-title">
             <div className="w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
               {/* Modal Header */}
               <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -975,7 +979,7 @@ export default function ReportsPage() {
                     <Send className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h3 id="rep-modal-1-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       학습 & 출결 리포트 생성 및 발송
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -987,6 +991,7 @@ export default function ReportsPage() {
                 <button
                   type="button"
                   onClick={() => setIsWizardModalOpen(false)}
+                aria-label="닫기"
                   disabled={isSendingWizard}
                   className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                 >
@@ -1022,7 +1027,7 @@ export default function ReportsPage() {
                         <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                         <span>반 전체 일괄 발송</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-normal">
                         선택한 반의 재원생 전원에게 동시 전송
                       </p>
                     </button>
@@ -1047,7 +1052,7 @@ export default function ReportsPage() {
                         <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                         <span>원생 1인 개별 발송</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-normal">
                         원생 선택 후 실시간 미리보기 및 발송
                       </p>
                     </button>
@@ -1259,7 +1264,10 @@ export default function ReportsPage() {
               if (e.target === e.currentTarget && !isSendingBatch) setIsBatchModalOpen(false);
             }}
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
-          >
+          
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rep-modal-2-title">
             <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
               <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
@@ -1267,7 +1275,7 @@ export default function ReportsPage() {
                     <Send className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h3 id="rep-modal-2-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       반 전체 리포트 일괄 발송 확인
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1279,6 +1287,7 @@ export default function ReportsPage() {
                 <button
                   type="button"
                   onClick={() => setIsBatchModalOpen(false)}
+                aria-label="닫기"
                   disabled={isSendingBatch}
                   className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                 >
@@ -1409,7 +1418,10 @@ export default function ReportsPage() {
               if (e.target === e.currentTarget && !isSendingStudentReport) setIsStudentModalOpen(false);
             }}
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
-          >
+          
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rep-modal-3-title">
             <div className="w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
               <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
@@ -1417,7 +1429,7 @@ export default function ReportsPage() {
                     <FileText className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <h3 id="rep-modal-3-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <span>{selectedStudentForReport.name} 학생 리포트 발송</span>
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
@@ -1429,6 +1441,7 @@ export default function ReportsPage() {
                 <button
                   type="button"
                   onClick={() => setIsStudentModalOpen(false)}
+                aria-label="닫기"
                   disabled={isSendingStudentReport}
                   className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                 >

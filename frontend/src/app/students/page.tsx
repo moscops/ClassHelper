@@ -1187,7 +1187,10 @@ export default function StudentsPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="student-modal-title">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="shrink-0 p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -1597,7 +1600,10 @@ export default function StudentsPage() {
             if (e.target === e.currentTarget) setIsDetailModalOpen(false);
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="student-detail-title">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -1822,7 +1828,10 @@ export default function StudentsPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="stud-modal-3-title">
           <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] animate-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -1831,7 +1840,7 @@ export default function StudentsPage() {
                   <FileSpreadsheet className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h3 id="stud-modal-3-title" className="text-base font-bold text-slate-900 dark:text-white">
                     원생 CSV 대량 일괄 등록
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1843,6 +1852,7 @@ export default function StudentsPage() {
               <button
                 type="button"
                 onClick={() => setIsBulkImportModalOpen(false)}
+              aria-label="닫기"
                 className="p-1.5 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-5 h-5" />
@@ -2132,7 +2142,10 @@ export default function StudentsPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="stud-modal-4-title">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -2141,7 +2154,7 @@ export default function StudentsPage() {
                   <FileText className="w-4.5 h-4.5" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h3 id="stud-modal-4-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>학습 & 출결 리포트 발송</span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold">
                       {selectedStudentForReport.name} 학생
@@ -2156,6 +2169,7 @@ export default function StudentsPage() {
               <button
                 type="button"
                 onClick={() => setIsReportModalOpen(false)}
+              aria-label="닫기"
                 disabled={isSendingReport}
                 className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >

@@ -1312,7 +1312,7 @@ function AdminPortalContent() {
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           planFilter === 'ALL'
                             ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         플랜 전체
@@ -1323,7 +1323,7 @@ function AdminPortalContent() {
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           planFilter === 'FREE'
                             ? 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         Free ({planCounts.FREE})
@@ -1334,7 +1334,7 @@ function AdminPortalContent() {
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           planFilter === 'PRO'
                             ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         Pro ({planCounts.PRO})
@@ -1345,7 +1345,7 @@ function AdminPortalContent() {
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           planFilter === 'ENTERPRISE'
                             ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         Ent ({planCounts.ENTERPRISE})
@@ -1360,7 +1360,7 @@ function AdminPortalContent() {
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           statusFilter === 'ALL'
                             ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         상태 전체
@@ -1371,7 +1371,7 @@ function AdminPortalContent() {
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           statusFilter === 'ACTIVE'
                             ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         정상 운영
@@ -1382,7 +1382,7 @@ function AdminPortalContent() {
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                           statusFilter === 'SUSPENDED'
                             ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-400 shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         일시 정지
@@ -1403,6 +1403,7 @@ function AdminPortalContent() {
                         <button
                           type="button"
                           onClick={() => setSearchTerm('')}
+                          aria-label="검색어 지우기"
                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-600 cursor-pointer"
                         >
                           <X className="w-3 h-3" />
@@ -2003,7 +2004,10 @@ function AdminPortalContent() {
             if (e.target === e.currentTarget) setSelectedAcademyIdForDetail(null);
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="admin-modal-1-title">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -2013,7 +2017,7 @@ function AdminPortalContent() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h3 id="admin-modal-1-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       {academyDetail?.name || '학원 상세 정보'}
                     </h3>
                     {academyDetail && (
@@ -2037,6 +2041,7 @@ function AdminPortalContent() {
               <button
                 type="button"
                 onClick={() => setSelectedAcademyIdForDetail(null)}
+                aria-label="닫기"
                 className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -2273,7 +2278,10 @@ function AdminPortalContent() {
             if (e.target === e.currentTarget) handleCloseSubscriptionModal();
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="admin-modal-2-title">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -2282,7 +2290,7 @@ function AdminPortalContent() {
                   <CreditCard className="w-4.5 h-4.5" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h3 id="admin-modal-2-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>요금제 구독 등급 설정</span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold">
                       {editingAcademy.name}
@@ -2297,6 +2305,7 @@ function AdminPortalContent() {
                 type="button"
                 onClick={handleCloseSubscriptionModal}
                 disabled={isSavingSubscription}
+                aria-label="닫기"
                 className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />

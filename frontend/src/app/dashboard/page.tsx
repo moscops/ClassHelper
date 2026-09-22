@@ -967,7 +967,10 @@ export default function DashboardPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
-        >
+        
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dash-modal-1-title">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-2xl w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 my-auto">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -976,7 +979,7 @@ export default function DashboardPage() {
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h3 id="dash-modal-1-title" className="text-base font-bold text-slate-900 dark:text-white">
                     ClassHelper 요금제 플랜 및 혜택 안내
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -988,6 +991,7 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => setIsPlanModalOpen(false)}
                 className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="닫기"
               >
                 <X className="w-5 h-5" />
               </button>
