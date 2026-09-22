@@ -287,9 +287,18 @@ export class AttendanceController {
     type: UnattendedStatusResponseDto,
   })
   async getUnattendedStatus(
-    @CurrentUser('academyId') academyId: number,
+    @CurrentUser('academyId') academyId: number | null,
     @Query('date') date?: string,
   ): Promise<UnattendedStatusResponseDto> {
+    // SUPER_ADMIN은 특정 학원에 소속되지 않아 academyId가 없다 — 학원별 지표라
+    // 조회할 대상이 없으므로 빈 상태로 응답한다 (null을 그대로 넘기면 Prisma가 거부함).
+    if (!academyId) {
+      return {
+        isUnattendedAlertActive: false,
+        unattendedCount: 0,
+        unattendedStudents: [],
+      };
+    }
     return this.attendanceService.getUnattendedStatus(academyId, date);
   }
 
