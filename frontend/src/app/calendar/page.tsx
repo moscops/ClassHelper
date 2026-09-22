@@ -61,6 +61,17 @@ function saveStoredDailyMemos(memos: Record<string, string>): void {
   }
 }
 
+// Korean names for the color-swatch picker's accessible labels (the swatches carry no text).
+const EVENT_COLOR_LABELS: Record<EventColor, string> = {
+  INDIGO: '인디고',
+  PURPLE: '보라',
+  ROSE: '로즈',
+  AMBER: '앰버',
+  EMERALD: '에메랄드',
+  BLUE: '파랑',
+  SLATE: '슬레이트',
+};
+
 export default function CalendarPage() {
   const router = useRouter();
   const { academy, isAuthenticated, isHydrated } = useAuthStore();
@@ -461,6 +472,7 @@ export default function CalendarPage() {
                   onClick={handlePrevMonth}
                   className="p-1.5 rounded-xl hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                   title="이전 달"
+                  aria-label="이전 달"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -474,6 +486,7 @@ export default function CalendarPage() {
                   onClick={handleNextMonth}
                   className="p-1.5 rounded-xl hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                   title="다음 달"
+                  aria-label="다음 달"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -547,7 +560,7 @@ export default function CalendarPage() {
             <div className="flex flex-wrap items-center gap-2.5">
               {/* Student Search Input */}
               <div className="relative flex-1 sm:w-60">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={studentSearch}
@@ -559,7 +572,7 @@ export default function CalendarPage() {
                   <button
                     type="button"
                     onClick={() => setStudentSearch('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -658,14 +671,14 @@ export default function CalendarPage() {
               {/* Daily Navigation Bar */}
               <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center font-extrabold text-lg shrink-0 shadow-2xs">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center font-extrabold text-lg shrink-0 shadow-2xs">
                     ☀️
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                      <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                         {briefingDate} ({briefingDayName}요일) 브리핑
-                      </h3>
+                      </h2>
                       {briefingDate === todayStr ? (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
                           오늘 (Today)
@@ -689,7 +702,7 @@ export default function CalendarPage() {
                     onClick={() => setBriefingDate(todayStr)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       briefingDate === todayStr
-                        ? 'bg-amber-500 text-white shadow-2xs'
+                        ? 'bg-amber-500 text-amber-950 shadow-2xs'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                     }`}
                   >
@@ -719,10 +732,10 @@ export default function CalendarPage() {
                 {/* Left 7 cols: Today Classes & Rosters */}
                 <div className="lg:col-span-7 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                       <span>{briefingDayName}요일 진행 수업 & 등원 수강생 ({todayClasses.length}개 반)</span>
-                    </h4>
+                    </h3>
                     <Link
                       href="/attendance"
                       className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
@@ -733,7 +746,7 @@ export default function CalendarPage() {
                   </div>
 
                   {todayClasses.length === 0 ? (
-                    <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center text-slate-400 text-xs">
+                    <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center text-slate-500 dark:text-slate-400 text-xs">
                       해당 요일에 예정된 정규 수업 반이 없습니다.
                     </div>
                   ) : (
@@ -759,7 +772,7 @@ export default function CalendarPage() {
                                   )}
                                 </div>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-                                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                  <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                                   <span>{cls.schedule || '시간 미지정'}</span>
                                   <span>•</span>
                                   <span>담당: {cls.teacher?.name || '강사 미배정'}</span>
@@ -777,11 +790,11 @@ export default function CalendarPage() {
 
                             {/* Enrolled Students Quick Chips */}
                             <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center gap-1.5">
-                              <span className="text-[11px] font-semibold text-slate-400">
+                              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                                 수강 원생:
                               </span>
                               {rosterList.length === 0 ? (
-                                <span className="text-[11px] text-slate-400">수강생 없음</span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400">수강생 없음</span>
                               ) : (
                                 rosterList.slice(0, 8).map((st) => (
                                   <span
@@ -793,7 +806,7 @@ export default function CalendarPage() {
                                 ))
                               )}
                               {rosterList.length > 8 && (
-                                <span className="text-[10px] text-slate-400 font-bold">
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
                                   +{rosterList.length - 8}명 더보기
                                 </span>
                               )}
@@ -810,10 +823,10 @@ export default function CalendarPage() {
                   {/* Today's Events Card */}
                   <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <CalendarCheck2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <CalendarCheck2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                         <span>학원 공식 일정 & 시험 ({todayEvents.length}건)</span>
-                      </h4>
+                      </h3>
                       <button
                         type="button"
                         onClick={() => handleOpenAddEventModal(briefingDate)}
@@ -824,7 +837,7 @@ export default function CalendarPage() {
                     </div>
 
                     {todayEvents.length === 0 ? (
-                      <div className="py-6 text-center text-slate-400 text-xs">
+                      <div className="py-6 text-center text-slate-500 dark:text-slate-400 text-xs">
                         해당 날짜에 등록된 학원 이벤트가 없습니다.
                       </div>
                     ) : (
@@ -866,15 +879,15 @@ export default function CalendarPage() {
                   <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse" />
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                        <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 motion-safe:animate-pulse" />
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                           {briefingDate === todayStr
                             ? '오늘의 특이사항 & 인수인계 메모'
                             : `${briefingDate} 특이사항 / 내일 할 일`}
-                        </h4>
+                        </h3>
                       </div>
                       {isMemoSavedBadge && (
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 animate-in fade-in">
+                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 animate-in fade-in">
                           ✓ 저장 완료
                         </span>
                       )}
@@ -893,7 +906,7 @@ export default function CalendarPage() {
                     />
 
                     <div className="flex items-center justify-between pt-1">
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">
                         * 내용 입력 시 브라우저에 자동 실시간 저장됩니다.
                       </span>
                       <button
@@ -918,7 +931,7 @@ export default function CalendarPage() {
             <div className="lg:col-span-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs p-5 sm:p-6 space-y-4">
               {/* Day of Week Headers */}
               <div className="grid grid-cols-7 gap-1 text-center font-bold text-xs pb-2 border-b border-slate-100 dark:border-slate-800">
-                <div className="text-rose-600 dark:text-rose-400">일 (Sun)</div>
+                <div className="text-rose-700 dark:text-rose-400">일 (Sun)</div>
                 <div className="text-slate-700 dark:text-slate-300">월 (Mon)</div>
                 <div className="text-slate-700 dark:text-slate-300">화 (Tue)</div>
                 <div className="text-slate-700 dark:text-slate-300">수 (Wed)</div>
@@ -953,7 +966,7 @@ export default function CalendarPage() {
                         <span
                           className={`text-xs font-bold ${
                             day.dayOfWeek === 0
-                              ? 'text-rose-600 dark:text-rose-400'
+                              ? 'text-rose-700 dark:text-rose-400'
                               : day.dayOfWeek === 6
                               ? 'text-blue-600 dark:text-blue-400'
                               : day.isToday
@@ -979,6 +992,7 @@ export default function CalendarPage() {
                               handleOpenAddEventModal(day.dateStr);
                             }}
                             title="이 날짜에 일정 추가"
+                            aria-label="이 날짜에 일정 추가"
                             className="opacity-0 group-hover:opacity-100 p-0.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 transition-opacity cursor-pointer"
                           >
                             <Plus className="w-3 h-3" />
@@ -1014,7 +1028,7 @@ export default function CalendarPage() {
 
                         {/* More count */}
                         {dayEvents.length + dayClasses.length > 2 && (
-                          <div className="text-[9px] font-bold text-slate-400 pl-1">
+                          <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400 pl-1">
                             +{dayEvents.length + dayClasses.length - 2}건 더보기
                           </div>
                         )}
@@ -1050,6 +1064,7 @@ export default function CalendarPage() {
                     onClick={() => handleOpenAddEventModal(selectedDate)}
                     className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors cursor-pointer"
                     title="이 날짜에 일정 추가"
+                    aria-label="이 날짜에 일정 추가"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -1065,7 +1080,7 @@ export default function CalendarPage() {
                   </div>
 
                   {selectedDateEvents.length === 0 ? (
-                    <p className="text-xs text-slate-400 py-3 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
                       등록된 학원 일정이 없습니다.
                     </p>
                   ) : (
@@ -1090,14 +1105,18 @@ export default function CalendarPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEditEventModal(evt)}
-                                  className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                                  title="일정 수정"
+                                  aria-label="일정 수정"
+                                  className="p-1 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white"
                                 >
                                   <Edit3 className="w-3 h-3" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteEvent(evt)}
-                                  className="p-1 rounded-md text-slate-400 hover:text-rose-600"
+                                  title="일정 삭제"
+                                  aria-label="일정 삭제"
+                                  className="p-1 rounded-md text-slate-500 dark:text-slate-400 hover:text-rose-600"
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </button>
@@ -1137,7 +1156,7 @@ export default function CalendarPage() {
                   </div>
 
                   {selectedDateClasses.length === 0 ? (
-                    <p className="text-xs text-slate-400 py-3 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
                       해당 요일에 예정된 정규 수업이 없습니다.
                     </p>
                   ) : (
@@ -1160,7 +1179,7 @@ export default function CalendarPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                            <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                               <Clock className="w-3 h-3" />
                               <span>{cls.schedule || '시간표 정보'}</span>
                               {cls.teacher && <span>• {cls.teacher.name} 강사</span>}
@@ -1171,7 +1190,7 @@ export default function CalendarPage() {
                             <span className="font-bold text-indigo-600 dark:text-indigo-400 text-xs">
                               {cls.enrolledCount}명 수강
                             </span>
-                            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all" />
+                            <ChevronRight className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all" />
                           </div>
                         </div>
                       ))}
@@ -1183,13 +1202,13 @@ export default function CalendarPage() {
                 <div className="mt-5 space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <Users className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                       <span>등원 예정 수강생 명단 ({selectedDateStudents.length}명)</span>
                     </h4>
                   </div>
 
                   {selectedDateStudents.length === 0 ? (
-                    <p className="text-xs text-slate-400 py-3 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
                       등원 예정 원생이 없습니다.
                     </p>
                   ) : (
@@ -1207,7 +1226,7 @@ export default function CalendarPage() {
                               <span className="font-bold text-slate-900 dark:text-white">
                                 {student.name}
                               </span>
-                              <span className="text-[10px] text-slate-400 ml-1.5">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-1.5">
                                 {classItem.name}
                               </span>
                             </div>
@@ -1267,7 +1286,7 @@ export default function CalendarPage() {
                       <span className="font-extrabold text-xs text-slate-900 dark:text-white">
                         {dayName}요일
                       </span>
-                      <span className="text-[10px] text-slate-400 block">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
                         {dayClasses.length}개 반 운영
                       </span>
                     </div>
@@ -1282,13 +1301,13 @@ export default function CalendarPage() {
                         >
                           <div className="font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex items-center justify-between">
                             <span className="truncate">{cls.name}</span>
-                            <ChevronRight className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                            <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                           </div>
                           <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             <span>{cls.schedule}</span>
                           </div>
-                          <div className="text-[10px] text-slate-400 flex items-center justify-between">
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
                             <span>{cls.teacher?.name || '강사 미지정'}</span>
                             <span className="font-semibold px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">{cls.enrolledCount}명</span>
                           </div>
@@ -1311,7 +1330,7 @@ export default function CalendarPage() {
             </h3>
 
             {events.length === 0 ? (
-              <div className="py-16 text-center text-slate-400 text-xs">
+              <div className="py-16 text-center text-slate-500 dark:text-slate-400 text-xs">
                 <p>등록된 일정이 없습니다. 상단의 <b>[학원 일정 등록]</b> 버튼으로 일정을 추가하세요.</p>
               </div>
             ) : (
@@ -1347,7 +1366,7 @@ export default function CalendarPage() {
                                 {EVENT_CATEGORY_META[evt.category]?.label}
                               </span>
                               {isPassed && (
-                                <span className="text-[10px] text-slate-400 font-semibold">
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
                                   (종료됨)
                                 </span>
                               )}
@@ -1406,6 +1425,9 @@ export default function CalendarPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="event-modal-title"
         >
           <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
@@ -1415,7 +1437,7 @@ export default function CalendarPage() {
                   <CalendarIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h3 id="event-modal-title" className="text-base font-bold text-slate-900 dark:text-white">
                     {editingEvent ? '학원 일정 수정' : '새 학원 일정 및 계획 등록'}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1426,7 +1448,8 @@ export default function CalendarPage() {
               <button
                 type="button"
                 onClick={() => setIsEventModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                aria-label="닫기"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1490,6 +1513,8 @@ export default function CalendarPage() {
                             key={c}
                             type="button"
                             onClick={() => setEventColor(c)}
+                            aria-label={EVENT_COLOR_LABELS[c]}
+                            aria-pressed={eventColor === c}
                             className={`w-6 h-6 rounded-full ${COLOR_CLASSES[c].dot} transition-transform cursor-pointer ${
                               eventColor === c ? 'scale-125 ring-2 ring-slate-900 dark:ring-white' : 'opacity-70'
                             }`}
@@ -1530,10 +1555,11 @@ export default function CalendarPage() {
                 {/* Start Time & End Time */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label htmlFor="event-start-time" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       시작 시간 (선택)
                     </label>
                     <input
+                      id="event-start-time"
                       type="time"
                       value={eventStartTime}
                       onChange={(e) => setEventStartTime(e.target.value)}
@@ -1541,10 +1567,11 @@ export default function CalendarPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label htmlFor="event-end-time" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       종료 시간 (선택)
                     </label>
                     <input
+                      id="event-end-time"
                       type="time"
                       value={eventEndTime}
                       onChange={(e) => setEventEndTime(e.target.value)}
@@ -1598,6 +1625,9 @@ export default function CalendarPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="roster-modal-title"
         >
           <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 my-auto">
             {/* Modal Header */}
@@ -1608,7 +1638,7 @@ export default function CalendarPage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h3 id="roster-modal-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       {selectedClassForRosterModal.name}
                     </h3>
                     {selectedClassForRosterModal.subject && (
@@ -1626,7 +1656,8 @@ export default function CalendarPage() {
               <button
                 type="button"
                 onClick={() => setIsClassRosterModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                aria-label="닫기"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1637,22 +1668,22 @@ export default function CalendarPage() {
               {/* Class Summary Metrics */}
               <div className="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-center">
                 <div>
-                  <span className="text-[11px] text-slate-400 block">수강생</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block">수강생</span>
                   <span className="text-base font-extrabold text-indigo-600 dark:text-indigo-400">
                     {classRosters[selectedClassForRosterModal.id]?.length ?? selectedClassForRosterModal.enrolledCount}명
                   </span>
                   {selectedClassForRosterModal.capacity && (
-                    <span className="text-[10px] text-slate-400 block">/ 정원 {selectedClassForRosterModal.capacity}명</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block">/ 정원 {selectedClassForRosterModal.capacity}명</span>
                   )}
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-400 block">대상 학년</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block">대상 학년</span>
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block mt-1">
                     {selectedClassForRosterModal.targetGrade || '전체'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-400 block">월 수강료</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block">월 수강료</span>
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block mt-1">
                     {Number(selectedClassForRosterModal.monthlyFee || 0).toLocaleString()}원
                   </span>
@@ -1669,7 +1700,7 @@ export default function CalendarPage() {
                 </div>
 
                 {(!classRosters[selectedClassForRosterModal.id] || classRosters[selectedClassForRosterModal.id].length === 0) ? (
-                  <div className="py-10 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 space-y-2">
+                  <div className="py-10 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-500 dark:text-slate-400 space-y-2">
                     <p>현재 이 반에 배정된 원생이 없습니다.</p>
                     <Link
                       href="/classes"
@@ -1700,13 +1731,13 @@ export default function CalendarPage() {
                                 </span>
                               )}
                               {st.schoolName && (
-                                <span className="text-[10px] text-slate-400">
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400">
                                   ({st.schoolName})
                                 </span>
                               )}
                             </div>
                             {st.studentPhone && (
-                              <p className="text-[11px] text-slate-400 font-mono">
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                                 학생: {st.studentPhone}
                               </p>
                             )}
@@ -1719,7 +1750,7 @@ export default function CalendarPage() {
                             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-600 dark:hover:text-indigo-300 text-slate-600 dark:text-slate-300 text-[11px] font-semibold transition-colors"
                             title="학부모 전화 걸기"
                           >
-                            <Phone className="w-3 h-3 text-slate-400" />
+                            <Phone className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                             <span className="font-mono">{st.parentPhone}</span>
                           </a>
                         )}

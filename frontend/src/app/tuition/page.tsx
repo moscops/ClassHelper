@@ -417,7 +417,7 @@ export default function TuitionPage() {
         );
       case 'VOID':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
             <Ban className="w-3.5 h-3.5" />
             <span>취소됨</span>
           </span>
@@ -479,6 +479,7 @@ export default function TuitionPage() {
                   onClick={handlePrevMonth}
                   className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                   title="이전 달"
+                  aria-label="이전 달"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -492,6 +493,7 @@ export default function TuitionPage() {
                   onClick={handleNextMonth}
                   className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                   title="다음 달"
+                  aria-label="다음 달"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -512,6 +514,7 @@ export default function TuitionPage() {
                 disabled={isLoading}
                 className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-2xs transition-all cursor-pointer"
                 title="새로고침"
+                aria-label="새로고침"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
@@ -545,9 +548,9 @@ export default function TuitionPage() {
               <div className="mt-3">
                 <div className="text-2xl font-extrabold text-slate-900 dark:text-white">
                   {(stats?.totalInvoicedAmount || 0).toLocaleString()}
-                  <span className="text-sm font-medium text-slate-400 ml-1">원</span>
+                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-1">원</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                   총 {(stats?.paidCount || 0) + (stats?.unpaidCount || 0)}건 청구 (취소 제외)
                 </p>
               </div>
@@ -556,19 +559,19 @@ export default function TuitionPage() {
             {/* 2. 수납 완료액 */}
             <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                   수납 완료 누적액
                 </span>
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3">
-                <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400">
                   {(stats?.totalCollectedAmount || 0).toLocaleString()}
-                  <span className="text-sm font-medium text-slate-400 ml-1">원</span>
+                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-1">원</span>
                 </div>
-                <p className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 font-medium mt-1">
+                <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium mt-1">
                   완납 {stats?.paidCount || 0}건 수납 완료
                 </p>
               </div>
@@ -577,22 +580,22 @@ export default function TuitionPage() {
             {/* 3. 미납 잔여액 */}
             <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                <span className="text-xs font-semibold text-rose-700 dark:text-rose-400">
                   미납 / 잔여 수강료
                 </span>
-                <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-800 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-800 text-rose-700 dark:text-rose-400 flex items-center justify-center">
                   <AlertCircle className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3">
-                <div className="text-2xl font-extrabold text-rose-600 dark:text-rose-400">
+                <div className="text-2xl font-extrabold text-rose-700 dark:text-rose-400">
                   {Math.max(
                     0,
                     (stats?.totalInvoicedAmount || 0) - (stats?.totalCollectedAmount || 0),
                   ).toLocaleString()}
-                  <span className="text-sm font-medium text-slate-400 ml-1">원</span>
+                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-1">원</span>
                 </div>
-                <p className="text-[11px] text-rose-600/80 dark:text-rose-400/80 font-medium mt-1">
+                <p className="text-[11px] text-rose-700 dark:text-rose-300 font-medium mt-1">
                   미납/부분수납 {stats?.unpaidCount || 0}건 대기 중
                 </p>
               </div>
@@ -630,7 +633,7 @@ export default function TuitionPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               {/* Search Bar */}
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="원생 이름, 학년, 학부모 연락처 검색..."
@@ -642,7 +645,7 @@ export default function TuitionPage() {
                   <button
                     type="button"
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -673,7 +676,7 @@ export default function TuitionPage() {
                   }}
                   className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     statusFilter === 'UNPAID'
-                      ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs font-bold'
+                      ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-rose-600'
                   }`}
                 >
@@ -687,7 +690,7 @@ export default function TuitionPage() {
                   }}
                   className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     statusFilter === 'PARTIALLY_PAID'
-                      ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-2xs font-bold'
+                      ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-amber-600'
                   }`}
                 >
@@ -701,7 +704,7 @@ export default function TuitionPage() {
                   }}
                   className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     statusFilter === 'PAID'
-                      ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
+                      ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-2xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600'
                   }`}
                 >
@@ -733,7 +736,7 @@ export default function TuitionPage() {
             </div>
           ) : invoices.length === 0 ? (
             <div className="py-20 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col items-center justify-center text-center p-6">
-              <div className="w-14 h-14 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-3.5">
+              <div className="w-14 h-14 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 mb-3.5">
                 <Receipt className="w-7 h-7 stroke-1" />
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
@@ -806,7 +809,7 @@ export default function TuitionPage() {
                                     <Phone className="w-3 h-3" />
                                     <span>{inv.student.parentPhone}</span>
                                     {inv.student.parentName && (
-                                      <span className="text-slate-400">({inv.student.parentName})</span>
+                                      <span className="text-slate-500 dark:text-slate-400">({inv.student.parentName})</span>
                                     )}
                                   </a>
                                 )}
@@ -821,11 +824,11 @@ export default function TuitionPage() {
                                 {inv.billingYearMonth}
                               </span>
                               <div className="flex items-center gap-1 text-[11px]">
-                                <span className="text-slate-400">납기:</span>
+                                <span className="text-slate-500 dark:text-slate-400">납기:</span>
                                 <span
                                   className={
                                     isOverdue
-                                      ? 'text-rose-600 dark:text-rose-400 font-bold'
+                                      ? 'text-rose-700 dark:text-rose-400 font-bold'
                                       : 'text-slate-600 dark:text-slate-300'
                                   }
                                 >
@@ -852,7 +855,7 @@ export default function TuitionPage() {
                                 </div>
                               )}
                               {inv.description && (
-                                <p className="text-[10px] text-slate-400 truncate max-w-[140px] ml-auto">
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[140px] ml-auto">
                                   {inv.description}
                                 </p>
                               )}
@@ -863,15 +866,15 @@ export default function TuitionPage() {
                           <td className="py-4 px-4 text-right">
                             <div className="space-y-1">
                               <div className="flex items-center justify-end gap-1.5">
-                                <span className="text-[11px] text-slate-400">수납:</span>
-                                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400">수납:</span>
+                                <span className="font-bold text-emerald-700 dark:text-emerald-400">
                                   {inv.paidAmount.toLocaleString()}원
                                 </span>
                               </div>
                               {inv.status !== 'PAID' && inv.status !== 'VOID' && (
                                 <div className="flex items-center justify-end gap-1.5">
-                                  <span className="text-[11px] text-slate-400">미납:</span>
-                                  <span className="font-extrabold text-rose-600 dark:text-rose-400">
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400">미납:</span>
+                                  <span className="font-extrabold text-rose-700 dark:text-rose-400">
                                     {inv.remainingAmount.toLocaleString()}원
                                   </span>
                                 </div>
@@ -892,7 +895,7 @@ export default function TuitionPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleOpenPaymentModal(inv)}
-                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition-all cursor-pointer hover:scale-102"
+                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-2xs transition-all cursor-pointer hover:scale-102"
                                   title="수납 처리"
                                 >
                                   <Wallet className="w-3.5 h-3.5" />
@@ -924,6 +927,7 @@ export default function TuitionPage() {
                                 onClick={() => handleOpenHistoryModal(inv)}
                                 className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
                                 title="수납 이력 및 영수증"
+                                aria-label="수납 이력 및 영수증"
                               >
                                 <Receipt className="w-4 h-4" />
                               </button>
@@ -935,6 +939,7 @@ export default function TuitionPage() {
                                   onClick={() => handleOpenEditModal(inv)}
                                   className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
                                   title="금액 할인 및 납기 수정"
+                                  aria-label="금액 할인 및 납기 수정"
                                 >
                                   <Edit3 className="w-4 h-4" />
                                 </button>
@@ -946,8 +951,9 @@ export default function TuitionPage() {
                                   type="button"
                                   onClick={() => handleVoidInvoice(inv)}
                                   disabled={isItemLoading}
-                                  className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                                   title="청구서 취소 (VOID)"
+                                  aria-label="청구서 취소 (VOID)"
                                 >
                                   <Ban className="w-4 h-4" />
                                 </button>
@@ -974,6 +980,8 @@ export default function TuitionPage() {
                       type="button"
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
+                      title="이전 페이지"
+                      aria-label="이전 페이지"
                       className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 disabled:opacity-40 transition-colors cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -998,6 +1006,8 @@ export default function TuitionPage() {
                       type="button"
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
+                      title="다음 페이지"
+                      aria-label="다음 페이지"
                       className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 disabled:opacity-40 transition-colors cursor-pointer"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -1019,6 +1029,9 @@ export default function TuitionPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="generate-modal-title"
         >
           <div className="w-full max-w-md max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
@@ -1028,9 +1041,9 @@ export default function TuitionPage() {
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h2 id="generate-modal-title" className="text-base font-bold text-slate-900 dark:text-white">
                     월간 수강료 청구서 일괄 자동 생성
-                  </h3>
+                  </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     재원 중인 활성 수강생들의 수강료 청구서를 생성합니다.
                   </p>
@@ -1039,7 +1052,8 @@ export default function TuitionPage() {
               <button
                 type="button"
                 onClick={() => setIsGenerateModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                aria-label="닫기"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1057,10 +1071,11 @@ export default function TuitionPage() {
 
                 {/* Year-Month */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label htmlFor="generate-year-month" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     청구 대상 년월 <span className="text-rose-500">*</span>
                   </label>
                   <input
+                    id="generate-year-month"
                     type="month"
                     value={generateYearMonth}
                     onChange={(e) => {
@@ -1107,7 +1122,7 @@ export default function TuitionPage() {
                       })),
                     ]}
                   />
-                  <p className="text-[11px] text-slate-400 mt-1.5">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
                     * 이미 해당 월 청구서가 존재하는 원생은 자동 제외(중복 청구 방지)됩니다.
                   </p>
                 </div>
@@ -1151,18 +1166,21 @@ export default function TuitionPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="payment-modal-title"
         >
           <div className="w-full max-w-md max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-2xs">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shadow-2xs">
                   <Wallet className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h2 id="payment-modal-title" className="text-base font-bold text-slate-900 dark:text-white">
                     수강료 수납 처리
-                  </h3>
+                  </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {selectedInvoiceForPayment.student?.name} 학생 ({selectedInvoiceForPayment.billingYearMonth})
                   </p>
@@ -1171,7 +1189,8 @@ export default function TuitionPage() {
               <button
                 type="button"
                 onClick={() => setIsPaymentModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                aria-label="닫기"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1190,13 +1209,13 @@ export default function TuitionPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500 dark:text-slate-400">기납부 누적액:</span>
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">
                       {selectedInvoiceForPayment.paidAmount.toLocaleString()}원
                     </span>
                   </div>
                   <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
                     <span className="font-bold text-slate-900 dark:text-white">현재 잔여 미납액:</span>
-                    <span className="font-extrabold text-rose-600 dark:text-rose-400 text-sm">
+                    <span className="font-extrabold text-rose-700 dark:text-rose-400 text-sm">
                       {selectedInvoiceForPayment.remainingAmount.toLocaleString()}원
                     </span>
                   </div>
@@ -1234,7 +1253,7 @@ export default function TuitionPage() {
                       placeholder="수납할 금액 입력"
                       className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 dark:text-slate-400">
                       원
                     </span>
                   </div>
@@ -1258,7 +1277,7 @@ export default function TuitionPage() {
                         onClick={() => setPaymentMethod(m.id as PaymentMethod)}
                         className={`py-2.5 px-3 rounded-2xl border text-center transition-all cursor-pointer ${
                           paymentMethod === m.id
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                            ? 'bg-emerald-700 text-white border-emerald-600 shadow-xs'
                             : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
                         }`}
                       >
@@ -1330,7 +1349,7 @@ export default function TuitionPage() {
                 <button
                   type="submit"
                   disabled={isRecordingPayment}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isRecordingPayment ? (
                     <>
@@ -1356,6 +1375,9 @@ export default function TuitionPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-invoice-modal-title"
         >
           <div className="w-full max-w-md max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
@@ -1365,9 +1387,9 @@ export default function TuitionPage() {
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h2 id="edit-invoice-modal-title" className="text-base font-bold text-slate-900 dark:text-white">
                     청구서 할인 및 상세 수정
-                  </h3>
+                  </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {selectedInvoiceForEdit.student?.name} 학생 ({selectedInvoiceForEdit.billingYearMonth})
                   </p>
@@ -1376,7 +1398,8 @@ export default function TuitionPage() {
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                aria-label="닫기"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1423,7 +1446,7 @@ export default function TuitionPage() {
                       placeholder="0"
                       className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 dark:text-slate-400">
                       원
                     </span>
                   </div>
@@ -1495,6 +1518,9 @@ export default function TuitionPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="history-modal-title"
         >
           <div className="w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
@@ -1504,9 +1530,9 @@ export default function TuitionPage() {
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h2 id="history-modal-title" className="text-base font-bold text-slate-900 dark:text-white">
                     수강료 청구 및 수납 영수증 내역
-                  </h3>
+                  </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {selectedInvoiceForHistory.student?.name} 학생 ({selectedInvoiceForHistory.billingYearMonth})
                   </p>
@@ -1515,7 +1541,8 @@ export default function TuitionPage() {
               <button
                 type="button"
                 onClick={() => setIsHistoryModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                aria-label="닫기"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1547,12 +1574,12 @@ export default function TuitionPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400">누적 수납액:</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400">
                     {selectedInvoiceForHistory.paidAmount.toLocaleString()}원
                   </span>
                 </div>
                 {selectedInvoiceForHistory.status !== 'PAID' && (
-                  <div className="flex justify-between text-rose-600 dark:text-rose-400">
+                  <div className="flex justify-between text-rose-700 dark:text-rose-400">
                     <span className="font-bold">잔여 미납액:</span>
                     <span className="font-extrabold">
                       {selectedInvoiceForHistory.remainingAmount.toLocaleString()}원
@@ -1563,15 +1590,15 @@ export default function TuitionPage() {
 
               {/* Payment Installments Timeline */}
               <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2.5 flex items-center justify-between">
+                <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2.5 flex items-center justify-between">
                   <span>회차별 수납 영수증 이력</span>
-                  <span className="text-[11px] text-slate-400 font-normal">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
                     총 {selectedInvoiceForHistory.payments?.length || 0}건
                   </span>
-                </h4>
+                </h3>
 
                 {!selectedInvoiceForHistory.payments || selectedInvoiceForHistory.payments.length === 0 ? (
-                  <div className="py-8 text-center text-slate-400 text-xs bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-xs bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
                     <p>아직 등록된 수납 내역이 없습니다.</p>
                   </div>
                 ) : (
@@ -1587,11 +1614,11 @@ export default function TuitionPage() {
                               #{idx + 1}회차
                             </span>
                             {getMethodBadge(p.method)}
-                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                            <span className="font-extrabold text-emerald-700 dark:text-emerald-400">
                               +{p.amount.toLocaleString()}원
                             </span>
                           </div>
-                          <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
                             <span>{p.paidAt ? p.paidAt.split('T')[0] : ''}</span>
                             {p.processedBy && <span>• 처리자: {p.processedBy.name}</span>}
                             {p.receiptNumber && <span>• 승인: {p.receiptNumber}</span>}

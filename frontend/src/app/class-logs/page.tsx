@@ -459,9 +459,9 @@ export default function ClassLogsPage() {
           >
             <div className="flex items-center gap-2">
               {alertInfo.type === 'success' ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0" />
               ) : (
-                <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                <AlertTriangle className="w-5 h-5 text-rose-700 dark:text-rose-400 shrink-0" />
               )}
               <span>{alertInfo.message}</span>
             </div>
@@ -506,7 +506,7 @@ export default function ClassLogsPage() {
                 </p>
                 <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
                   {totalLogsCount}
-                  <span className="text-xs font-normal text-slate-400 ml-1">건</span>
+                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">건</span>
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
@@ -520,12 +520,12 @@ export default function ClassLogsPage() {
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   평균 과제 완료율
                 </p>
-                <p className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+                <p className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 mt-1">
                   {overallAvgCompletionRate}
-                  <span className="text-xs font-normal text-slate-400 ml-1">%</span>
+                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">%</span>
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-700 dark:text-emerald-400">
                 <BarChart3 className="w-5 h-5" />
               </div>
             </div>
@@ -539,7 +539,7 @@ export default function ClassLogsPage() {
                 <p className="text-xl sm:text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">
                   {overallAvgScore !== null ? overallAvgScore : '-'}
                   {overallAvgScore !== null && (
-                    <span className="text-xs font-normal text-slate-400 ml-1">점</span>
+                    <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">점</span>
                   )}
                 </p>
               </div>
@@ -556,7 +556,7 @@ export default function ClassLogsPage() {
                 </p>
                 <p className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
                   {totalAssignedStudents}
-                  <span className="text-xs font-normal text-slate-400 ml-1">명</span>
+                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">명</span>
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-400">
@@ -605,7 +605,7 @@ export default function ClassLogsPage() {
                     placeholder="시작일"
                   />
                 </div>
-                <span className="text-slate-400 text-xs">~</span>
+                <span className="text-slate-500 dark:text-slate-400 text-xs">~</span>
                 <div className="flex-1">
                   <CustomDatePicker
                     value={endDate}
@@ -620,7 +620,7 @@ export default function ClassLogsPage() {
                       setStartDate('');
                       setEndDate('');
                     }}
-                    className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                     title="기간 초기화"
                   >
                     <X className="w-4 h-4" />
@@ -635,7 +635,7 @@ export default function ClassLogsPage() {
                 진도 / 숙제 키워드 검색
               </label>
               <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="교재명, 단원, 과제 내용..."
@@ -648,7 +648,7 @@ export default function ClassLogsPage() {
                   <button
                     type="button"
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -737,14 +737,16 @@ export default function ClassLogsPage() {
                             onClick={() => handleOpenEditModal(log)}
                             className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
                             title="수업 일지 수정"
+                            aria-label="수업 일지 수정"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteLog(log.id)}
-                            className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 transition-all cursor-pointer"
+                            className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-400 transition-all cursor-pointer"
                             title="수업 일지 삭제"
+                            aria-label="수업 일지 삭제"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -814,15 +816,15 @@ export default function ClassLogsPage() {
                           </div>
 
                           <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                            <span className="text-emerald-600 dark:text-emerald-400">
+                            <span className="text-emerald-700 dark:text-emerald-400">
                               완료 {log.completedCount ?? 0}명
                             </span>
                             <span>•</span>
-                            <span className="text-amber-600 dark:text-amber-400">
+                            <span className="text-amber-700 dark:text-amber-400">
                               미흡 {log.incompleteCount ?? 0}명
                             </span>
                             <span>•</span>
-                            <span className="text-rose-600 dark:text-rose-400">
+                            <span className="text-rose-700 dark:text-rose-400">
                               미제출 {log.notSubmittedCount ?? 0}명
                             </span>
                             {log.averageScore !== undefined && (
@@ -856,10 +858,10 @@ export default function ClassLogsPage() {
                     {isExpanded && (
                       <div className="p-5 sm:p-6 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 space-y-4 animate-in fade-in duration-150">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                             <CheckCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                             <span>원생별 1초 과제 검사 & 개별 피드백</span>
-                          </h4>
+                          </h3>
 
                           <button
                             type="button"
@@ -877,7 +879,7 @@ export default function ClassLogsPage() {
                         </div>
 
                         {submissions.length === 0 ? (
-                          <div className="p-6 text-center text-xs text-slate-400">
+                          <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400">
                             이 반에 배정된 수강생이 없습니다.
                           </div>
                         ) : (
@@ -918,7 +920,7 @@ export default function ClassLogsPage() {
                                           누적 리포트
                                         </button>
                                       </div>
-                                      <div className="text-[11px] text-slate-400 mt-0.5">
+                                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                                         {student?.parentPhone}
                                       </div>
                                     </div>
@@ -938,7 +940,7 @@ export default function ClassLogsPage() {
                                       }
                                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                                         currentFormData.status === 'COMPLETED'
-                                          ? 'bg-emerald-600 text-white shadow-xs'
+                                          ? 'bg-emerald-700 text-white shadow-xs'
                                           : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100'
                                       }`}
                                     >
@@ -958,7 +960,7 @@ export default function ClassLogsPage() {
                                       }
                                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                                         currentFormData.status === 'INCOMPLETE'
-                                          ? 'bg-amber-500 text-white shadow-xs'
+                                          ? 'bg-amber-500 text-amber-950 shadow-xs'
                                           : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100'
                                       }`}
                                     >
@@ -1066,6 +1068,9 @@ export default function ClassLogsPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="log-modal-title"
         >
           <div className="w-full max-w-xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
@@ -1075,7 +1080,7 @@ export default function ClassLogsPage() {
                   <FileText className="w-4.5 h-4.5" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                  <h3 id="log-modal-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                     {editingLogId ? '수업 일지 수정' : '새 수업 일지 작성'}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1086,7 +1091,8 @@ export default function ClassLogsPage() {
               <button
                 type="button"
                 onClick={() => setIsLogModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                aria-label="닫기"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1234,6 +1240,9 @@ export default function ClassLogsPage() {
             }
           }}
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-modal-title"
         >
           <div className="w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col p-6 sm:p-7 my-auto animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
@@ -1242,7 +1251,7 @@ export default function ClassLogsPage() {
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  <h3 id="report-modal-title" className="text-lg font-bold text-slate-900 dark:text-white">
                     {reportData ? `${reportData.studentName} 학생 과제 누적 리포트` : '과제 성취도 리포트'}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1253,19 +1262,20 @@ export default function ClassLogsPage() {
               <button
                 type="button"
                 onClick={() => setIsReportModalOpen(false)}
-                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                className="p-1 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                aria-label="닫기"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {isLoadingReport ? (
-              <div className="py-16 text-center flex flex-col items-center justify-center gap-2 text-slate-400">
+              <div className="py-16 text-center flex flex-col items-center justify-center gap-2 text-slate-500 dark:text-slate-400">
                 <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
                 <span className="text-xs">누적 과제 이력을 집계 중입니다...</span>
               </div>
             ) : !reportData || reportData.history.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs">
+              <div className="py-12 text-center text-slate-500 dark:text-slate-400 text-xs">
                 누적된 과제 평가 내역이 없습니다.
               </div>
             ) : (
@@ -1286,7 +1296,7 @@ export default function ClassLogsPage() {
                     <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
                       과제 완성률
                     </p>
-                    <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    <p className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 mt-0.5">
                       {reportData.completionRate}%
                     </p>
                   </div>
