@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -12,8 +12,9 @@ import {
   Bell,
   ShieldCheck,
   LogOut,
-  Menu,
   X,
+  ChevronsLeft,
+  ChevronsRight,
   ClipboardList,
   LayoutDashboard,
   CreditCard,
@@ -27,6 +28,7 @@ import { useNavStatusStore } from '@/stores/useNavStatusStore';
 import { usePermissionsStore } from '@/stores/usePermissionsStore';
 import { authService } from '@/lib/auth-service';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { MobileTabBar, type TabBarItem } from '@/components/common/MobileTabBar';
 import { ensureSiteVisitTracked } from '@/lib/analytics-tracker';
 
 interface NavItem {
@@ -55,6 +57,25 @@ interface AppLayoutProps {
 // Module-level cache to preserve desktop sidebar scroll position across route navigations
 let savedSidebarScrollTop = 0;
 
+const SIDEBAR_STORAGE_KEY = 'classhelper_sidebar';
+// A first visit on a laptop-width screen starts as an icon rail so wide tables keep their room.
+const LAPTOP_MIN_WIDTH = 1280;
+
+// Phone tab bar: which destinations get a tab (in this order) and the short label shown under the icon.
+// Destinations the role cannot see are simply not in navGroups, so they drop out of the bar.
+const PHONE_TABS: Record<string, string> = {
+  '/attendance': '출결',
+  '/dashboard': '대시보드',
+  '/students': '원생',
+  '/notifications': '알림',
+};
+const ADMIN_PHONE_TABS: Record<string, string> = {
+  '/admin?tab=overview': '관제',
+  '/admin?tab=academies': '학원',
+  '/admin?tab=visitors': '방문자',
+  '/admin?tab=audit-logs': '감사',
+};
+
 export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -68,6 +89,48 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
   } = useNavStatusStore();
 
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const drawerCloseRef = useRef<HTMLButtonElement>(null);
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  // The width change animates only after the user toggles it: every page mounts its own AppLayout,
+  // so a route change must not replay the collapse.
+  const [isShellAnimated, setIsShellAnimated] = useState(false);
+
+  useLayoutEffect(() => {
+    try {
+      const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+      if (saved === 'collapsed' || saved === 'expanded') setIsCollapsed(saved === 'collapsed');
+      else if (window.innerWidth < LAPTOP_MIN_WIDTH) setIsCollapsed(true);
+    } catch {
+      // Storage can be blocked; the expanded sidebar is the safe default.
+    }
+  }, []);
+
+  const toggleCollapsed = () => {
+    const next = !isCollapsed;
+    setIsShellAnimated(true);
+    setIsCollapsed(next);
+    try {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, next ? 'collapsed' : 'expanded');
+    } catch {
+      // Not remembered, but the toggle still works for this page view.
+    }
+  };
+
+  // On phones the drawer is a dialog: Escape closes it, focus moves in and returns to the control that opened it.
+  useEffect(() => {
+    if (!isMobileDrawerOpen) return;
+    const opener = document.activeElement as HTMLElement | null;
+    drawerCloseRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileDrawerOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      opener?.focus();
+    };
+  }, [isMobileDrawerOpen]);
 
   // Background sync for status & permissions (preserves global cache across route changes)
   useEffect(() => {
@@ -347,6 +410,29 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
 
   const navGroups: NavGroup[] = isSuperAdmin ? superAdminNavGroups : academyNavGroups;
 
+  const tabLabels = isSuperAdmin ? ADMIN_PHONE_TABS : PHONE_TABS;
+  const allNavItems = navGroups.flatMap((group) => group.items);
+  const tabItems: TabBarItem[] = Object.entries(tabLabels)
+    .map(([href, label]): TabBarItem | null => {
+      const item = allNavItems.find((navItem) => navItem.href === href);
+      if (!item) return null;
+      const badge: TabBarItem['badge'] = item.alert ? 'alert' : item.hasExclamation ? 'notice' : undefined;
+      const badgeLabel = item.alert
+        ? `미체크 ${item.alertCount}명`
+        : item.hasExclamation
+        ? `읽지 않은 알림 ${item.unreadCount}건`
+        : undefined;
+      return { href, label, icon: item.icon, active: item.active, badge, badgeLabel };
+    })
+    .filter((tab): tab is TabBarItem => tab !== null);
+
+  const widthTransition = isShellAnimated
+    ? 'transition-[width] duration-200 ease-[var(--ease-out-strong)] motion-reduce:transition-none'
+    : '';
+  const paddingTransition = isShellAnimated
+    ? 'transition-[padding-left] duration-200 ease-[var(--ease-out-strong)] motion-reduce:transition-none'
+    : '';
+
   if (!isHydrated || !isAuthenticated || !user) {
     return null;
   }
@@ -356,50 +442,70 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 flex">
       {/* 1. Desktop Left Sidebar (Fixed on left, w-64) */}
-      <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-r border-slate-200/90 dark:border-slate-800/90 shadow-2xs">
-        {/* Sidebar Brand Header */}
+      <aside
+        aria-label="사이드바"
+        className={`hidden lg:flex flex-col ${isCollapsed ? 'w-[4.5rem]' : 'w-64'} overflow-hidden ${widthTransition} fixed inset-y-0 left-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-r border-slate-200/90 dark:border-slate-800/90 shadow-2xs`}
+      >
+        {/* Sidebar Brand Header (icon x-position is identical in both widths so the logo never slides) */}
         <div className="h-16 px-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <Link
             href={user.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard'}
+            aria-label="ClassHelper 홈"
             className="flex items-center gap-2.5 group"
           >
             <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center shadow-xs group-hover:bg-indigo-700 transition-colors shrink-0">
               <GraduationCap className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-              Class<span className="text-indigo-600 dark:text-indigo-400">Helper</span>
-            </span>
+            {!isCollapsed && (
+              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
+                Class<span className="text-indigo-600 dark:text-indigo-400">Helper</span>
+              </span>
+            )}
           </Link>
         </div>
 
-        {/* Academy Info Banner */}
+        {/* Academy Info Banner (icon tile only in the rail) */}
         {isSuperAdmin ? (
-          <div className="p-3 mx-3 my-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/70 dark:border-purple-800/60 flex items-center gap-2.5">
+          <div
+            title={isCollapsed ? '플랫폼 통합 관제 센터' : undefined}
+            className={`mx-3 my-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/70 dark:border-purple-800/60 flex items-center ${
+              isCollapsed ? 'h-12 justify-center' : 'p-3 gap-2.5'
+            }`}
+          >
             <div className="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
               <ShieldCheck className="w-3.5 h-3.5" />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-purple-950 dark:text-purple-200 truncate">
-                플랫폼 통합 관제 센터
-              </p>
-              <p className="text-[10px] text-purple-700 dark:text-purple-400 truncate">
-                전체 학원 총괄 거버넌스 (ROOT)
-              </p>
-            </div>
+            {!isCollapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-purple-950 dark:text-purple-200 truncate">
+                  플랫폼 통합 관제 센터
+                </p>
+                <p className="text-[10px] text-purple-700 dark:text-purple-400 truncate">
+                  전체 학원 총괄 거버넌스 (ROOT)
+                </p>
+              </div>
+            )}
           </div>
         ) : academy ? (
-          <div className="p-3 mx-3 my-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center gap-2.5">
+          <div
+            title={isCollapsed ? academy.name : undefined}
+            className={`mx-3 my-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center ${
+              isCollapsed ? 'h-12 justify-center' : 'p-3 gap-2.5'
+            }`}
+          >
             <div className="w-7 h-7 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
               <Building2 className="w-3.5 h-3.5" />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                {academy.name}
-              </p>
-              <p className="text-[10px] text-slate-400 truncate">
-                ID: #{academy.id} • SaaS 테넌트
-              </p>
-            </div>
+            {!isCollapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                  {academy.name}
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                  ID: #{academy.id} • SaaS 테넌트
+                </p>
+              </div>
+            )}
           </div>
         ) : null}
 
@@ -412,13 +518,18 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
               sessionStorage.setItem('classhelper_sidebar_scroll', String(e.currentTarget.scrollTop));
             } catch {}
           }}
-          className="flex-1 px-3 space-y-3.5 overflow-y-auto pt-1 pb-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+          aria-label="주 메뉴"
+          className="flex-1 px-3 space-y-3.5 overflow-y-auto overflow-x-hidden pt-1 pb-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
         >
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1">
-              <div className="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                {group.groupTitle}
-              </div>
+              {isCollapsed ? (
+                gIdx > 0 && <div aria-hidden="true" className="mx-4 border-t border-slate-200 dark:border-slate-800" />
+              ) : (
+                <div className="px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  {group.groupTitle}
+                </div>
+              )}
               {group.items.map((item) => {
                 const Icon = item.icon;
                 const isLocked = Boolean(user?.mustChangePassword && item.href !== '/change-password');
@@ -439,7 +550,8 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
                         } catch {}
                       }
                     }}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border transition-colors duration-150 select-none ${
+                    title={isCollapsed ? item.label : undefined}
+                    className={`relative flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold border transition-colors duration-150 select-none ${
                       isLocked
                         ? 'opacity-40 cursor-not-allowed border-transparent text-slate-400 dark:text-slate-600'
                         : item.active
@@ -457,37 +569,54 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
                           item.active ? 'text-white' : ''
                         }`}
                       />
-                      <span className="truncate">{item.label}</span>
+                      <span className={isCollapsed ? 'sr-only' : 'truncate'}>{item.label}</span>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
-                      {/* 미등원 긴급 알림 뱃지 */}
-                      {item.alert && (
-                        <span
-                          className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0 ${
-                            item.active
-                              ? 'bg-white text-rose-700'
-                              : 'bg-rose-600 text-white'
-                          }`}
-                        >
-                          {item.alertCount}명
-                        </span>
-                      )}
+                    {isCollapsed ? (
+                      // Rail: badges shrink to a dot on the icon; the count is still read out.
+                      (item.alert || item.hasExclamation) && (
+                        <>
+                          <span
+                            aria-hidden="true"
+                            className={`absolute top-1.5 right-2 h-2 w-2 rounded-full ring-2 ring-white dark:ring-slate-900 ${
+                              item.alert ? 'bg-rose-600' : 'bg-amber-500'
+                            }`}
+                          />
+                          <span className="sr-only">
+                            {item.alert ? `미체크 ${item.alertCount}명` : `읽지 않은 알림 ${item.unreadCount}건`}
+                          </span>
+                        </>
+                      )
+                    ) : (
+                      <div className="flex items-center gap-1 shrink-0">
+                        {/* 미등원 긴급 알림 뱃지 */}
+                        {item.alert && (
+                          <span
+                            className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0 ${
+                              item.active
+                                ? 'bg-white text-rose-700'
+                                : 'bg-rose-600 text-white'
+                            }`}
+                          >
+                            {item.alertCount}명
+                          </span>
+                        )}
 
-                      {/* 알림 관리 센터 느낌표 뱃지 */}
-                      {item.hasExclamation && (
-                        <span
-                          className={`inline-flex items-center justify-center w-4.5 h-4.5 rounded-full text-xs font-black shrink-0 ${
-                            item.active
-                              ? 'bg-white text-indigo-700'
-                              : 'bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
-                          }`}
-                          title={`읽지 않은 알림 ${item.unreadCount}건`}
-                        >
-                          !
-                        </span>
-                      )}
-                    </div>
+                        {/* 알림 관리 센터 느낌표 뱃지 */}
+                        {item.hasExclamation && (
+                          <span
+                            className={`inline-flex items-center justify-center w-4.5 h-4.5 rounded-full text-xs font-black shrink-0 ${
+                              item.active
+                                ? 'bg-white text-indigo-700'
+                                : 'bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
+                            }`}
+                            title={`읽지 않은 알림 ${item.unreadCount}건`}
+                          >
+                            !
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </Link>
                 );
               })}
@@ -497,63 +626,91 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
 
         {/* Sidebar Footer: User Profile & Quick Actions (Bell Icon Removed) */}
         <div className="p-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-extrabold flex items-center justify-center text-xs shrink-0 border border-indigo-200 dark:border-indigo-800">
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-expanded={!isCollapsed}
+            aria-label={isCollapsed ? '사이드바 펴기' : '사이드바 접기'}
+            title={isCollapsed ? '사이드바 펴기' : undefined}
+            className={`w-full h-9 mb-3 flex items-center rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-ui active:scale-[0.97] cursor-pointer ${
+              isCollapsed ? 'justify-center' : 'gap-2.5 px-3'
+            }`}
+          >
+            {isCollapsed ? (
+              <ChevronsRight className="w-4 h-4 shrink-0" />
+            ) : (
+              <>
+                <ChevronsLeft className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">사이드바 접기</span>
+              </>
+            )}
+          </button>
+
+          {isCollapsed ? (
+            <div className="flex flex-col items-center gap-2 pt-3 border-t border-slate-200/60 dark:border-slate-700/60">
+              <div
+                title={`${user.name} · ${roleBadge.label}`}
+                className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-extrabold flex items-center justify-center text-xs shrink-0 border border-indigo-200 dark:border-indigo-800"
+              >
                 {user.name.slice(0, 2)}
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                    {user.name}
-                  </span>
-                  <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold border ${roleBadge.color}`}>
-                    {roleBadge.label}
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 truncate mt-0.5">
-                  {user.email}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
-            <div className="flex items-center gap-1.5">
               <ThemeToggle />
+              <button
+                type="button"
+                onClick={handleLogout}
+                title="로그아웃"
+                aria-label="로그아웃"
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-ui active:scale-[0.97] cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-3 pt-3 border-t border-slate-200/60 dark:border-slate-700/60">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-extrabold flex items-center justify-center text-xs shrink-0 border border-indigo-200 dark:border-indigo-800">
+                    {user.name.slice(0, 2)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        {user.name}
+                      </span>
+                      <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold border whitespace-nowrap ${roleBadge.color}`}>
+                        {roleBadge.label}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-            <button
-              onClick={handleLogout}
-              title="로그아웃"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>로그아웃</span>
-            </button>
-          </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <ThemeToggle />
+                </div>
 
+                <button
+                  onClick={handleLogout}
+                  title="로그아웃"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition-ui active:scale-[0.97] cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>로그아웃</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </aside>
 
       {/* 2. Mobile & Tablet Top Bar (< 1024px) */}
-      <div className="lg:hidden fixed top-0 inset-x-0 z-40 h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800/90 px-4 flex items-center justify-between shadow-xs">
+      <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800/90 px-4 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => setIsMobileDrawerOpen(true)}
-            aria-label="메뉴 열기"
-            className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs cursor-pointer"
-          >
-            <div className="relative">
-              <Menu className="w-5 h-5" />
-              {hasUnattendedAlert && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-600 rounded-full animate-ping" />
-              )}
-            </div>
-          </button>
-
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href={user.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard'} aria-label="ClassHelper 홈" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
               <GraduationCap className="w-4 h-4" />
             </div>
@@ -564,9 +721,9 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
         </div>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <ThemeToggle size="lg" />
         </div>
-      </div>
+      </header>
 
       {/* 3. Mobile Drawer Overlay */}
       {isMobileDrawerOpen && (
@@ -577,8 +734,13 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
             onClick={() => setIsMobileDrawerOpen(false)}
           />
 
-          {/* Drawer Sidebar */}
-          <div className="relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full flex flex-col z-10 shadow-2xl border-r border-slate-200 dark:border-slate-800">
+          {/* Drawer Sidebar (opened from the tab bar's 더보기) */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="전체 메뉴"
+            className="relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full flex flex-col z-10 shadow-2xl border-r border-slate-200 dark:border-slate-800 animate-in slide-in-from-left duration-200"
+          >
             {/* Drawer Header */}
             <div className="h-16 px-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -591,9 +753,11 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
               </div>
 
               <button
+                ref={drawerCloseRef}
                 type="button"
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                aria-label="메뉴 닫기"
+                className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -619,7 +783,7 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
                   <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                     {academy.name}
                   </p>
-                  <p className="text-[10px] text-slate-400">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
                     {user.name} ({roleBadge.label})
                   </p>
                 </div>
@@ -630,7 +794,7 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
             <nav className="flex-1 px-3 space-y-4 overflow-y-auto py-2">
               {navGroups.map((group, gIdx) => (
                 <div key={gIdx} className="space-y-1">
-                  <div className="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                  <div className="px-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     {group.groupTitle}
                   </div>
                   {group.items.map((item) => {
@@ -695,7 +859,7 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
             </nav>
 
             {/* Drawer Footer */}
-            <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                   {user.email}
@@ -714,8 +878,17 @@ export function AppLayout({ children, currentPath, currentTab }: AppLayoutProps)
         </div>
       )}
 
-      {/* 4. Main Page Content (Offset for Left Sidebar on desktop, top offset on mobile) */}
-      <div className="flex-1 lg:pl-64 flex flex-col min-w-0 pt-16 lg:pt-0 relative overflow-x-hidden bg-ambient-mesh bg-tech-grid">
+      {/* 3b. Phone bottom tab bar: primary destinations, with 더보기 opening the drawer above */}
+      <MobileTabBar
+        items={tabItems}
+        onOpenMore={() => setIsMobileDrawerOpen(true)}
+        isLocked={Boolean(user?.mustChangePassword)}
+      />
+
+      {/* 4. Main Page Content (Offset for the sidebar or icon rail on desktop; top bar and tab bar room on phones) */}
+      <div
+        className={`flex-1 ${isCollapsed ? 'lg:pl-[4.5rem]' : 'lg:pl-64'} ${paddingTransition} flex flex-col min-w-0 pt-16 lg:pt-0 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 relative overflow-x-hidden bg-ambient-mesh bg-tech-grid`}
+      >
         {/* Atmospheric Ambient Glowing Orbs */}
         <div className="absolute -top-32 -left-20 w-[32rem] h-[32rem] rounded-full bg-gradient-to-br from-indigo-500/12 via-indigo-600/6 to-transparent dark:from-indigo-500/18 dark:via-indigo-600/8 blur-[100px] pointer-events-none -z-10" />
         <div className="absolute top-20 -right-20 w-[36rem] h-[36rem] rounded-full bg-gradient-to-bl from-purple-500/10 via-fuchsia-500/5 to-transparent dark:from-purple-500/16 dark:via-fuchsia-500/8 blur-[120px] pointer-events-none -z-10" />
