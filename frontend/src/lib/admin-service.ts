@@ -115,7 +115,7 @@ export const adminService = {
     const response = await api.get<DailyAnalyticsStat[]>('/analytics/stats', {
       params: { startDate, endDate },
     });
-    const dailyStats = response.data || [];
+    const dailyStats = Array.isArray(response.data) ? response.data : [];
 
     let totalAnonymous = 0;
     let totalLogins = 0;

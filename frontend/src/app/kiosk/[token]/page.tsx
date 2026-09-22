@@ -478,7 +478,7 @@ export default function KioskAttendancePage() {
                       char
                         ? 'border-indigo-500 bg-indigo-950/40 text-white shadow-lg shadow-indigo-500/20 scale-105'
                         : isCurrent
-                        ? 'border-indigo-400/80 bg-slate-900/90 text-indigo-400 animate-pulse'
+                        ? 'border-indigo-400/80 bg-slate-900/90 text-indigo-400 motion-safe:animate-pulse'
                         : 'border-slate-800 bg-slate-900/50 text-slate-600'
                     }`}
                   >
@@ -549,7 +549,7 @@ export default function KioskAttendancePage() {
             <div className="relative mb-6">
               <div className="w-20 h-20 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <User className="w-8 h-8 text-indigo-400 animate-pulse" />
+                <User className="w-8 h-8 text-indigo-400 motion-safe:animate-pulse" />
               </div>
             </div>
             <h3 className="text-xl font-bold text-white mb-2">원생 정보를 조회하고 있습니다</h3>
@@ -748,7 +748,7 @@ export default function KioskAttendancePage() {
           <div className="w-full max-w-md flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
             {/* Animated Celebration Icon */}
             <div
-              className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-6 shadow-2xl animate-bounce ${
+              className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-6 shadow-2xl motion-safe:animate-bounce ${
                 checkInResult.type === 'CHECK_IN'
                   ? 'bg-emerald-500 text-white shadow-emerald-500/40'
                   : 'bg-indigo-600 text-white shadow-indigo-600/40'
@@ -833,7 +833,7 @@ export default function KioskAttendancePage() {
       {/* 3. Kiosk Footer Info */}
       <footer className="h-12 px-6 border-t border-slate-800/80 bg-slate-950/80 flex items-center justify-between text-xs text-slate-500 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-emerald-500 motion-safe:animate-pulse" />
           <span>키오스크 시스템 실시간 가동 중</span>
         </div>
         <div>

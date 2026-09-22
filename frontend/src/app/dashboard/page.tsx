@@ -403,7 +403,7 @@ export default function DashboardPage() {
 
           {/* Emergency Unattended Warning Callout (If active) */}
           {unattendedStatus.isUnattendedAlertActive && (
-            <div className="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border-2 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-100 shadow-md animate-pulse">
+            <div className="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border-2 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-100 shadow-md motion-safe:animate-pulse">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">

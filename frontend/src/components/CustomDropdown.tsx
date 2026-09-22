@@ -149,6 +149,14 @@ export function CustomDropdown({
         <div
           className={`absolute ${
             openDirection === 'up' ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          } ${
+            openDirection === 'up'
+              ? align === 'right'
+                ? 'origin-bottom-right'
+                : 'origin-bottom-left'
+              : align === 'right'
+              ? 'origin-top-right'
+              : 'origin-top-left'
           } z-[80] ${
             fullWidth ? 'w-full left-0' : align === 'right' ? 'right-0 min-w-[200px]' : 'left-0 min-w-[200px]'
           } bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 max-h-60 overflow-y-auto overscroll-contain touch-pan-y animate-in fade-in zoom-in-95 duration-100 ${dropdownClassName}`}

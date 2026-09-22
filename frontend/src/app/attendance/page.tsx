@@ -1925,7 +1925,7 @@ export default function AttendancePage() {
                               <div
                                 className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
                                   isCurrentActive
-                                    ? 'bg-indigo-600 text-white shadow-xs animate-pulse'
+                                    ? 'bg-indigo-600 text-white shadow-xs motion-safe:animate-pulse'
                                     : group.status === 'PAST'
                                     ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                                     : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'

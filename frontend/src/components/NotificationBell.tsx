@@ -211,7 +211,7 @@ export function NotificationBell() {
           hasSystemError
             ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 dark:border-rose-700 text-rose-600 dark:text-rose-400 shadow-rose-500/20'
             : unreadInfo.hasUnattendedAlert
-            ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800 text-amber-600 dark:text-amber-400 animate-pulse'
+            ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800 text-amber-600 dark:text-amber-400 motion-safe:animate-pulse'
             : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
         } shadow-2xs`}
       >
@@ -245,7 +245,7 @@ export function NotificationBell() {
 
               {/* Red Exclamation Mark on Title if System Error */}
               {hasSystemError && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 text-[10px] font-black animate-pulse">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 text-[10px] font-black motion-safe:animate-pulse">
                   <span className="w-3.5 h-3.5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] font-black">!</span>
                   <span>통신 장애</span>
                 </span>

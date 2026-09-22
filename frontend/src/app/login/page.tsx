@@ -492,7 +492,7 @@ export default function LoginPage() {
                 <div className="mt-6 pt-5 border-t border-dashed border-amber-300 dark:border-amber-700/60 bg-gradient-to-b from-amber-50/70 to-amber-50/20 dark:from-amber-950/30 dark:to-amber-950/10 -mx-3 px-4 py-4 rounded-2xl border border-amber-200/80 dark:border-amber-900/60 shadow-2xs">
                   <div className="flex items-center justify-between mb-2.5">
                     <div className="flex items-center gap-1.5">
-                      <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="flex h-2 w-2 rounded-full bg-amber-500 motion-safe:animate-pulse" />
                       <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1">
                         <Terminal className="w-3.5 h-3.5" />
                         개발 환경 전용 빠른 로그인

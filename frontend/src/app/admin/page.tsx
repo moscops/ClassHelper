@@ -1881,7 +1881,7 @@ function AdminPortalContent() {
                       <Server className="w-5 h-5" />
                     </div>
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 motion-safe:animate-pulse" />
                       <span>200 OK 정상</span>
                     </span>
                   </div>
@@ -1907,7 +1907,7 @@ function AdminPortalContent() {
                       <Activity className="w-5 h-5" />
                     </div>
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
-                      <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 motion-safe:animate-pulse" />
                       <span>정상 서비스 중</span>
                     </span>
                   </div>
